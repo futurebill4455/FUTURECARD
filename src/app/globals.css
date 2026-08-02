@@ -1,0 +1,92 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 150 20% 97%;
+  --foreground: 160 25% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 160 25% 10%;
+  --primary: 173 80% 26%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 15% 92%;
+  --secondary-foreground: 160 25% 15%;
+  --muted: 150 12% 93%;
+  --muted-foreground: 160 8% 40%;
+  --accent: 150 15% 92%;
+  --accent-foreground: 160 25% 15%;
+  --destructive: 0 72% 45%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 12% 86%;
+  --input: 150 12% 86%;
+  --ring: 173 80% 26%;
+  --radius: 0.9rem;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground antialiased;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.12), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(196, 120, 60, 0.1), transparent 45%);
+  min-height: 100vh;
+}
+
+/* Landing-only: animated gradient text + soft section rhythm */
+@keyframes gradient-shift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.landing-page {
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(15, 118, 110, 0.14), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 100% 30%, rgba(217, 119, 6, 0.08), transparent 45%),
+    linear-gradient(180deg, #f3f8f6 0%, #eef6f3 40%, #f7f5f0 100%);
+}
+
+.landing-page section + section {
+  scroll-margin-top: 5rem;
+}
+
+@keyframes feature-shine {
+  from {
+    transform: translateX(-20%) skewX(-12deg);
+  }
+  to {
+    transform: translateX(220%) skewX(-12deg);
+  }
+}
+
+.landing-glow-border::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 212, 191, 0.55),
+    transparent 40%,
+    rgba(245, 158, 11, 0.4)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.85;
+  z-index: 1;
+}
