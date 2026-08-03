@@ -1,11 +1,5 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error("Please define MONGODB_URI in .env.local");
-}
-
 interface MongooseCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
@@ -23,6 +17,20 @@ const cached: MongooseCache = global.mongooseCache ?? {
 
 global.mongooseCache = cached;
 
+function getMongoUri() {
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error(
+      "Please define MONGODB_URI in the environment (e.g. Vercel project settings or .env.local).",
+    );
+  }
+  return uri;
+}
+
+/**
+ * Connect lazily so importing this module during `next build` does not throw
+ * when env vars are missing or the DB is unreachable.
+ */
 export async function dbConnect() {
   if (cached.conn) {
     if (cached.conn.connection.readyState === 1) return cached.conn;
@@ -31,8 +39,9 @@ export async function dbConnect() {
   }
 
   if (!cached.promise) {
+    const uri = getMongoUri();
     cached.promise = mongoose
-      .connect(MONGODB_URI!, {
+      .connect(uri, {
         bufferCommands: false,
         serverSelectionTimeoutMS: 5000,
       })

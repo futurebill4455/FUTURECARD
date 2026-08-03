@@ -121,14 +121,20 @@ export function LandingPricing() {
           {plans.map((plan, i) => (
             <motion.div
               key={plan.id}
-              initial={{ opacity: 0, y: 28, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1, duration: 0.5 }}
               whileHover={{
-                scale: 1.035,
-                y: -6,
-                transition: { type: "spring", stiffness: 320, damping: 22 },
+                scale: 1.05,
+                y: -10,
+                rotate: plan.popular ? 0 : i % 2 === 0 ? -0.8 : 0.8,
+                transition: { type: "spring", stiffness: 300, damping: 18 },
+              }}
+              initial={{ opacity: 0, y: 48, scale: 0.88, filter: "blur(8px)" }}
+              whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
+              viewport={{ once: true }}
+              transition={{
+                delay: i * 0.12,
+                type: "spring",
+                stiffness: 95,
+                damping: 14,
               }}
               className={cn(
                 "relative overflow-hidden rounded-3xl border p-6 backdrop-blur-md",

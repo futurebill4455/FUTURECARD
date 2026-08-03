@@ -122,7 +122,7 @@ export function BankDetailsForm({
 }) {
   const fields: { key: keyof IBankDetails; label: string; placeholder: string }[] =
     [
-      { key: "accountName", label: "Account name", placeholder: "Dhanya Enterprises" },
+      { key: "accountName", label: "Account name", placeholder: "Future Shield" },
       { key: "accountNumber", label: "Account number", placeholder: "1234567890" },
       { key: "ifscCode", label: "IFSC code", placeholder: "SBIN0001234" },
       { key: "bankName", label: "Bank name", placeholder: "State Bank of India" },

@@ -1,6 +1,7 @@
 "use client";
 
 import type { IPlatformSettings } from "@/types/platform.types";
+import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
 
 export function CardPromoFooter({
   settings,
@@ -12,8 +13,9 @@ export function CardPromoFooter({
   onTrack?: () => void;
 }) {
   const phone = (settings.adminWhatsappNumber || "").replace(/\D/g, "");
+  const brand = settings.companyName || "Future Shield";
   const message = encodeURIComponent(
-    `Hello ${settings.companyName || "FutureCard"}!\n\nI saw a digital visiting card and I am interested in getting one for my business.\nPlease share pricing and how to get started.`,
+    `Hello ${brand}!\n\nI saw a digital visiting card and I am interested in getting one for my business.\nPlease share pricing and how to get started.`,
   );
   const waUrl = phone
     ? `https://wa.me/${phone}?text=${message}`
@@ -22,11 +24,11 @@ export function CardPromoFooter({
 
   return (
     <footer className="mt-6 rounded-2xl bg-white/90 p-4 text-center shadow-sm ring-1 ring-black/5">
-      <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        {settings.companyName || "FutureCard"}
-      </p>
+      <div className="flex justify-center">
+        <VerifiedByBrand size="md" />
+      </div>
       {settings.footerTagline ? (
-        <p className="mt-1 text-xs text-muted-foreground">
+        <p className="mt-2 text-xs text-muted-foreground">
           {settings.footerTagline}
         </p>
       ) : null}

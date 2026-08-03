@@ -8,63 +8,90 @@ import {
   isCustomDomainLive,
   normalizeDomainStatus,
 } from "@/lib/custom-domain-access";
+import { DEFAULT_PLATFORM_SETTINGS } from "@/types/platform.types";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminDomainsPage() {
-  await dbConnect();
-  const [cards, settings] = await Promise.all([
-    Card.find({
-      customDomain: { $exists: true, $nin: [null, ""] },
-    })
-      .select(
-        "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
-      )
-      .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
-      .lean(),
-    getPlatformSettings(),
-  ]);
+  let rows: {
+    _id: string;
+    username: string;
+    companyName: string;
+    customDomain?: string;
+    customDomainStatus: string;
+    customDomainActive: boolean;
+    customDomainRequestedAt?: string;
+    customDomainReviewedAt?: string;
+    isLive: boolean;
+    owner: {
+      name: string;
+      email: string;
+      customDomainFeature: boolean;
+    } | null;
+  }[] = [];
+  let platformCnameTarget = DEFAULT_PLATFORM_SETTINGS.platformCnameTarget;
 
-  const userIds = [...new Set(cards.map((c) => String(c.userId)))];
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("name email features")
-    .lean();
-  const userMap = new Map(
-    users.map((u) => [
-      String(u._id),
-      {
-        name: u.name as string,
-        email: u.email as string,
-        customDomainFeature: Boolean(
-          (u as { features?: { customDomain?: boolean } }).features
-            ?.customDomain,
-        ),
-      },
-    ]),
-  );
+  try {
+    await dbConnect();
+    const [cards, settings] = await Promise.all([
+      Card.find({
+        customDomain: { $exists: true, $nin: [null, ""] },
+      })
+        .select(
+          "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
+        )
+        .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
+        .lean(),
+      getPlatformSettings(),
+    ]);
 
-  const rows = cards.map((c) => {
-    const status = normalizeDomainStatus(c.customDomainStatus as string);
-    const live = isCustomDomainLive({
-      customDomain: c.customDomain as string | undefined,
-      customDomainStatus: c.customDomainStatus as string | undefined,
-      customDomainActive: c.customDomainActive as boolean | undefined,
+    platformCnameTarget = settings.platformCnameTarget;
+
+    const userIds = [...new Set(cards.map((c) => String(c.userId)))];
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("name email features")
+      .lean();
+    const userMap = new Map(
+      users.map((u) => [
+        String(u._id),
+        {
+          name: u.name as string,
+          email: u.email as string,
+          customDomainFeature: Boolean(
+            (u as { features?: { customDomain?: boolean } }).features
+              ?.customDomain,
+          ),
+        },
+      ]),
+    );
+
+    rows = cards.map((c) => {
+      const status = normalizeDomainStatus(c.customDomainStatus as string);
+      const live = isCustomDomainLive({
+        customDomain: c.customDomain as string | undefined,
+        customDomainStatus: c.customDomainStatus as string | undefined,
+        customDomainActive: c.customDomainActive as boolean | undefined,
+      });
+      return {
+        _id: String(c._id),
+        username: c.username as string,
+        companyName: c.companyName as string,
+        customDomain: c.customDomain as string | undefined,
+        customDomainStatus: status,
+        customDomainActive: live || Boolean(c.customDomainActive),
+        customDomainRequestedAt: c.customDomainRequestedAt
+          ? new Date(c.customDomainRequestedAt as Date).toISOString()
+          : undefined,
+        customDomainReviewedAt: c.customDomainReviewedAt
+          ? new Date(c.customDomainReviewedAt as Date).toISOString()
+          : undefined,
+        isLive: live,
+        owner: userMap.get(String(c.userId)) ?? null,
+      };
     });
-    return {
-      _id: String(c._id),
-      username: c.username as string,
-      companyName: c.companyName as string,
-      customDomain: c.customDomain as string | undefined,
-      customDomainStatus: status,
-      customDomainActive: live || Boolean(c.customDomainActive),
-      customDomainRequestedAt: c.customDomainRequestedAt
-        ? new Date(c.customDomainRequestedAt as Date).toISOString()
-        : undefined,
-      customDomainReviewedAt: c.customDomainReviewedAt
-        ? new Date(c.customDomainReviewedAt as Date).toISOString()
-        : undefined,
-      isLive: live,
-      owner: userMap.get(String(c.userId)) ?? null,
-    };
-  });
+  } catch (err) {
+    console.error("[admin/domains page]", err);
+  }
 
   const pendingCount = rows.filter(
     (r) => r.customDomainStatus === "pending",
@@ -82,7 +109,7 @@ export default async function AdminDomainsPage() {
       />
       <AdminDomainsTable
         initial={rows}
-        platformCnameTarget={settings.platformCnameTarget}
+        platformCnameTarget={platformCnameTarget}
       />
     </div>
   );

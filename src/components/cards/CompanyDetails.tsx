@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ICard } from "@/types/card.types";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
 import { cn } from "@/lib/utils";
 
 const ABOUT_COLLAPSE_CHARS = 120;
@@ -114,6 +115,13 @@ export function CardHeaderIdentity({
           <VerifiedBadge className="translate-y-[1px]" />
         ) : null}
       </h1>
+
+      <div className="mt-2.5 flex justify-center">
+        <VerifiedByBrand
+          size="sm"
+          className="rounded-full border border-teal-800/10 bg-white/80 px-3 py-1 shadow-sm backdrop-blur-sm"
+        />
+      </div>
 
       {category ? (
         <div className="mt-2.5 flex justify-center">

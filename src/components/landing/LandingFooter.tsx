@@ -45,9 +45,12 @@ export function LandingFooter() {
             <Link href="/" className="font-display text-2xl font-extrabold">
               Future<span className="text-teal-400">Card</span>
             </Link>
+            <p className="mt-2 text-sm font-semibold text-teal-300">
+              Verified by Future Shield
+            </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-teal-100/65">
-              The modern digital visiting card platform for Indian businesses —
-              shareable, trackable, and beautifully branded.
+              The modern digital visiting card platform — shareable, trackable,
+              and verified by Future Shield.
             </p>
             <p className="mt-4 text-sm text-teal-200/70">
               WhatsApp:{" "}

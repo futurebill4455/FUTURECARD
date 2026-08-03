@@ -14,6 +14,9 @@ import { getPlatformSettings } from "@/lib/platform-settings";
 import { canRequestCustomDomain } from "@/lib/custom-domain-access";
 import { resolveFeatures } from "@/types/platform.types";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 type Params = { params: Promise<{ cardId: string }> };
 
 async function assertDomainPrivilege(userId: string) {

@@ -150,8 +150,8 @@ export interface IPlatformSettings {
 
 export const DEFAULT_PLATFORM_SETTINGS: IPlatformSettings = {
   adminWhatsappNumber: "+919876543210",
-  companyWebsiteUrl: "https://futurecard.local",
-  companyName: "FutureCard",
-  footerTagline: "Create your own digital visiting card",
+  companyWebsiteUrl: "https://futureshield.pro",
+  companyName: "Future Shield",
+  footerTagline: "Verified digital visiting cards by Future Shield",
   platformCnameTarget: "app.futurecard.pro",
 };

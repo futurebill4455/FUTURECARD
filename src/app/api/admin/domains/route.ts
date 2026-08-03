@@ -4,77 +4,97 @@ import { dbConnect } from "@/lib/db";
 import { Card } from "@/models/Card";
 import { User } from "@/models/User";
 import { requireAdmin } from "@/lib/session";
-import { verifyDomainDns } from "@/lib/verify-domain-dns";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import {
   isCustomDomainLive,
   normalizeDomainStatus,
 } from "@/lib/custom-domain-access";
 
+/** Never statically collect this route during `next build`. */
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 export async function GET() {
   const { error } = await requireAdmin();
   if (error) return error;
 
-  await dbConnect();
-  const cards = await Card.find({
-    customDomain: { $exists: true, $nin: [null, ""] },
-  })
-    .select(
-      "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
-    )
-    .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
-    .lean();
+  try {
+    await dbConnect();
+    const cards = await Card.find({
+      customDomain: { $exists: true, $nin: [null, ""] },
+    })
+      .select(
+        "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
+      )
+      .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
+      .lean();
 
-  const userIds = [...new Set(cards.map((c) => String(c.userId)))];
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("name email features")
-    .lean();
-  const userMap = new Map(
-    users.map((u) => [
-      String(u._id),
+    const userIds = [...new Set(cards.map((c) => String(c.userId)))];
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("name email features")
+      .lean();
+    const userMap = new Map(
+      users.map((u) => [
+        String(u._id),
+        {
+          name: u.name as string,
+          email: u.email as string,
+          customDomainFeature: Boolean(
+            (u as { features?: { customDomain?: boolean } }).features
+              ?.customDomain,
+          ),
+        },
+      ]),
+    );
+
+    const settings = await getPlatformSettings();
+
+    return NextResponse.json({
+      data: cards.map((c) => {
+        const status = normalizeDomainStatus(c.customDomainStatus as string);
+        return {
+          _id: String(c._id),
+          username: c.username,
+          companyName: c.companyName,
+          customDomain: c.customDomain,
+          customDomainStatus: status,
+          customDomainActive: isCustomDomainLive({
+            customDomain: c.customDomain as string,
+            customDomainStatus: c.customDomainStatus as string,
+            customDomainActive: c.customDomainActive as boolean | undefined,
+          })
+            ? true
+            : Boolean(c.customDomainActive),
+          customDomainRequestedAt: c.customDomainRequestedAt,
+          customDomainReviewedAt: c.customDomainReviewedAt,
+          userId: String(c.userId),
+          owner: userMap.get(String(c.userId)) ?? null,
+          updatedAt: c.updatedAt,
+          isLive: isCustomDomainLive({
+            customDomain: c.customDomain as string,
+            customDomainStatus: c.customDomainStatus as string,
+            customDomainActive: c.customDomainActive as boolean | undefined,
+          }),
+        };
+      }),
+      platformCnameTarget: settings.platformCnameTarget,
+    });
+  } catch (err) {
+    console.error("[api/admin/domains GET]", err);
+    // Empty / unreachable DB must not break the admin UI or Vercel build probing
+    return NextResponse.json(
       {
-        name: u.name as string,
-        email: u.email as string,
-        customDomainFeature: Boolean(
-          (u as { features?: { customDomain?: boolean } }).features
-            ?.customDomain,
-        ),
+        data: [],
+        platformCnameTarget:
+          process.env.NEXT_PUBLIC_PLATFORM_CNAME_TARGET || "app.futurecard.pro",
+        error:
+          err instanceof Error
+            ? err.message
+            : "Database unavailable — returning empty domain list",
       },
-    ]),
-  );
-
-  const settings = await getPlatformSettings();
-
-  return NextResponse.json({
-    data: cards.map((c) => {
-      const status = normalizeDomainStatus(c.customDomainStatus as string);
-      return {
-        _id: String(c._id),
-        username: c.username,
-        companyName: c.companyName,
-        customDomain: c.customDomain,
-        customDomainStatus: status,
-        customDomainActive: isCustomDomainLive({
-          customDomain: c.customDomain as string,
-          customDomainStatus: c.customDomainStatus as string,
-          customDomainActive: c.customDomainActive as boolean | undefined,
-        })
-          ? true
-          : Boolean(c.customDomainActive),
-        customDomainRequestedAt: c.customDomainRequestedAt,
-        customDomainReviewedAt: c.customDomainReviewedAt,
-        userId: String(c.userId),
-        owner: userMap.get(String(c.userId)) ?? null,
-        updatedAt: c.updatedAt,
-        isLive: isCustomDomainLive({
-          customDomain: c.customDomain as string,
-          customDomainStatus: c.customDomainStatus as string,
-          customDomainActive: c.customDomainActive as boolean | undefined,
-        }),
-      };
-    }),
-    platformCnameTarget: settings.platformCnameTarget,
-  });
+      { status: 200 },
+    );
+  }
 }
 
 const patchSchema = z.object({
@@ -123,7 +143,6 @@ export async function PATCH(req: NextRequest) {
     if (body.action === "approve") {
       card.customDomainStatus = "approved";
       card.customDomainReviewedAt = new Date();
-      // Approve does not auto-activate — admin must toggle Active
       card.customDomainActive = false;
       await card.save();
       return NextResponse.json({
@@ -172,7 +191,8 @@ export async function PATCH(req: NextRequest) {
       });
     }
 
-    // dns-check — informational only; does not change approval/active
+    // Lazy-load DNS verify so Node `dns` is not required during page-data collection
+    const { verifyDomainDns } = await import("@/lib/verify-domain-dns");
     const settings = await getPlatformSettings();
     const result = await verifyDomainDns(
       card.customDomain,
@@ -192,8 +212,12 @@ export async function PATCH(req: NextRequest) {
         { status: 400 },
       );
     }
+    console.error("[api/admin/domains PATCH]", err);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error:
+          err instanceof Error ? err.message : "Internal server error",
+      },
       { status: 500 },
     );
   }

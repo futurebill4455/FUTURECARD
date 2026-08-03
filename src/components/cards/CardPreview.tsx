@@ -294,7 +294,7 @@ export function CardPreview({
           />
         ) : (
           <p className="mt-4 text-center text-xs text-muted-foreground">
-            Powered by FutureCard
+            Verified by Future Shield
           </p>
         )}
       </div>

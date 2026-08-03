@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { APP_NAME } from "@/lib/constants";
+import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
 
 export function Navbar() {
   return (
     <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="font-display text-xl font-extrabold">
-          Future<span className="text-teal-700">Card</span>
-        </Link>
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
+        <div className="flex min-w-0 flex-col justify-center">
+          <Link href="/" className="font-display text-xl font-extrabold leading-none">
+            Future<span className="text-teal-700">Card</span>
+          </Link>
+          <VerifiedByBrand size="sm" className="mt-0.5 hidden sm:inline-flex" />
+        </div>
         <nav className="flex items-center gap-2 text-sm">
           <Link href="/login" className="rounded-xl px-3 py-2 hover:bg-muted">
             Sign in
