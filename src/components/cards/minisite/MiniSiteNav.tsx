@@ -1,23 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-const SECTIONS = [
+const ALL_SECTIONS: { id: string; label: string }[] = [
   { id: "home", label: "Home" },
   { id: "profile", label: "Profile" },
   { id: "services", label: "Services" },
   { id: "portfolio", label: "Portfolio" },
   { id: "reviews", label: "Reviews" },
   { id: "connect", label: "Contact" },
-] as const;
+];
 
-export function MiniSiteNav() {
-  const [active, setActive] = useState("home");
+export function MiniSiteNav({
+  visibleIds,
+}: {
+  /** When set, only these nav anchors are shown */
+  visibleIds?: string[];
+}) {
+  const sections = useMemo(() => {
+    if (!visibleIds?.length) return ALL_SECTIONS;
+    const allow = new Set(visibleIds);
+    return ALL_SECTIONS.filter((s) => allow.has(s.id));
+  }, [visibleIds]);
+
+  const [active, setActive] = useState(sections[0]?.id ?? "home");
 
   useEffect(() => {
-    const ids = SECTIONS.map((s) => s.id);
+    const ids = sections.map((s) => s.id);
     const observers: IntersectionObserver[] = [];
 
     ids.forEach((id) => {
@@ -34,12 +45,14 @@ export function MiniSiteNav() {
     });
 
     return () => observers.forEach((o) => o.disconnect());
-  }, []);
+  }, [sections]);
 
   function go(id: string) {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
     setActive(id);
   }
+
+  if (!sections.length) return null;
 
   return (
     <>
@@ -49,7 +62,7 @@ export function MiniSiteNav() {
         className="pointer-events-none fixed inset-x-0 top-4 z-40 hidden justify-center md:flex"
       >
         <div className="pointer-events-auto flex items-center gap-1 rounded-full border border-white/10 bg-slate-950/55 px-2 py-1.5 shadow-[0_12px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const isActive = active === s.id;
             return (
               <button
@@ -83,7 +96,7 @@ export function MiniSiteNav() {
         className="pointer-events-none fixed inset-x-0 bottom-3 z-40 flex justify-center px-3 md:hidden"
       >
         <div className="pointer-events-auto flex w-full max-w-md items-center justify-between gap-0.5 rounded-[1.35rem] border border-white/10 bg-slate-950/70 px-1.5 py-1.5 shadow-[0_16px_50px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-          {SECTIONS.map((s) => {
+          {sections.map((s) => {
             const isActive = active === s.id;
             return (
               <button

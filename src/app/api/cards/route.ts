@@ -14,6 +14,7 @@ import { RESERVED_USERNAMES, PLAN_LIMITS } from "@/lib/constants";
 import { getUserAccessStatus } from "@/lib/subscription-access";
 import { DEFAULT_USER_LIMITS } from "@/types/platform.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
+import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -78,10 +79,16 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const card = await createCard(
-        session!.user.id,
-        validated as unknown as Record<string, unknown>,
-      );
+      const payload = { ...(validated as unknown as Record<string, unknown>) };
+      if (validated.featuresEnabled) {
+        payload.featuresEnabled = mergeFeaturesEnabledRespectingAdmin(
+          user?.cardSections,
+          null,
+          validated.featuresEnabled,
+        );
+      }
+
+      const card = await createCard(session!.user.id, payload);
 
       return NextResponse.json(
         { data: card, message: "Card created successfully" },

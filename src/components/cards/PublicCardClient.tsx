@@ -4,6 +4,7 @@ import { MiniSiteShell } from "@/components/cards/minisite/MiniSiteShell";
 import type { ICard } from "@/types/card.types";
 import type { IAnalyticsSummary } from "@/types/analytics.types";
 import type { IPlatformSettings, IUserFeatures } from "@/types/platform.types";
+import type { ICardSections } from "@/types/card-sections.types";
 
 /**
  * Public digital identity — premium Future Shield mini-website experience.
@@ -14,11 +15,14 @@ export function PublicCardClient({
   analytics,
   platformSettings,
   features,
+  sections,
 }: {
   card: ICard;
   analytics?: IAnalyticsSummary;
   platformSettings?: IPlatformSettings;
   features?: IUserFeatures;
+  /** Effective mini-site section visibility (admin ∩ user) */
+  sections?: ICardSections;
 }) {
   return (
     <MiniSiteShell
@@ -26,6 +30,7 @@ export function PublicCardClient({
       analytics={analytics}
       platformSettings={platformSettings}
       features={features}
+      sections={sections}
     />
   );
 }

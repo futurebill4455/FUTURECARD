@@ -9,6 +9,7 @@ import { PublicCardClient } from "@/components/cards/PublicCardClient";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { applyFeaturesToCard } from "@/lib/feature-permissions";
 import { resolveFeatures } from "@/types/platform.types";
+import { resolveEffectiveSections } from "@/types/card-sections.types";
 import Link from "next/link";
 
 type Props = { params: Promise<{ cardId: string }> };
@@ -33,6 +34,10 @@ export default async function PreviewCardPage({ params }: Props) {
 
   const features = resolveFeatures(userDoc?.features);
   const data = applyFeaturesToCard(card, features);
+  const sections = resolveEffectiveSections(
+    userDoc?.cardSections,
+    card.featuresEnabled,
+  );
 
   return (
     <div className="relative -mx-4 -mb-8 md:-mx-8">
@@ -52,6 +57,7 @@ export default async function PreviewCardPage({ params }: Props) {
         analytics={features.analytics ? analytics : undefined}
         platformSettings={settings}
         features={features}
+        sections={sections}
       />
     </div>
   );

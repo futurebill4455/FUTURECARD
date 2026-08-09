@@ -42,10 +42,16 @@ import {
   syncFieldsFromActionButtons,
 } from "@/lib/action-buttons";
 import { FeatureLock } from "@/components/admin/FeaturePermissionChecklist";
+import { CardSectionToggles } from "@/components/admin/CardSectionsChecklist";
 import {
   resolveFeatures,
   type IUserFeatures,
 } from "@/types/platform.types";
+import {
+  DEFAULT_CARD_SECTIONS,
+  resolveCardSections,
+  type ICardSections,
+} from "@/types/card-sections.types";
 
 type Mode = "create" | "edit";
 
@@ -53,15 +59,22 @@ export function CardBuilderForm({
   mode,
   initial,
   features: rawFeatures,
+  cardSections: rawCardSections,
 }: {
   mode: Mode;
   initial?: ICard;
   features?: IUserFeatures | null;
+  /** Super Admin mini-site section grants for this account */
+  cardSections?: ICardSections | null;
 }) {
   const features = resolveFeatures(rawFeatures);
+  const adminSections = resolveCardSections(rawCardSections);
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [featuresEnabled, setFeaturesEnabled] = useState<ICardSections>(() =>
+    resolveCardSections(initial?.featuresEnabled ?? DEFAULT_CARD_SECTIONS),
+  );
   const [form, setForm] = useState({
     username: initial?.username ?? "",
     companyName: initial?.companyName ?? "",
@@ -170,6 +183,7 @@ export function CardBuilderForm({
     isVerified: form.isVerified,
     isActive: form.isActive,
     template: "classic",
+    featuresEnabled,
     createdAt: initial?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -249,6 +263,7 @@ export function CardBuilderForm({
         })),
         isVerified: form.isVerified,
         isActive: form.isActive,
+        featuresEnabled,
       };
 
       if (mode === "create") {
@@ -283,6 +298,14 @@ export function CardBuilderForm({
             {error}
           </p>
         ) : null}
+
+        <Section title="Public page sections">
+          <CardSectionToggles
+            adminSections={adminSections}
+            value={featuresEnabled}
+            onChange={setFeaturesEnabled}
+          />
+        </Section>
 
         <Section title="Theme colors">
           <p className="text-xs text-muted-foreground">

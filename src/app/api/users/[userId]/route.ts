@@ -11,6 +11,7 @@ import { requireAdmin } from "@/lib/session";
 import { adminUpdateUserSchema } from "@/lib/validations";
 import { PLAN_LIMITS } from "@/lib/constants";
 import { resolveFeatures } from "@/types/platform.types";
+import { resolveCardSections } from "@/types/card-sections.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +65,12 @@ export async function PUT(req: NextRequest, { params }: Params) {
         patch.features = {
           ...resolveFeatures(user.features),
           ...validated.features,
+        };
+      }
+      if (validated.cardSections) {
+        patch.cardSections = {
+          ...resolveCardSections(user.cardSections),
+          ...validated.cardSections,
         };
       }
       if (validated.limits) {

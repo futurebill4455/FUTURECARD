@@ -12,8 +12,14 @@ import {
   type IUserLimits,
 } from "@/types/platform.types";
 import { FeaturePermissionChecklist } from "@/components/admin/FeaturePermissionChecklist";
+import { CardSectionsChecklist } from "@/components/admin/CardSectionsChecklist";
 import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
 import { resolveFeatures } from "@/types/platform.types";
+import {
+  DEFAULT_CARD_SECTIONS,
+  resolveCardSections,
+  type ICardSections,
+} from "@/types/card-sections.types";
 import { defaultCustomDomainFeatureForPlan } from "@/lib/custom-domain-access";
 import { PLAN_LIMITS } from "@/lib/constants";
 
@@ -34,6 +40,7 @@ export function UserManageForm({
     email: string;
     isActive: boolean;
     features?: IUserFeatures;
+    cardSections?: ICardSections;
     limits?: IUserLimits;
     subscription?: SubInfo;
   };
@@ -43,6 +50,9 @@ export function UserManageForm({
   const [isActive, setIsActive] = useState(initial.isActive);
   const [features, setFeatures] = useState<IUserFeatures>(() =>
     resolveFeatures(initial.features),
+  );
+  const [cardSections, setCardSections] = useState<ICardSections>(() =>
+    resolveCardSections(initial.cardSections ?? DEFAULT_CARD_SECTIONS),
   );
   const [limits, setLimits] = useState<IUserLimits>({
     ...DEFAULT_USER_LIMITS,
@@ -71,6 +81,7 @@ export function UserManageForm({
           name,
           isActive,
           features,
+          cardSections,
           limits,
           plan,
           endDate: endDate
@@ -209,6 +220,13 @@ export function UserManageForm({
 
       <section className="space-y-3 rounded-2xl border bg-card p-5">
         <FeaturePermissionChecklist value={features} onChange={setFeatures} />
+      </section>
+
+      <section className="space-y-3 rounded-2xl border bg-card p-5">
+        <CardSectionsChecklist
+          value={cardSections}
+          onChange={setCardSections}
+        />
       </section>
 
       <section className="space-y-3 rounded-2xl border bg-card p-5">

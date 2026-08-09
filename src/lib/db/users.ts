@@ -8,6 +8,8 @@ import {
 } from "@/lib/db/mappers";
 import type { IUser } from "@/types/user.types";
 import type { IUserFeatures, IUserLimits } from "@/types/platform.types";
+import type { ICardSections } from "@/types/card-sections.types";
+import { DEFAULT_CARD_SECTIONS } from "@/types/card-sections.types";
 
 function sb() {
   return getSupabaseAdmin();
@@ -56,6 +58,7 @@ export async function createUser(input: {
   password: string;
   role?: "user" | "admin";
   features?: IUserFeatures;
+  cardSections?: ICardSections;
   limits?: IUserLimits;
 }): Promise<IUser> {
   const { data, error } = await sb()
@@ -66,6 +69,7 @@ export async function createUser(input: {
       password: input.password,
       role: input.role ?? "user",
       features: input.features ?? DEFAULT_USER_FEATURES,
+      card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
       limits: input.limits ?? DEFAULT_USER_LIMITS,
       is_active: true,
     })
@@ -83,6 +87,7 @@ export async function updateUser(
     role?: "user" | "admin";
     isActive?: boolean;
     features?: IUserFeatures;
+    cardSections?: ICardSections;
     limits?: IUserLimits;
     password?: string;
     avatar?: string;
@@ -94,6 +99,7 @@ export async function updateUser(
   if (patch.role !== undefined) row.role = patch.role;
   if (patch.isActive !== undefined) row.is_active = patch.isActive;
   if (patch.features !== undefined) row.features = patch.features;
+  if (patch.cardSections !== undefined) row.card_sections = patch.cardSections;
   if (patch.limits !== undefined) row.limits = patch.limits;
   if (patch.password !== undefined) row.password = patch.password;
   if (patch.avatar !== undefined) row.avatar = patch.avatar;

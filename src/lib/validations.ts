@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DAYS } from "./constants";
+import { CARD_SECTION_KEYS } from "@/types/card-sections.types";
 
 export const loginSchema = z.object({
   email: z.string().email(),
@@ -54,6 +55,12 @@ export const userFeaturesSchema = z.object({
   customDomain: z.boolean().optional(),
 });
 
+export const cardSectionsSchema = z.object(
+  Object.fromEntries(
+    CARD_SECTION_KEYS.map((key) => [key, z.boolean()]),
+  ) as Record<(typeof CARD_SECTION_KEYS)[number], z.ZodBoolean>,
+);
+
 export const createUserSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
@@ -64,6 +71,7 @@ export const createUserSchema = z.object({
   /** Custom validity in days (overrides years × plan days when set) */
   customDays: z.number().int().min(1).max(3650).optional(),
   features: userFeaturesSchema.optional(),
+  cardSections: cardSectionsSchema.optional(),
 });
 
 export const platformSettingsSchema = z.object({
@@ -100,6 +108,7 @@ export const adminUpdateUserSchema = z.object({
   isActive: z.boolean().optional(),
   role: z.enum(["user", "admin"]).optional(),
   features: userFeaturesSchema.optional(),
+  cardSections: cardSectionsSchema.optional(),
   limits: userLimitsSchema.optional(),
   plan: z.enum(["free", "basic", "premium"]).optional(),
   /** Set absolute end date (ISO) */
@@ -236,6 +245,8 @@ export const cardSchema = z.object({
   isVerified: z.boolean().optional(),
   isActive: z.boolean().optional(),
   template: z.string().optional(),
+  /** Per-card section visibility prefs (user level) */
+  featuresEnabled: cardSectionsSchema.optional(),
 });
 
 export const subscriptionUpdateSchema = z.object({

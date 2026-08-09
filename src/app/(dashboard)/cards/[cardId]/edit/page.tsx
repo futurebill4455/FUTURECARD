@@ -7,6 +7,7 @@ import { findUserById } from "@/lib/db/users";
 import { PageHeader } from "@/components/shared/Navbar";
 import { CardBuilderForm } from "@/components/forms/CardBuilderForm";
 import { resolveFeatures } from "@/types/platform.types";
+import { resolveCardSections } from "@/types/card-sections.types";
 
 type Props = { params: Promise<{ cardId: string }> };
 
@@ -20,6 +21,7 @@ export default async function EditCardPage({ params }: Props) {
 
   const user = await findUserById(session!.user.id);
   const features = resolveFeatures(user?.features);
+  const cardSections = resolveCardSections(user?.cardSections);
 
   return (
     <div>
@@ -27,7 +29,12 @@ export default async function EditCardPage({ params }: Props) {
         title="Edit card"
         description={`Public URL: /${card.username}`}
       />
-      <CardBuilderForm mode="edit" initial={card} features={features} />
+      <CardBuilderForm
+        mode="edit"
+        initial={card}
+        features={features}
+        cardSections={cardSections}
+      />
     </div>
   );
 }

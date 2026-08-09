@@ -15,6 +15,7 @@ import { getPlatformSettings } from "@/lib/platform-settings";
 import { isCardPubliclyAccessible } from "@/lib/subscription-access";
 import { applyFeaturesToCard } from "@/lib/feature-permissions";
 import { resolveFeatures } from "@/types/platform.types";
+import { resolveEffectiveSections } from "@/types/card-sections.types";
 import type { ICard } from "@/types/card.types";
 import { isCustomDomainLive } from "@/lib/custom-domain-access";
 
@@ -43,6 +44,10 @@ async function renderCardFromDoc(card: ICard) {
   const owner = await findUserById(card.userId);
   const features = resolveFeatures(owner?.features);
   const data = applyFeaturesToCard(card, features);
+  const sections = resolveEffectiveSections(
+    owner?.cardSections,
+    card.featuresEnabled,
+  );
 
   return (
     <PublicCardClient
@@ -50,6 +55,7 @@ async function renderCardFromDoc(card: ICard) {
       analytics={features.analytics ? analytics : undefined}
       platformSettings={settings}
       features={features}
+      sections={sections}
     />
   );
 }

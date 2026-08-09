@@ -6,8 +6,10 @@ import {
   findCardByIdForUser,
   updateCard,
 } from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
+import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 
 export const dynamic = "force-dynamic";
@@ -41,11 +43,24 @@ export async function PUT(req: NextRequest, { params }: Params) {
       const validated = cardSchema.parse(body);
 
       await dbConnect();
-      const card = await updateCard(
-        cardId,
-        validated as unknown as Record<string, unknown>,
-        { userId: session!.user.id },
-      );
+      const existing = await findCardByIdForUser(cardId, session!.user.id);
+      if (!existing) {
+        return NextResponse.json({ error: "Card not found" }, { status: 404 });
+      }
+
+      const payload = { ...(validated as unknown as Record<string, unknown>) };
+      if (validated.featuresEnabled) {
+        const owner = await findUserById(session!.user.id);
+        payload.featuresEnabled = mergeFeaturesEnabledRespectingAdmin(
+          owner?.cardSections,
+          existing.featuresEnabled,
+          validated.featuresEnabled,
+        );
+      }
+
+      const card = await updateCard(cardId, payload, {
+        userId: session!.user.id,
+      });
 
       if (!card) {
         return NextResponse.json({ error: "Card not found" }, { status: 404 });

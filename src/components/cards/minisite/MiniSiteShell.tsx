@@ -5,6 +5,11 @@ import { motion } from "framer-motion";
 import type { ICard, IServiceItem } from "@/types/card.types";
 import type { IAnalyticsSummary } from "@/types/analytics.types";
 import type { IPlatformSettings, IUserFeatures } from "@/types/platform.types";
+import {
+  DEFAULT_CARD_SECTIONS,
+  resolveCardSections,
+  type ICardSections,
+} from "@/types/card-sections.types";
 import { DEFAULT_PRIMARY_CTAS } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
@@ -43,6 +48,7 @@ export function MiniSiteShell(props: {
   analytics?: IAnalyticsSummary;
   platformSettings?: IPlatformSettings;
   features?: IUserFeatures;
+  sections?: ICardSections;
 }) {
   return (
     <MiniSiteThemeProvider>
@@ -56,12 +62,15 @@ function MiniSiteShellInner({
   analytics,
   platformSettings,
   features,
+  sections: rawSections,
 }: {
   card: ICard;
   analytics?: IAnalyticsSummary;
   platformSettings?: IPlatformSettings;
   features?: IUserFeatures;
+  sections?: ICardSections;
 }) {
+  const sections = resolveCardSections(rawSections ?? DEFAULT_CARD_SECTIONS);
   const { mode } = useMiniSiteTheme();
   const theme = resolveTheme(card);
   const accent = theme.buttonColor || "#22d3ee";
@@ -204,6 +213,16 @@ function MiniSiteShellInner({
   const publicUrl = absoluteUrl(`/c/${card.username}`);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
 
+  const navIds = useMemo(() => {
+    const ids = ["home"];
+    if (sections.about || sections.identityCard) ids.push("profile");
+    if (sections.services) ids.push("services");
+    if (sections.portfolio) ids.push("portfolio");
+    if (sections.reviews) ids.push("reviews");
+    if (sections.connect || sections.finalCta) ids.push("connect");
+    return ids;
+  }, [sections]);
+
   const cssVars = {
     ["--ms-accent" as string]: accent,
     ["--ms-bg" as string]: isLight ? "#f4f8fb" : "#020617",
@@ -247,7 +266,7 @@ function MiniSiteShellInner({
         </div>
       </div>
 
-      <MiniSiteNav />
+      <MiniSiteNav visibleIds={navIds} />
 
       <div className="relative z-[1]">
         <MiniSiteHero
@@ -258,24 +277,27 @@ function MiniSiteShellInner({
           onCta={handleCta}
         />
 
-        <MiniSiteIdentityCard
-          card={card}
-          accent={accent}
-          onSave={() => handleCta("save")}
-          onShare={() => void onShare()}
-          onCall={card.phone ? openCall : undefined}
-          onWhatsApp={
-            card.whatsappNumber || card.phone ? openWhatsApp : undefined
-          }
-          onQr={() => {
-            void trackEvent("action", "qr_code");
-            setQrOpen(true);
-          }}
-        />
+        {sections.identityCard ? (
+          <MiniSiteIdentityCard
+            card={card}
+            accent={accent}
+            onSave={() => handleCta("save")}
+            onShare={() => void onShare()}
+            onCall={card.phone ? openCall : undefined}
+            onWhatsApp={
+              card.whatsappNumber || card.phone ? openWhatsApp : undefined
+            }
+            onQr={() => {
+              void trackEvent("action", "qr_code");
+              setQrOpen(true);
+            }}
+          />
+        ) : null}
 
-        {(card.aboutUs?.trim() || card.gstNumber || card.businessCategory) && (
+        {sections.about &&
+        (card.aboutUs?.trim() || card.gstNumber || card.businessCategory) ? (
           <section
-            id="profile-about"
+            id={sections.identityCard ? "profile-about" : "profile"}
             className="mx-auto max-w-2xl scroll-mt-24 px-4 py-6 sm:px-6"
           >
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
@@ -305,116 +327,128 @@ function MiniSiteShellInner({
               </div>
             </div>
           </section>
-        )}
+        ) : null}
 
-        <MiniSiteStats accent={accent} />
+        {sections.stats ? <MiniSiteStats accent={accent} /> : null}
 
-        <MiniSiteServices
-          card={card}
-          accent={accent}
-          onSelect={(svc) => {
-            setSelectedService(svc);
-            void trackEvent("action", `service_view_${svc.id}`);
-          }}
-        />
+        {sections.services ? (
+          <MiniSiteServices
+            card={card}
+            accent={accent}
+            onSelect={(svc) => {
+              setSelectedService(svc);
+              void trackEvent("action", `service_view_${svc.id}`);
+            }}
+          />
+        ) : null}
 
-        <MiniSiteWhyChoose accent={accent} />
+        {sections.whyChoose ? <MiniSiteWhyChoose accent={accent} /> : null}
 
-        {(card.galleryImages?.length || card.galleryVideos?.length) ? (
-          <section id="portfolio" className="scroll-mt-24 px-4 py-10 sm:px-6">
-            <div className="mx-auto max-w-4xl">
-              <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-                Portfolio
-              </p>
-              <h2 className="mt-2 text-center font-display text-2xl font-bold">
-                Work & media
-              </h2>
-              <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
-                <ImageGallery images={card.galleryImages} accent={accent} />
-                <VideoGallery videos={card.galleryVideos} accent={accent} />
+        {sections.portfolio ? (
+          card.galleryImages?.length || card.galleryVideos?.length ? (
+            <section id="portfolio" className="scroll-mt-24 px-4 py-10 sm:px-6">
+              <div className="mx-auto max-w-4xl">
+                <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
+                  Portfolio
+                </p>
+                <h2 className="mt-2 text-center font-display text-2xl font-bold">
+                  Work & media
+                </h2>
+                <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
+                  <ImageGallery images={card.galleryImages} accent={accent} />
+                  <VideoGallery videos={card.galleryVideos} accent={accent} />
+                </div>
               </div>
+            </section>
+          ) : (
+            <div id="portfolio" className="h-0 scroll-mt-24" aria-hidden />
+          )
+        ) : null}
+
+        {sections.reviews ? <MiniSiteTestimonials accent={accent} /> : null}
+
+        {sections.qrTerminal ? (
+          <MiniSiteQrTerminal
+            card={card}
+            accent={accent}
+            onSave={() => handleCta("save")}
+            onShare={() => void onShare()}
+          />
+        ) : null}
+
+        {sections.connect ? (
+          <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
+            <div className="mx-auto max-w-3xl">
+              <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
+                Connect with me
+              </p>
+              <h2 className="mt-2 text-center font-display text-2xl font-bold sm:text-3xl">
+                One tap to reach out
+              </h2>
+              <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-panel backdrop-blur-xl sm:p-7">
+                <ActionIconGrid
+                  card={card}
+                  features={features}
+                  onTrack={(detail) =>
+                    void trackEvent(
+                      detail === "save_contact" ? "save_contact" : "action",
+                      detail,
+                    )
+                  }
+                />
+              </div>
+
+              {analytics ? (
+                <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                  {(
+                    [
+                      ["Views", analytics.totalViews],
+                      ["Clicks", analytics.totalClicks],
+                      ["Actions", analytics.totalActions],
+                      ["Days", analytics.daysLive],
+                      ["Engage", `${analytics.engagementRate}%`],
+                    ] as const
+                  ).map(([label, value]) => (
+                    <div
+                      key={label}
+                      className="rounded-2xl border border-white/10 bg-white/[0.03] px-2 py-3 text-center backdrop-blur-md"
+                    >
+                      <div
+                        className="font-mono text-lg font-semibold"
+                        style={{ color: accent }}
+                      >
+                        {value}
+                      </div>
+                      <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">
+                        {label}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </section>
         ) : (
-          <div id="portfolio" className="h-0 scroll-mt-24" aria-hidden />
+          <div id="connect" className="h-0 scroll-mt-24" aria-hidden />
         )}
 
-        <MiniSiteTestimonials accent={accent} />
-
-        <MiniSiteQrTerminal
-          card={card}
-          accent={accent}
-          onSave={() => handleCta("save")}
-          onShare={() => void onShare()}
-        />
-
-        <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
-          <div className="mx-auto max-w-3xl">
-            <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-              Connect with me
-            </p>
-            <h2 className="mt-2 text-center font-display text-2xl font-bold sm:text-3xl">
-              One tap to reach out
-            </h2>
-            <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-panel backdrop-blur-xl sm:p-7">
-              <ActionIconGrid
-                card={card}
-                features={features}
-                onTrack={(detail) =>
-                  void trackEvent(
-                    detail === "save_contact" ? "save_contact" : "action",
-                    detail,
-                  )
-                }
-              />
-            </div>
-
-            {analytics ? (
-              <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
-                {(
-                  [
-                    ["Views", analytics.totalViews],
-                    ["Clicks", analytics.totalClicks],
-                    ["Actions", analytics.totalActions],
-                    ["Days", analytics.daysLive],
-                    ["Engage", `${analytics.engagementRate}%`],
-                  ] as const
-                ).map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl border border-white/10 bg-white/[0.03] px-2 py-3 text-center backdrop-blur-md"
-                  >
-                    <div
-                      className="font-mono text-lg font-semibold"
-                      style={{ color: accent }}
-                    >
-                      {value}
-                    </div>
-                    <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">
-                      {label}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <MiniSiteFinalCta
-          accent={accent}
-          name={card.companyName || ""}
-          onConnect={() =>
-            document
-              .getElementById("connect")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
-          onWhatsApp={
-            card.whatsappNumber || card.phone ? openWhatsApp : undefined
-          }
-          onCall={card.phone ? openCall : undefined}
-          hasWhatsApp={Boolean(card.whatsappNumber || card.phone)}
-          hasCall={Boolean(card.phone)}
-        />
+        {sections.finalCta ? (
+          <MiniSiteFinalCta
+            accent={accent}
+            name={card.companyName || ""}
+            onConnect={() =>
+              document
+                .getElementById("connect")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
+            onWhatsApp={
+              card.whatsappNumber || card.phone ? openWhatsApp : undefined
+            }
+            onCall={card.phone ? openCall : undefined}
+            hasWhatsApp={Boolean(card.whatsappNumber || card.phone)}
+            hasCall={Boolean(card.phone)}
+          />
+        ) : null}
 
         <footer className="border-t border-white/5 px-4 py-8 text-center">
           {platformSettings ? (

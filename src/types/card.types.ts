@@ -192,6 +192,11 @@ export interface ICard {
   customDomainReviewedAt?: string;
   isActive: boolean;
   template: string;
+  /**
+   * Per-card section prefs (user level).
+   * Only sections allowed by the owner's admin `cardSections` can appear.
+   */
+  featuresEnabled?: import("./card-sections.types").ICardSections;
   createdAt: string;
   updatedAt: string;
 }

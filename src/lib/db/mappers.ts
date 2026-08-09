@@ -13,6 +13,7 @@ import {
   DEFAULT_PAYMENT_INFO,
   DEFAULT_THEME,
 } from "@/types/card.types";
+import { resolveCardSections } from "@/types/card-sections.types";
 import { getDefaultCnameTarget } from "@/lib/custom-domain";
 
 /** Raw `users` row (snake_case) */
@@ -25,6 +26,7 @@ export type UserRow = {
   avatar: string | null;
   is_active: boolean;
   features: Record<string, boolean> | null;
+  card_sections?: Record<string, boolean> | null;
   limits: Record<string, number> | null;
   created_at: string;
   updated_at: string;
@@ -70,6 +72,7 @@ export type CardRow = {
   custom_domain_reviewed_at: string | null;
   is_active: boolean;
   template: string;
+  features_enabled?: Record<string, boolean> | null;
   created_at: string;
   updated_at: string;
 };
@@ -115,6 +118,7 @@ export function mapUser(
     avatar: row.avatar ?? undefined,
     isActive: row.is_active,
     features: resolveFeatures(row.features),
+    cardSections: resolveCardSections(row.card_sections),
     limits: {
       maxCards: row.limits?.maxCards ?? DEFAULT_USER_LIMITS.maxCards,
       maxServices: row.limits?.maxServices ?? DEFAULT_USER_LIMITS.maxServices,
@@ -197,6 +201,7 @@ export function mapCard(row: CardRow): ICard {
     customDomainReviewedAt: row.custom_domain_reviewed_at ?? undefined,
     isActive: row.is_active,
     template: row.template || "classic",
+    featuresEnabled: resolveCardSections(row.features_enabled),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -288,6 +293,7 @@ export function cardPayloadToRow(
     customDomainReviewedAt: "custom_domain_reviewed_at",
     isActive: "is_active",
     template: "template",
+    featuresEnabled: "features_enabled",
   };
 
   for (const [camel, snake] of Object.entries(map)) {

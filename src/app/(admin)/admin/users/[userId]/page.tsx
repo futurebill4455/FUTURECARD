@@ -35,6 +35,7 @@ export default async function AdminUserEditPage({ params }: Props) {
           email: user.email,
           isActive: Boolean(user.isActive),
           features: user.features,
+          cardSections: user.cardSections,
           limits: user.limits,
           subscription: sub
             ? {

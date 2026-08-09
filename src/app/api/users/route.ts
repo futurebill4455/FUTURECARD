@@ -13,6 +13,7 @@ import { DEFAULT_USER_LIMITS } from "@/types/platform.types";
 import { featuresForNewUser } from "@/lib/custom-domain-access";
 import { expireDueSubscriptions } from "@/lib/subscription-access";
 import { toApiError, withApiHandler } from "@/lib/api-route";
+import { resolveCardSections } from "@/types/card-sections.types";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -65,6 +66,7 @@ export async function POST(req: NextRequest) {
         password,
         role: validated.role,
         features: featuresForNewUser(validated.plan, validated.features),
+        cardSections: resolveCardSections(validated.cardSections),
         limits: {
           ...DEFAULT_USER_LIMITS,
           maxCards: planLimits.maxCards,

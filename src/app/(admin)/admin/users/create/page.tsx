@@ -8,10 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/misc";
 import { apiClient, ApiError } from "@/lib/api-client";
 import { FeaturePermissionChecklist } from "@/components/admin/FeaturePermissionChecklist";
+import { CardSectionsChecklist } from "@/components/admin/CardSectionsChecklist";
 import {
   DEFAULT_USER_FEATURES,
   type IUserFeatures,
 } from "@/types/platform.types";
+import {
+  DEFAULT_CARD_SECTIONS,
+  type ICardSections,
+} from "@/types/card-sections.types";
 import { defaultCustomDomainFeatureForPlan } from "@/lib/custom-domain-access";
 
 export default function CreateUserPage() {
@@ -22,6 +27,8 @@ export default function CreateUserPage() {
     ...DEFAULT_USER_FEATURES,
     customDomain: defaultCustomDomainFeatureForPlan("basic"),
   });
+  const [cardSections, setCardSections] =
+    useState<ICardSections>(DEFAULT_CARD_SECTIONS);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -54,6 +61,7 @@ export default function CreateUserPage() {
           role: "user",
           years: Number(form.years),
           features,
+          cardSections,
           ...(form.customDays
             ? { customDays: Number(form.customDays) }
             : {}),
@@ -155,6 +163,13 @@ export default function CreateUserPage() {
           <FeaturePermissionChecklist
             value={features}
             onChange={setFeatures}
+          />
+        </div>
+
+        <div className="rounded-xl border bg-muted/20 p-4">
+          <CardSectionsChecklist
+            value={cardSections}
+            onChange={setCardSections}
           />
         </div>
 
