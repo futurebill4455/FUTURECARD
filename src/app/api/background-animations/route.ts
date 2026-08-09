@@ -16,7 +16,13 @@ export async function GET() {
     try {
       await dbConnect();
       const data = await listBackgroundAnimations({ activeOnly: true });
-      return NextResponse.json({ data });
+      return NextResponse.json({
+        data,
+        message:
+          data.some((d) => d._id.startsWith("builtin-"))
+            ? "Using built-in catalog. Apply supabase/migrations/012_background_animations_rls.sql in Supabase for live admin control."
+            : undefined,
+      });
     } catch (err) {
       return toApiError(err);
     }

@@ -37,30 +37,155 @@ function mapRow(row: Row): IBackgroundAnimation {
   };
 }
 
+/** Offline / missing-table catalog so the card editor stays usable */
+export const BUILTIN_BACKGROUND_ANIMATIONS: IBackgroundAnimation[] = [
+  {
+    _id: "builtin-particles",
+    slug: "design_a_particles",
+    name: "Particles",
+    description:
+      "Floating luminous particles for a premium futuristic stage.",
+    thumbnailUrl: "/bg-previews/particles.svg",
+    animationType: "effect",
+    isActive: true,
+    isDefault: true,
+    sortOrder: 10,
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    _id: "builtin-waves",
+    slug: "design_b_waves",
+    name: "Waves",
+    description: "Soft animated energy waves behind your profile.",
+    thumbnailUrl: "/bg-previews/waves.svg",
+    animationType: "effect",
+    isActive: true,
+    isDefault: false,
+    sortOrder: 20,
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    _id: "builtin-geometric",
+    slug: "design_c_geometric",
+    name: "Geometric",
+    description: "Rotating geometric accents with clean neon edges.",
+    thumbnailUrl: "/bg-previews/geometric.svg",
+    animationType: "effect",
+    isActive: true,
+    isDefault: false,
+    sortOrder: 30,
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    _id: "builtin-none",
+    slug: "design_d_none",
+    name: "Minimal",
+    description: "No motion — clean dark stage for maximum focus.",
+    thumbnailUrl: "/bg-previews/none.svg",
+    animationType: "effect",
+    isActive: true,
+    isDefault: false,
+    sortOrder: 40,
+    createdAt: "",
+    updatedAt: "",
+  },
+  {
+    _id: "builtin-slideshow",
+    slug: "design_e_slideshow",
+    name: "Photo Slideshow",
+    description:
+      "Full-bleed cross-fade + Ken Burns photo background. Upload 2–5 images on your card.",
+    thumbnailUrl: "/bg-previews/slideshow.svg",
+    animationType: "slideshow",
+    isActive: true,
+    isDefault: false,
+    sortOrder: 50,
+    createdAt: "",
+    updatedAt: "",
+  },
+];
+
+function isMissingTableOrColumn(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const e = err as { code?: string; message?: string; details?: string };
+  const msg = `${e.message || ""} ${e.details || ""}`.toLowerCase();
+  return (
+    e.code === "42P01" ||
+    e.code === "PGRST205" ||
+    e.code === "42703" ||
+    msg.includes("does not exist") ||
+    msg.includes("could not find the table") ||
+    msg.includes("schema cache")
+  );
+}
+
 export async function listBackgroundAnimations(opts?: {
   activeOnly?: boolean;
 }): Promise<IBackgroundAnimation[]> {
-  let q = sb()
-    .from("background_animations")
-    .select("*")
-    .order("sort_order", { ascending: true });
-  if (opts?.activeOnly) q = q.eq("is_active", true);
-  const { data, error } = await q;
-  if (error) throwDbError(error, "listBackgroundAnimations");
-  return ((data as Row[]) || []).map(mapRow);
+  try {
+    let q = sb()
+      .from("background_animations")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (opts?.activeOnly) q = q.eq("is_active", true);
+    const { data, error } = await q;
+    if (error) {
+      if (isMissingTableOrColumn(error)) {
+        console.warn(
+          "[db] background_animations missing or incomplete — using built-in catalog. Run supabase/migrations/012_background_animations_rls.sql",
+          error,
+        );
+        const list = BUILTIN_BACKGROUND_ANIMATIONS;
+        return opts?.activeOnly ? list.filter((d) => d.isActive) : list;
+      }
+      throwDbError(error, "listBackgroundAnimations");
+    }
+    const rows = ((data as Row[]) || []).map(mapRow);
+    if (rows.length === 0) {
+      console.warn(
+        "[db] background_animations is empty — using built-in catalog. Re-run migration 012 seed.",
+      );
+      const list = BUILTIN_BACKGROUND_ANIMATIONS;
+      return opts?.activeOnly ? list.filter((d) => d.isActive) : list;
+    }
+    return rows;
+  } catch (err) {
+    if (isMissingTableOrColumn(err)) {
+      const list = BUILTIN_BACKGROUND_ANIMATIONS;
+      return opts?.activeOnly ? list.filter((d) => d.isActive) : list;
+    }
+    throw err;
+  }
 }
 
 export async function findBackgroundAnimationBySlug(
   slug: string,
 ): Promise<IBackgroundAnimation | null> {
-  const { data, error } = await sb()
-    .from("background_animations")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throwDbError(error, "findBackgroundAnimationBySlug");
-  if (!data) return null;
-  return mapRow(data as Row);
+  try {
+    const { data, error } = await sb()
+      .from("background_animations")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) {
+      if (isMissingTableOrColumn(error)) {
+        return (
+          BUILTIN_BACKGROUND_ANIMATIONS.find((d) => d.slug === slug) || null
+        );
+      }
+      throwDbError(error, "findBackgroundAnimationBySlug");
+    }
+    if (!data) return null;
+    return mapRow(data as Row);
+  } catch (err) {
+    if (isMissingTableOrColumn(err)) {
+      return BUILTIN_BACKGROUND_ANIMATIONS.find((d) => d.slug === slug) || null;
+    }
+    throw err;
+  }
 }
 
 export async function updateBackgroundAnimation(
