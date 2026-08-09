@@ -123,7 +123,7 @@ export function ActionIconGrid({
                 />
                 <IconGlyph name={btn.key} />
               </motion.span>
-              <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-foreground">
+              <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-slate-200/85">
                 {meta.label}
               </span>
             </>
