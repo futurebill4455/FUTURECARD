@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/shared/Navbar";
 import { UserManageForm } from "@/components/admin/UserManageForm";
 import { AdminUserCardsPanel } from "@/components/admin/AdminUserCardsPanel";
 import { UserApprovalActions } from "@/components/admin/UserApprovalActions";
+import { DeleteUserButton } from "@/components/admin/UserActions";
 import { Button } from "@/components/ui/button";
 
 type Props = { params: Promise<{ userId: string }> };
@@ -29,9 +30,18 @@ export default async function AdminUserEditPage({ params }: Props) {
         title={user.name}
         description="Permissions, limits, card templates, and subscription."
         actions={
-          <Button asChild variant="outline">
-            <Link href="/admin/users">Back to users</Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {user.role === "user" ? (
+              <DeleteUserButton
+                userId={userId}
+                userName={user.name}
+                redirectTo="/admin/users"
+              />
+            ) : null}
+            <Button asChild variant="outline">
+              <Link href="/admin/users">Back to users</Link>
+            </Button>
+          </div>
         }
       />
       <div className="space-y-6">

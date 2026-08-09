@@ -233,3 +233,80 @@ export function isSupabaseUploadEnabled() {
 export function assertSupabaseConfigured() {
   getSupabaseAdmin();
 }
+
+/**
+ * Best-effort purge of a user's media folder in Supabase Storage
+ * (`media/{userId}/…`) and optional local `public/uploads/{userId}`.
+ */
+export async function removeUserMedia(userId: string): Promise<{
+  storageRemoved: number;
+  localRemoved: boolean;
+}> {
+  const folder = sanitizePathSegment(userId);
+  let storageRemoved = 0;
+
+  try {
+    const { client } = getStorageClient();
+    const paths = await listAllObjectPaths(client, folder);
+    if (paths.length) {
+      // remove() accepts up to ~1000 paths; chunk for safety
+      for (let i = 0; i < paths.length; i += 100) {
+        const chunk = paths.slice(i, i + 100);
+        const { error } = await client.storage.from(MEDIA_BUCKET).remove(chunk);
+        if (error) {
+          console.warn("[storage.removeUserMedia] remove error", {
+            folder,
+            error,
+          });
+        } else {
+          storageRemoved += chunk.length;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[storage.removeUserMedia] skipped storage cleanup", err);
+  }
+
+  let localRemoved = false;
+  try {
+    const fs = await import("fs/promises");
+    const path = await import("path");
+    const dir = path.join(process.cwd(), "public", "uploads", folder);
+    await fs.rm(dir, { recursive: true, force: true });
+    localRemoved = true;
+  } catch (err) {
+    console.warn("[storage.removeUserMedia] local cleanup skipped", err);
+  }
+
+  return { storageRemoved, localRemoved };
+}
+
+async function listAllObjectPaths(
+  client: SupabaseClient,
+  folder: string,
+): Promise<string[]> {
+  const paths: string[] = [];
+  const queue = [folder];
+
+  while (queue.length) {
+    const prefix = queue.shift()!;
+    const { data, error } = await client.storage.from(MEDIA_BUCKET).list(prefix, {
+      limit: 1000,
+    });
+    if (error) {
+      console.warn("[storage.listAllObjectPaths]", { prefix, error });
+      continue;
+    }
+    for (const item of data ?? []) {
+      const full = `${prefix}/${item.name}`;
+      // Supabase folders have null id / no metadata
+      if (item.id == null && !item.metadata) {
+        queue.push(full);
+      } else {
+        paths.push(full);
+      }
+    }
+  }
+
+  return paths;
+}

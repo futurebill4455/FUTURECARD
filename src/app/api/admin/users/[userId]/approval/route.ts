@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { deleteUser, findUserById, updateUser } from "@/lib/db/users";
+import { findUserById, permanentlyDeleteUser, updateUser } from "@/lib/db/users";
 import { requireAdmin } from "@/lib/session";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 
@@ -48,8 +48,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         });
       }
 
-      const ok = await deleteUser(userId);
-      if (!ok) {
+      const result = await permanentlyDeleteUser(userId);
+      if (!result.deleted) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
       return NextResponse.json({

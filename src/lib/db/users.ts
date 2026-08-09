@@ -225,3 +225,20 @@ export async function deleteUser(id: string): Promise<boolean> {
   if (error) throwDbError(error, "deleteUser");
   return Boolean(data);
 }
+
+/**
+ * Permanently remove a user account:
+ * 1) purge uploaded media (Storage + local uploads)
+ * 2) delete the users row (cards/subscriptions/analytics cascade via FK)
+ *
+ * Auth is NextAuth + bcrypt in `public.users` (no Supabase Auth user to remove).
+ */
+export async function permanentlyDeleteUser(id: string): Promise<{
+  deleted: boolean;
+  storageRemoved: number;
+}> {
+  const { removeUserMedia } = await import("@/lib/storage");
+  const media = await removeUserMedia(id);
+  const deleted = await deleteUser(id);
+  return { deleted, storageRemoved: media.storageRemoved };
+}

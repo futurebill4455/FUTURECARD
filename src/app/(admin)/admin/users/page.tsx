@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import {
   DeactivateUserButton,
+  DeleteUserButton,
   RenewButton,
 } from "@/components/admin/UserActions";
 import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
@@ -122,6 +123,7 @@ export default async function AdminUsersPage() {
                       </Button>
                       <RenewButton userId={id} />
                       <DeactivateUserButton userId={id} />
+                      <DeleteUserButton userId={id} userName={u.name} />
                     </div>
                   </td>
                 </tr>
