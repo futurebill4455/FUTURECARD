@@ -248,5 +248,10 @@ export const subscriptionUpdateSchema = z.object({
   amount: z.number().optional(),
 });
 
+/** Admin-only subscribe / unsubscribe toggle */
+export const subscriptionToggleSchema = z.object({
+  subscribed: z.boolean(),
+});
+
 export type CardInput = z.infer<typeof cardSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;

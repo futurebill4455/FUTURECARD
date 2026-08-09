@@ -4,7 +4,27 @@ import { listUsers } from "@/lib/db/users";
 import { listSubscriptions } from "@/lib/db/subscriptions";
 import { PageHeader } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
-import { DeactivateUserButton, RenewButton } from "@/components/admin/UserActions";
+import {
+  DeactivateUserButton,
+  RenewButton,
+} from "@/components/admin/UserActions";
+import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
+
+function isLiveSub(sub?: {
+  isActive?: boolean;
+  paymentStatus?: string;
+  endDate?: string;
+} | null) {
+  if (!sub?.isActive) return false;
+  if (
+    sub.paymentStatus === "expired" ||
+    sub.paymentStatus === "cancelled"
+  ) {
+    return false;
+  }
+  if (sub.endDate && new Date(sub.endDate) <= new Date()) return false;
+  return true;
+}
 
 export default async function AdminUsersPage() {
   await dbConnect();
@@ -19,7 +39,7 @@ export default async function AdminUsersPage() {
     <div>
       <PageHeader
         title="Users"
-        description="Create accounts and manage client access."
+        description="Create accounts and manage client access & subscriptions."
         actions={
           <Button asChild>
             <Link href="/admin/users/create">Create user</Link>
@@ -27,15 +47,16 @@ export default async function AdminUsersPage() {
         }
       />
 
-      <div className="overflow-x-auto rounded-2xl border bg-card">
+      <div className="overflow-x-auto rounded-2xl border border-white/10 bg-card/80 shadow-panel">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-muted/60 text-muted-foreground">
+          <thead className="bg-muted/40 text-muted-foreground">
             <tr>
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Email</th>
-              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 font-semibold">Account</th>
               <th className="px-4 py-3 font-semibold">Plan</th>
               <th className="px-4 py-3 font-semibold">Expires</th>
+              <th className="px-4 py-3 font-semibold">Subscription</th>
               <th className="px-4 py-3 font-semibold">Actions</th>
             </tr>
           </thead>
@@ -43,18 +64,33 @@ export default async function AdminUsersPage() {
             {users.map((u) => {
               const id = u._id;
               const sub = subMap[id];
+              const live = isLiveSub(sub);
               return (
-                <tr key={id} className="border-t">
+                <tr key={id} className="border-t border-white/5">
                   <td className="px-4 py-3 font-medium">{u.name}</td>
-                  <td className="px-4 py-3">{u.email}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
-                    {u.isActive ? "Active" : "Inactive"}
+                    {u.isActive ? (
+                      <span className="text-teal-300">Active</span>
+                    ) : (
+                      <span className="text-red-300">Inactive</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 capitalize">{sub?.plan ?? "—"}</td>
                   <td className="px-4 py-3">
                     {sub?.endDate
                       ? new Date(sub.endDate).toLocaleDateString()
                       : "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    <SubscriptionToggle
+                      userId={id}
+                      initialSubscribed={live}
+                      isActive={sub?.isActive}
+                      paymentStatus={sub?.paymentStatus}
+                      endDate={sub?.endDate}
+                      size="sm"
+                    />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap gap-2">
@@ -70,7 +106,10 @@ export default async function AdminUsersPage() {
             })}
             {users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                <td
+                  colSpan={7}
+                  className="px-4 py-8 text-center text-muted-foreground"
+                >
                   No users yet.
                 </td>
               </tr>

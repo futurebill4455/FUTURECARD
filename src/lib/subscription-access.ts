@@ -1,4 +1,5 @@
 import {
+  createSubscription,
   findDueSubscriptions,
   findSubscriptionByUserId,
   markSubscriptionsExpired,
@@ -7,6 +8,7 @@ import {
 import { deactivateCardsByUser, deactivateCardsByUserIds } from "@/lib/db/cards";
 import { findUserById } from "@/lib/db/users";
 import { dbConnect } from "@/lib/db";
+import type { ISubscription } from "@/types/subscription.types";
 
 export type AccessStatus = "ok" | "expired" | "inactive" | "missing";
 
@@ -65,4 +67,77 @@ export async function isCardPubliclyAccessible(card: {
   if (card.isActive === false) return false;
   const access = await getUserAccessStatus(card.userId);
   return access.status === "ok";
+}
+
+/**
+ * Admin toggle: set subscription active/inactive in Supabase `subscriptions`.
+ * Subscribe → is_active=true, payment_status=paid (extend end if past).
+ * Unsubscribe → is_active=false, payment_status=cancelled + deactivate cards.
+ */
+export async function setUserSubscribed(
+  userId: string,
+  subscribed: boolean,
+): Promise<ISubscription> {
+  await dbConnect();
+
+  const user = await findUserById(userId);
+  if (!user) {
+    throw Object.assign(new Error("User not found"), { code: "NOT_FOUND" });
+  }
+  if (user.role === "admin") {
+    throw Object.assign(
+      new Error("Cannot toggle subscription for admin accounts"),
+      { code: "FORBIDDEN" },
+    );
+  }
+
+  let sub = await findSubscriptionByUserId(userId);
+  const now = new Date();
+
+  if (subscribed) {
+    const end =
+      sub?.endDate && new Date(sub.endDate) > now
+        ? new Date(sub.endDate)
+        : new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+    if (!sub) {
+      sub = await createSubscription({
+        userId,
+        plan: "basic",
+        startDate: now,
+        endDate: end,
+        isActive: true,
+        paymentStatus: "paid",
+      });
+    } else {
+      sub =
+        (await updateSubscription(sub._id, {
+          isActive: true,
+          paymentStatus: "paid",
+          endDate: end,
+        })) ?? sub;
+    }
+    return sub;
+  }
+
+  // Unsubscribe
+  if (!sub) {
+    sub = await createSubscription({
+      userId,
+      plan: "free",
+      startDate: now,
+      endDate: now,
+      isActive: false,
+      paymentStatus: "cancelled",
+    });
+  } else {
+    sub =
+      (await updateSubscription(sub._id, {
+        isActive: false,
+        paymentStatus: "cancelled",
+      })) ?? sub;
+  }
+
+  await deactivateCardsByUser(userId);
+  return sub;
 }

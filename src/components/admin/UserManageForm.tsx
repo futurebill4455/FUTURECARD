@@ -12,6 +12,7 @@ import {
   type IUserLimits,
 } from "@/types/platform.types";
 import { FeaturePermissionChecklist } from "@/components/admin/FeaturePermissionChecklist";
+import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
 import { resolveFeatures } from "@/types/platform.types";
 import { defaultCustomDomainFeatureForPlan } from "@/lib/custom-domain-access";
 import { PLAN_LIMITS } from "@/lib/constants";
@@ -128,9 +129,22 @@ export function UserManageForm({
       </section>
 
       <section className="space-y-3 rounded-2xl border bg-card p-5">
-        <h2 className="font-display text-lg font-bold">
-          Subscription & validity
-        </h2>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-display text-lg font-bold">
+            Subscription & validity
+          </h2>
+          <SubscriptionToggle
+            userId={userId}
+            isActive={initial.subscription?.isActive}
+            paymentStatus={initial.subscription?.paymentStatus}
+            endDate={initial.subscription?.endDate}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Toggle Subscribe/Unsubscribe updates{" "}
+          <code className="text-teal-300/90">subscriptions.is_active</code> in
+          Supabase. Unsubscribing also pauses the user&apos;s public cards.
+        </p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label>Plan</Label>
