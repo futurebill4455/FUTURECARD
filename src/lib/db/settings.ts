@@ -88,6 +88,9 @@ export async function updatePlatformSettingsRow(
   if (patch.ambientImages !== undefined) {
     row.ambient_images = patch.ambientImages.slice(0, 3);
   }
+  if (patch.landingCms !== undefined) {
+    row.landing_cms = patch.landingCms;
+  }
 
   const { data, error } = await sb()
     .from("platform_settings")
@@ -95,15 +98,19 @@ export async function updatePlatformSettingsRow(
     .select("*")
     .single();
   if (error) {
-    // Graceful if migration 002 not applied yet
-    if (String(error.message || "").includes("ambient_")) {
+    // Graceful if migration columns missing
+    const msg = String(error.message || "");
+    if (msg.includes("ambient_") || msg.includes("landing_cms")) {
       console.warn(
-        "[settings] ambient_* columns missing — run supabase/migrations/002_ambient_background.sql",
+        "[settings] optional columns missing — run ambient + landing CMS migrations",
       );
       const cleaned = { ...row };
-      delete cleaned.ambient_mode;
-      delete cleaned.ambient_video;
-      delete cleaned.ambient_images;
+      if (msg.includes("landing_cms")) delete cleaned.landing_cms;
+      if (msg.includes("ambient_")) {
+        delete cleaned.ambient_mode;
+        delete cleaned.ambient_video;
+        delete cleaned.ambient_images;
+      }
       const retry = await sb()
         .from("platform_settings")
         .upsert({ key: "default", ...cleaned }, { onConflict: "key" })

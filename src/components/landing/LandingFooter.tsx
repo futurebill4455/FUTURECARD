@@ -2,34 +2,23 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
+import {
+  DEFAULT_LANDING_CMS,
+  type ILandingFooterContent,
+} from "@/types/landing-cms.types";
 
-const columns = [
-  {
-    title: "Product",
-    links: [
-      { href: "#features", label: "Features" },
-      { href: "#pricing", label: "Pricing" },
-      { href: "/dhanya_enterprises", label: "Live demo" },
-    ],
-  },
-  {
-    title: "Account",
-    links: [
-      { href: "/login", label: "Sign in" },
-      { href: "/register", label: "Create account" },
-      { href: "/dashboard", label: "Dashboard" },
-    ],
-  },
-  {
-    title: "Company",
-    links: [
-      { href: "#stories", label: "Customers" },
-      { href: "mailto:hello@futurecard.pro", label: "Contact" },
-    ],
-  },
-];
+export function LandingFooter({
+  content = DEFAULT_LANDING_CMS.footer,
+  adminWhatsapp,
+  companyName,
+}: {
+  content?: ILandingFooterContent;
+  adminWhatsapp?: string;
+  companyName?: string;
+}) {
+  const phone = (adminWhatsapp || "").replace(/\D/g, "");
+  const displayPhone = adminWhatsapp || "";
 
-export function LandingFooter() {
   return (
     <footer className="relative border-t border-teal-900/10 bg-[#0b1f1c] text-teal-50">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal-400/40 to-transparent" />
@@ -45,31 +34,35 @@ export function LandingFooter() {
               Future<span className="text-teal-400">Card</span>
             </Link>
             <p className="mt-2 text-sm font-semibold text-teal-300">
-              Verified by Future Shield
+              {content.brandSubline}
             </p>
             <p className="mt-3 max-w-xs text-sm leading-relaxed text-teal-100/65">
-              The modern digital visiting card platform — shareable, trackable,
-              and verified by Future Shield.
+              {content.description}
             </p>
-            <p className="mt-4 text-sm text-teal-200/70">
-              WhatsApp:{" "}
-              <a
-                href="https://wa.me/919876543210"
-                className="font-semibold text-teal-300 hover:text-white"
-              >
-                +91 98765 43210
-              </a>
-            </p>
+            {phone ? (
+              <p className="mt-4 text-sm text-teal-200/70">
+                WhatsApp:{" "}
+                <a
+                  href={`https://wa.me/${phone}`}
+                  className="font-semibold text-teal-300 hover:text-white"
+                >
+                  {displayPhone}
+                </a>
+              </p>
+            ) : null}
+            {companyName ? (
+              <p className="mt-2 text-xs text-teal-200/50">{companyName}</p>
+            ) : null}
           </div>
 
-          {columns.map((col) => (
+          {content.columns.map((col) => (
             <div key={col.title}>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-teal-400/80">
                 {col.title}
               </p>
               <ul className="mt-4 space-y-2.5">
                 {col.links.map((l) => (
-                  <li key={l.href}>
+                  <li key={`${col.title}-${l.href}-${l.label}`}>
                     <Link
                       href={l.href}
                       className="text-sm text-teal-100/70 transition hover:text-white"
@@ -84,8 +77,10 @@ export function LandingFooter() {
         </motion.div>
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/10 pt-6 text-xs text-teal-200/50 sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} FutureCard. All rights reserved.</p>
-          <p>Built for speed, trust, and beautiful first impressions.</p>
+          <p>
+            © {new Date().getFullYear()} FutureCard. All rights reserved.
+          </p>
+          <p>{content.copyrightNote}</p>
         </div>
       </div>
     </footer>

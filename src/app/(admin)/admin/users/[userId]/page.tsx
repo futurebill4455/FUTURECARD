@@ -7,6 +7,7 @@ import { findSubscriptionByUserId } from "@/lib/db/subscriptions";
 import { PageHeader } from "@/components/shared/Navbar";
 import { UserManageForm } from "@/components/admin/UserManageForm";
 import { AdminUserCardsPanel } from "@/components/admin/AdminUserCardsPanel";
+import { UserApprovalActions } from "@/components/admin/UserApprovalActions";
 import { Button } from "@/components/ui/button";
 
 type Props = { params: Promise<{ userId: string }> };
@@ -34,6 +35,25 @@ export default async function AdminUserEditPage({ params }: Props) {
         }
       />
       <div className="space-y-6">
+        {user.role === "user" ? (
+          <section className="rounded-2xl border bg-card p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="font-display text-lg font-bold">
+                  Signup approval
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Self-registered accounts must be approved before they can
+                  sign in.
+                </p>
+              </div>
+              <UserApprovalActions
+                userId={userId}
+                isApproved={Boolean(user.isApproved)}
+              />
+            </div>
+          </section>
+        ) : null}
         <AdminUserCardsPanel cards={cards} />
         <UserManageForm
           userId={userId}

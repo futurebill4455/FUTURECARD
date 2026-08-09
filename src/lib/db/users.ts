@@ -61,7 +61,17 @@ export async function createUser(input: {
   cardSections?: ICardSections;
   maxCardsLimit?: number;
   limits?: IUserLimits;
+  /** Defaults: admin → true; user → false unless explicitly set */
+  isApproved?: boolean;
 }): Promise<IUser> {
+  const role = input.role ?? "user";
+  const isApproved =
+    role === "admin"
+      ? true
+      : input.isApproved !== undefined
+        ? Boolean(input.isApproved)
+        : false;
+
   const maxCardsLimit = Math.min(
     50,
     Math.max(1, Math.floor(input.maxCardsLimit ?? input.limits?.maxCards ?? 1)),
@@ -77,12 +87,13 @@ export async function createUser(input: {
       name: input.name,
       email: input.email.toLowerCase(),
       password: input.password,
-      role: input.role ?? "user",
+      role,
       features: input.features ?? DEFAULT_USER_FEATURES,
       card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
       max_cards_limit: maxCardsLimit,
       limits,
       is_active: true,
+      is_approved: isApproved,
     })
     .select("*")
     .single();
@@ -97,6 +108,7 @@ export async function updateUser(
     email?: string;
     role?: "user" | "admin";
     isActive?: boolean;
+    isApproved?: boolean;
     features?: IUserFeatures;
     cardSections?: ICardSections;
     maxCardsLimit?: number;
@@ -110,6 +122,7 @@ export async function updateUser(
   if (patch.email !== undefined) row.email = patch.email.toLowerCase();
   if (patch.role !== undefined) row.role = patch.role;
   if (patch.isActive !== undefined) row.is_active = patch.isActive;
+  if (patch.isApproved !== undefined) row.is_approved = patch.isApproved;
   if (patch.features !== undefined) row.features = patch.features;
   if (patch.cardSections !== undefined) row.card_sections = patch.cardSections;
   if (patch.password !== undefined) row.password = patch.password;
@@ -195,4 +208,16 @@ export async function countUsersByRole(
     .eq("role", role);
   if (error) throwDbError(error, "countUsersByRole");
   return count ?? 0;
+}
+
+/** Hard-delete user (cascades cards + subscription via FK) */
+export async function deleteUser(id: string): Promise<boolean> {
+  const { data, error } = await sb()
+    .from("users")
+    .delete()
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error) throwDbError(error, "deleteUser");
+  return Boolean(data);
 }

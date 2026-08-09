@@ -5,52 +5,18 @@ import Link from "next/link";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_LANDING_CMS,
+  type ILandingPricingContent,
+} from "@/types/landing-cms.types";
 
-const plans = [
-  {
-    id: "free",
-    name: "Starter",
-    blurb: "Try the platform with one live card.",
-    monthly: 0,
-    yearly: 0,
-    features: [
-      "1 digital card",
-      "Core action buttons",
-      "Public share link",
-      "Basic branding",
-    ],
-  },
-  {
-    id: "basic",
-    name: "Growth",
-    blurb: "For growing shops and freelancers.",
-    monthly: 299,
-    yearly: 2499,
-    features: [
-      "Up to 3 cards",
-      "Services & galleries",
-      "UPI Pay Now",
-      "Analytics insights",
-    ],
-  },
-  {
-    id: "premium",
-    name: "Business",
-    blurb: "Full suite with domains & admin power.",
-    monthly: 599,
-    yearly: 4999,
-    popular: true,
-    features: [
-      "Up to 10 cards",
-      "Custom domain mapping",
-      "Verified badge ready",
-      "Priority feature access",
-    ],
-  },
-];
-
-export function LandingPricing() {
+export function LandingPricing({
+  content = DEFAULT_LANDING_CMS.pricing,
+}: {
+  content?: ILandingPricingContent;
+}) {
   const [yearly, setYearly] = useState(true);
+  const plans = content.plans;
 
   return (
     <section id="pricing" className="relative scroll-mt-20 px-4 py-24 sm:px-6">
@@ -63,14 +29,12 @@ export function LandingPricing() {
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-300">
-            Pricing
+            {content.eyebrow}
           </p>
           <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-teal-50 sm:text-4xl">
-            Plans that glow as you grow
+            {content.title}
           </h2>
-          <p className="mt-3 text-teal-100/70">
-            Start free. Upgrade when you need more cards, domains, and control.
-          </p>
+          <p className="mt-3 text-teal-100/70">{content.subtitle}</p>
 
           <LayoutGroup>
             <div className="relative mt-8 inline-flex items-center gap-1 rounded-2xl border border-teal-400/15 bg-white/5 p-1.5 backdrop-blur-md">
@@ -217,7 +181,7 @@ export function LandingPricing() {
               </ul>
 
               <Link
-                href="/register"
+                href={plan.ctaHref || "/register"}
                 className={cn(
                   "mt-8 block rounded-2xl py-3 text-center text-sm font-bold transition hover:scale-[1.02]",
                   plan.popular
@@ -225,7 +189,7 @@ export function LandingPricing() {
                     : "bg-teal-500 text-teal-950 hover:bg-teal-400",
                 )}
               >
-                {plan.monthly === 0 ? "Start free" : "Choose plan"}
+                {plan.ctaLabel || (plan.monthly === 0 ? "Start free" : "Choose plan")}
               </Link>
             </motion.div>
           ))}

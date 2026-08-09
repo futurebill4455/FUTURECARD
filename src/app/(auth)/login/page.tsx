@@ -9,20 +9,46 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  PENDING_APPROVAL_CODE,
+  PENDING_APPROVAL_MESSAGE,
+} from "@/lib/approval";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [pending, setPending] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setPending(false);
 
     try {
+      const pre = await fetch("/api/auth/preflight", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
+      });
+      if (pre.ok) {
+        const data = (await pre.json()) as {
+          pendingApproval?: boolean;
+          message?: string;
+        };
+        if (data.pendingApproval) {
+          setPending(true);
+          setError(data.message || PENDING_APPROVAL_MESSAGE);
+          return;
+        }
+      }
+
       const res = await signIn("credentials", {
         email: email.trim(),
         password,
@@ -36,21 +62,35 @@ export default function LoginPage() {
       }
 
       if (res.error) {
-        setError(
-          "Invalid email or password. If this persists, check Supabase env vars and run `pnpm seed`.",
-        );
+        const errText = String(res.error);
+        if (
+          errText === PENDING_APPROVAL_CODE ||
+          errText.includes(PENDING_APPROVAL_CODE) ||
+          errText.toLowerCase().includes("pending admin approval")
+        ) {
+          setPending(true);
+          setError(PENDING_APPROVAL_MESSAGE);
+          return;
+        }
+        setError("Invalid email or password.");
         return;
       }
 
       const session = await getSession();
+      if (session?.user && session.user.isApproved === false) {
+        setPending(true);
+        setError(PENDING_APPROVAL_MESSAGE);
+        router.replace(
+          `/pending-approval?email=${encodeURIComponent(email.trim().toLowerCase())}`,
+        );
+        return;
+      }
       const dest =
         session?.user?.role === "admin" ? "/admin/dashboard" : "/dashboard";
       router.replace(dest);
       router.refresh();
     } catch {
-      setError(
-        "Could not reach the auth API. Is `pnpm dev` running and is Supabase configured?",
-      );
+      setError("Could not sign in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -90,7 +130,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@futurecard.local"
+                  placeholder="you@example.com"
                 />
               </div>
               <div className="space-y-1.5">
@@ -104,9 +144,23 @@ export default function LoginPage() {
                 />
               </div>
               {error ? (
-                <p className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-                  {error}
-                </p>
+                <div
+                  className={`rounded-xl border px-3 py-2 text-sm ${
+                    pending
+                      ? "border-amber-400/30 bg-amber-500/10 text-amber-100"
+                      : "border-red-400/30 bg-red-500/10 text-red-300"
+                  }`}
+                >
+                  <p>{error}</p>
+                  {pending ? (
+                    <Link
+                      href={`/pending-approval?email=${encodeURIComponent(email.trim().toLowerCase())}`}
+                      className="mt-1 inline-block text-xs font-semibold text-amber-50 underline"
+                    >
+                      View pending approval status
+                    </Link>
+                  ) : null}
+                </div>
               ) : null}
               <Button className="w-full" disabled={loading}>
                 {loading ? "Signing in…" : "Sign in"}
@@ -121,11 +175,6 @@ export default function LoginPage() {
                 Register
               </Link>
             </p>
-            <div className="mt-4 rounded-xl border border-white/5 bg-white/[0.03] p-3 text-xs text-muted-foreground">
-              <p className="font-semibold text-teal-100/80">Demo accounts</p>
-              <p>Admin: admin@futurecard.local / Admin@123456</p>
-              <p>User: demo@futurecard.local / Demo@123456</p>
-            </div>
           </CardContent>
         </Card>
       </motion.div>

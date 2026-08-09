@@ -30,6 +30,7 @@ export async function POST(req: NextRequest) {
         email: validated.email,
         password,
         role: "user",
+        isApproved: false,
       });
 
       const startDate = new Date();
@@ -47,7 +48,11 @@ export async function POST(req: NextRequest) {
       });
 
       return NextResponse.json(
-        { message: "Account created. You can sign in now." },
+        {
+          message:
+            "Account created. Awaiting Super Admin approval before you can sign in.",
+          data: { pendingApproval: true },
+        },
         { status: 201 },
       );
     } catch (err) {

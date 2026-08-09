@@ -20,6 +20,7 @@ const links = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/domains", label: "Domain Requests" },
+  { href: "/admin/landing", label: "Landing CMS" },
   { href: "/admin/settings", label: "Platform" },
   { href: "/admin/profile", label: "My Profile" },
 ];

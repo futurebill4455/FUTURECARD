@@ -10,6 +10,7 @@ import {
 } from "@/components/admin/UserActions";
 import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
 import { MaxCardsLimitCell } from "@/components/admin/MaxCardsLimitCell";
+import { UserApprovalActions } from "@/components/admin/UserApprovalActions";
 import { resolveMaxCardsLimit } from "@/types/platform.types";
 
 function isLiveSub(sub?: {
@@ -56,6 +57,7 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3 font-semibold">Name</th>
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Account</th>
+              <th className="px-4 py-3 font-semibold">Approval</th>
               <th className="px-4 py-3 font-semibold">Plan</th>
               <th className="px-4 py-3 font-semibold">Max cards</th>
               <th className="px-4 py-3 font-semibold">Expires</th>
@@ -68,8 +70,14 @@ export default async function AdminUsersPage() {
               const id = u._id;
               const sub = subMap[id];
               const live = isLiveSub(sub);
+              const approved = Boolean(u.isApproved);
               return (
-                <tr key={id} className="border-t border-white/5">
+                <tr
+                  key={id}
+                  className={`border-t border-white/5 ${
+                    !approved ? "bg-amber-500/[0.04]" : ""
+                  }`}
+                >
                   <td className="px-4 py-3 font-medium">{u.name}</td>
                   <td className="px-4 py-3 text-muted-foreground">{u.email}</td>
                   <td className="px-4 py-3">
@@ -78,6 +86,12 @@ export default async function AdminUsersPage() {
                     ) : (
                       <span className="text-red-300">Inactive</span>
                     )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <UserApprovalActions
+                      userId={id}
+                      isApproved={approved}
+                    />
                   </td>
                   <td className="px-4 py-3 capitalize">{sub?.plan ?? "—"}</td>
                   <td className="px-4 py-3">
@@ -116,7 +130,7 @@ export default async function AdminUsersPage() {
             {users.length === 0 ? (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={9}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   No users yet.

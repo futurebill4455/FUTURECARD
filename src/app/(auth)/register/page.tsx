@@ -25,7 +25,10 @@ export default function RegisterPage() {
         method: "POST",
         body: JSON.stringify(form),
       });
-      router.push("/login");
+      const q = form.email
+        ? `?email=${encodeURIComponent(form.email.trim().toLowerCase())}`
+        : "";
+      router.push(`/pending-approval${q}`);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Registration failed");
     } finally {

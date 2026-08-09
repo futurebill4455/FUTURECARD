@@ -11,6 +11,11 @@ export interface IUser {
   role: UserRole;
   avatar?: string;
   isActive: boolean;
+  /**
+   * Self-signup accounts start false until Super Admin approves.
+   * Admins and admin-created users are approved by default.
+   */
+  isApproved: boolean;
   features?: IUserFeatures;
   /** Super Admin grants for public mini-site sections */
   cardSections?: ICardSections;

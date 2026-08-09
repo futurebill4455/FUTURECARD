@@ -9,11 +9,13 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       role: "user" | "admin";
+      isApproved?: boolean;
     };
   }
 
   interface User {
     role?: "user" | "admin";
+    isApproved?: boolean;
   }
 }
 
@@ -21,5 +23,6 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: "user" | "admin";
+    isApproved?: boolean;
   }
 }

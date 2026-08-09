@@ -21,10 +21,18 @@ import { TiltCard } from "@/components/landing/TiltCard";
 import { TypewriterHeadline } from "@/components/landing/TypewriterHeadline";
 import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
 import { KineticWords } from "@/components/landing/motion";
+import {
+  DEFAULT_LANDING_CMS,
+  type ILandingHeroContent,
+} from "@/types/landing-cms.types";
 
 const springSoft = { type: "spring" as const, stiffness: 90, damping: 14 };
 
-export function LandingHero() {
+export function LandingHero({
+  content = DEFAULT_LANDING_CMS.hero,
+}: {
+  content?: ILandingHeroContent;
+}) {
   const sectionRef = useRef<HTMLElement>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -113,7 +121,7 @@ export function LandingHero() {
               className="inline-flex items-center gap-2 rounded-2xl border border-teal-400/20 bg-white/5 px-3 py-1.5 text-xs font-bold text-teal-100 backdrop-blur-md"
             >
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
-              Cinematic digital identity
+              {content.badge}
             </motion.div>
 
             <motion.p
@@ -122,18 +130,26 @@ export function LandingHero() {
               transition={{ ...springSoft, delay: 0.35 }}
               className="mt-5 font-display text-4xl font-extrabold tracking-tight text-teal-50 sm:text-5xl md:text-6xl"
             >
-              Future<span className="text-teal-300">Card</span>
+              {content.brandLine.endsWith("Card") ? (
+                <>
+                  {content.brandLine.slice(0, -4)}
+                  <span className="text-teal-300">Card</span>
+                </>
+              ) : (
+                content.brandLine
+              )}
             </motion.p>
 
             <div className="mt-4">
-              <TypewriterHeadline />
+              <TypewriterHeadline
+                prefix={content.typewriterPrefix}
+                suffix={content.typewriterSuffix}
+                phrases={content.typewriterPhrases}
+              />
             </div>
 
             <p className="mt-5 max-w-lg text-base leading-relaxed text-teal-100/70 sm:text-lg">
-              <KineticWords
-                text="One explosive link for Call, WhatsApp, UPI Pay, galleries, and Future Shield verification — built for modern Indian businesses."
-                delay={0.55}
-              />
+              <KineticWords text={content.subtitle} delay={0.55} />
             </p>
 
             <motion.div
@@ -143,17 +159,17 @@ export function LandingHero() {
               className="mt-8 flex flex-wrap gap-3"
             >
               <Link
-                href="/register"
+                href={content.primaryCtaHref || "/register"}
                 className="group relative overflow-hidden rounded-2xl bg-teal-400 px-6 py-3.5 text-sm font-bold text-teal-950 shadow-[0_12px_40px_-10px_rgba(45,212,191,0.55)] transition hover:scale-[1.03] hover:bg-teal-300"
               >
-                <span className="relative z-10">Get Started Free</span>
+                <span className="relative z-10">{content.primaryCtaLabel}</span>
                 <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition duration-700 group-hover:translate-x-full" />
               </Link>
               <Link
-                href="/dhanya_enterprises"
+                href={content.secondaryCtaHref || "/register"}
                 className="rounded-2xl border border-teal-400/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-teal-50 shadow-sm backdrop-blur-md transition hover:scale-[1.03] hover:border-teal-300/50 hover:bg-white/10"
               >
-                View Live Demo
+                {content.secondaryCtaLabel}
               </Link>
             </motion.div>
           </motion.div>

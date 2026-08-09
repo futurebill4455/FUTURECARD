@@ -84,6 +84,116 @@ export const platformSettingsSchema = z.object({
   ambientMode: z.enum(["gradient", "video", "slideshow"]).optional(),
   ambientVideo: z.string().max(800).optional().or(z.literal("")),
   ambientImages: z.array(z.string().url().or(z.string().min(1))).max(3).optional(),
+  landingCms: z.record(z.unknown()).optional(),
+});
+
+const landingFeatureIconSchema = z.enum([
+  "badge",
+  "package",
+  "qr",
+  "images",
+  "globe",
+  "shield",
+]);
+
+export const landingCmsSchema = z.object({
+  hero: z.object({
+    badge: z.string().max(120),
+    brandLine: z.string().max(80),
+    typewriterPhrases: z.array(z.string().max(120)).min(1).max(8),
+    typewriterPrefix: z.string().max(80),
+    typewriterSuffix: z.string().max(80),
+    subtitle: z.string().max(500),
+    primaryCtaLabel: z.string().max(60),
+    primaryCtaHref: z.string().max(300),
+    secondaryCtaLabel: z.string().max(60),
+    secondaryCtaHref: z.string().max(300),
+  }),
+  features: z.object({
+    eyebrow: z.string().max(60),
+    title: z.string().max(160),
+    subtitle: z.string().max(400),
+    items: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(40),
+          title: z.string().max(80),
+          description: z.string().max(300),
+          icon: landingFeatureIconSchema,
+          wide: z.boolean().optional(),
+        }),
+      )
+      .min(1)
+      .max(12),
+  }),
+  pricing: z.object({
+    eyebrow: z.string().max(60),
+    title: z.string().max(160),
+    subtitle: z.string().max(400),
+    plans: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(40),
+          name: z.string().max(60),
+          blurb: z.string().max(200),
+          monthly: z.number().min(0).max(1_000_000),
+          yearly: z.number().min(0).max(1_000_000),
+          popular: z.boolean().optional(),
+          features: z.array(z.string().max(120)).min(1).max(20),
+          ctaLabel: z.string().max(60),
+          ctaHref: z.string().max(300),
+        }),
+      )
+      .min(1)
+      .max(6),
+  }),
+  testimonials: z.object({
+    eyebrow: z.string().max(60),
+    title: z.string().max(160),
+    items: z
+      .array(
+        z.object({
+          id: z.string().min(1).max(40),
+          name: z.string().max(80),
+          role: z.string().max(120),
+          quote: z.string().max(600),
+        }),
+      )
+      .min(1)
+      .max(12),
+  }),
+  cta: z.object({
+    title: z.string().max(160),
+    subtitle: z.string().max(300),
+    buttonLabel: z.string().max(60),
+    buttonHref: z.string().max(300),
+  }),
+  footer: z.object({
+    brandSubline: z.string().max(120),
+    description: z.string().max(400),
+    copyrightNote: z.string().max(200),
+    columns: z
+      .array(
+        z.object({
+          title: z.string().max(60),
+          links: z
+            .array(
+              z.object({
+                href: z.string().max(300),
+                label: z.string().max(60),
+              }),
+            )
+            .min(1)
+            .max(10),
+        }),
+      )
+      .min(1)
+      .max(6),
+  }),
+});
+
+export const landingCmsUpdateSchema = z.object({
+  landingCms: landingCmsSchema,
 });
 
 export const customDomainSchema = z.object({

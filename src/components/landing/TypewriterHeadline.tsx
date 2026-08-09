@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const PHRASES = [
+const DEFAULT_PHRASES = [
   "stunning digital visiting card",
   "verified brand presence",
   "shareable business identity",
@@ -13,16 +13,22 @@ const PHRASES = [
 export function TypewriterHeadline({
   prefix = "Create your",
   suffix = "in minutes",
+  phrases,
 }: {
   prefix?: string;
   suffix?: string;
+  phrases?: string[];
 }) {
+  const list = useMemo(
+    () => (phrases && phrases.length ? phrases : DEFAULT_PHRASES),
+    [phrases],
+  );
   const [phraseIndex, setPhraseIndex] = useState(0);
   const [display, setDisplay] = useState("");
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const full = PHRASES[phraseIndex] ?? "";
+    const full = list[phraseIndex % list.length] ?? "";
     const speed = deleting ? 28 : 48;
 
     if (!deleting && display === full) {
@@ -32,7 +38,7 @@ export function TypewriterHeadline({
 
     if (deleting && display === "") {
       setDeleting(false);
-      setPhraseIndex((i) => (i + 1) % PHRASES.length);
+      setPhraseIndex((i) => (i + 1) % list.length);
       return;
     }
 
@@ -43,7 +49,7 @@ export function TypewriterHeadline({
     }, speed);
 
     return () => window.clearTimeout(id);
-  }, [display, deleting, phraseIndex]);
+  }, [display, deleting, phraseIndex, list]);
 
   return (
     <h1 className="mt-4 max-w-xl font-display text-3xl font-bold leading-[1.15] tracking-tight text-teal-50 sm:text-4xl md:text-[2.75rem]">

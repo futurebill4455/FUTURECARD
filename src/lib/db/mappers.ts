@@ -16,6 +16,7 @@ import {
 } from "@/types/card.types";
 import { resolveCardSections } from "@/types/card-sections.types";
 import { resolveCardProfileType } from "@/types/card-profile.types";
+import { resolveLandingCms } from "@/types/landing-cms.types";
 import { getDefaultCnameTarget } from "@/lib/custom-domain";
 
 /** Raw `users` row (snake_case) */
@@ -27,6 +28,7 @@ export type UserRow = {
   role: "user" | "admin";
   avatar: string | null;
   is_active: boolean;
+  is_approved?: boolean | null;
   features: Record<string, boolean> | null;
   card_sections?: Record<string, boolean> | null;
   max_cards_limit?: number | null;
@@ -106,6 +108,7 @@ export type PlatformSettingsRow = {
   ambient_mode?: string | null;
   ambient_video?: string | null;
   ambient_images?: string[] | null;
+  landing_cms?: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
 };
@@ -125,6 +128,8 @@ export function mapUser(
     role: row.role,
     avatar: row.avatar ?? undefined,
     isActive: row.is_active,
+    isApproved:
+      row.role === "admin" ? true : row.is_approved !== false,
     features: resolveFeatures(row.features),
     cardSections: resolveCardSections(row.card_sections),
     maxCardsLimit,
@@ -255,6 +260,9 @@ export function mapPlatformSettings(row: PlatformSettingsRow): IPlatformSettings
         : "gradient",
     ambientVideo: row.ambient_video || "",
     ambientImages: images,
+    landingCms: resolveLandingCms(
+      row.landing_cms as Parameters<typeof resolveLandingCms>[0],
+    ),
     updatedAt: row.updated_at,
   };
 }

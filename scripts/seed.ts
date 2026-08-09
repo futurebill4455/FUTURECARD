@@ -70,6 +70,7 @@ async function upsertUser(
         password: passwordHash,
         role: account.role,
         is_active: true,
+        is_approved: true,
       })
       .eq("id", existing.id)
       .select("id, password")
@@ -87,6 +88,7 @@ async function upsertUser(
         password: passwordHash,
         role: account.role,
         is_active: true,
+        is_approved: true,
       })
       .select("id, password")
       .single();

@@ -55,6 +55,15 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
+  // Unapproved user sessions cannot use the dashboard (admins always allowed)
+  if (
+    token.role !== "admin" &&
+    token.isApproved === false &&
+    !pathname.startsWith("/pending-approval")
+  ) {
+    return NextResponse.redirect(new URL("/pending-approval", req.url));
+  }
+
   return NextResponse.next();
 }
 

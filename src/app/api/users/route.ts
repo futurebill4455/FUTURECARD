@@ -72,6 +72,7 @@ export async function POST(req: NextRequest) {
           ...DEFAULT_USER_LIMITS,
           maxCards: validated.maxCardsLimit ?? 1,
         },
+        isApproved: true,
       });
 
       const startDate = new Date();

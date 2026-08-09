@@ -11,16 +11,29 @@ import {
   ImmersiveBackground,
   type AmbientMode,
 } from "@/components/shared/ImmersiveBackground";
+import {
+  DEFAULT_LANDING_CMS,
+  resolveLandingCms,
+  type ILandingCms,
+} from "@/types/landing-cms.types";
 
 export function LandingPage({
   ambientMode = "gradient",
   ambientVideo,
   ambientImages,
+  cms,
+  adminWhatsapp,
+  companyName,
 }: {
   ambientMode?: AmbientMode;
   ambientVideo?: string;
   ambientImages?: string[];
+  cms?: ILandingCms | null;
+  adminWhatsapp?: string;
+  companyName?: string;
 }) {
+  const content = resolveLandingCms(cms || DEFAULT_LANDING_CMS);
+
   return (
     <div className="landing-page relative min-h-screen overflow-x-hidden text-teal-50">
       <ImmersiveBackground
@@ -32,13 +45,17 @@ export function LandingPage({
       <div className="relative z-[1]">
         <LandingNav />
         <main>
-          <LandingHero />
-          <LandingFeatures />
-          <LandingPricing />
-          <LandingTestimonials />
-          <LandingCtaBand />
+          <LandingHero content={content.hero} />
+          <LandingFeatures content={content.features} />
+          <LandingPricing content={content.pricing} />
+          <LandingTestimonials content={content.testimonials} />
+          <LandingCtaBand content={content.cta} />
         </main>
-        <LandingFooter />
+        <LandingFooter
+          content={content.footer}
+          adminWhatsapp={adminWhatsapp}
+          companyName={companyName}
+        />
       </div>
     </div>
   );

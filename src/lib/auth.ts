@@ -4,6 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { dbConnect } from "@/lib/db";
 import { findUserByEmail } from "@/lib/db/users";
+import {
+  PENDING_APPROVAL_CODE,
+  PENDING_APPROVAL_MESSAGE,
+} from "@/lib/approval";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -38,6 +42,13 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
+          const approved =
+            user.role === "admin" ? true : Boolean(user.isApproved);
+          if (!approved) {
+            console.warn(`[auth] Pending approval: ${email}`);
+            throw new Error(PENDING_APPROVAL_CODE);
+          }
+
           if (!user.password) {
             console.error(`[auth] User missing password hash: ${email}`);
             return null;
@@ -58,8 +69,15 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
+            isApproved: true,
           };
         } catch (error) {
+          if (
+            error instanceof Error &&
+            error.message === PENDING_APPROVAL_CODE
+          ) {
+            throw error;
+          }
           console.error(
             "[auth] authorize failed — is Supabase configured?",
             error,
@@ -77,6 +95,10 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email;
         const role = (user as { role?: "user" | "admin" }).role;
         token.role = role === "admin" ? "admin" : "user";
+        token.isApproved =
+          role === "admin"
+            ? true
+            : Boolean((user as { isApproved?: boolean }).isApproved);
       }
 
       if (trigger === "update" && session) {
@@ -91,6 +113,8 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "user" | "admin") || "user";
+        session.user.isApproved =
+          token.role === "admin" ? true : token.isApproved !== false;
         if (token.name) session.user.name = token.name as string;
         if (token.email) session.user.email = token.email as string;
       }
@@ -99,3 +123,5 @@ export const authOptions: NextAuthOptions = {
   },
   secret: getAuthSecret(),
 };
+
+export { PENDING_APPROVAL_MESSAGE, PENDING_APPROVAL_CODE };

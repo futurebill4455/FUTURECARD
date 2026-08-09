@@ -168,6 +168,8 @@ export interface IPlatformSettings {
   ambientMode?: "gradient" | "video" | "slideshow";
   ambientVideo?: string;
   ambientImages?: string[];
+  /** Landing page CMS (hero, features, pricing, testimonials, footer) */
+  landingCms?: import("./landing-cms.types").ILandingCms;
   updatedAt?: string;
 }
 
@@ -180,4 +182,5 @@ export const DEFAULT_PLATFORM_SETTINGS: IPlatformSettings = {
   ambientMode: "gradient",
   ambientVideo: "",
   ambientImages: [],
+  landingCms: undefined,
 };
