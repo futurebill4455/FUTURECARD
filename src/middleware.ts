@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { isPlatformHost, normalizeHostname } from "@/lib/custom-domain";
+import { getAuthSecret } from "@/lib/auth-secret";
 
 const STATIC_EXT =
   /\.(ico|png|jpg|jpeg|gif|webp|svg|css|js|map|txt|xml|woff2?|ttf|eot)$/i;
@@ -9,7 +10,6 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hostHeader = req.headers.get("host");
 
-  // Custom domain → rewrite to /domain/[host] (public card under client's hostname)
   if (!isPlatformHost(hostHeader)) {
     if (
       pathname.startsWith("/_next") ||
@@ -42,7 +42,7 @@ export async function middleware(req: NextRequest) {
 
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET,
+    secret: getAuthSecret(),
   });
 
   if (!token) {

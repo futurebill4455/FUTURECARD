@@ -157,8 +157,8 @@ export function mapCard(row: CardRow): ICard {
       (row.background_media_type as ICard["backgroundMediaType"]) || "none",
     backgroundImages: row.background_images ?? [],
     backgroundVideo: row.background_video ?? undefined,
-    companyName: row.company_name,
-    jobTitle: row.job_title,
+    companyName: row.company_name ?? "",
+    jobTitle: row.job_title ?? "",
     businessType: row.business_type ?? undefined,
     businessCategory: row.business_category ?? undefined,
     aboutUs: row.about_us ?? undefined,
@@ -202,10 +202,23 @@ export function mapCard(row: CardRow): ICard {
   };
 }
 
+function parseAmbientImages(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.filter((v): v is string => typeof v === "string" && Boolean(v)).slice(0, 3);
+  }
+  if (typeof raw === "string" && raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return parseAmbientImages(parsed);
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
 export function mapPlatformSettings(row: PlatformSettingsRow): IPlatformSettings {
-  const images = Array.isArray(row.ambient_images)
-    ? row.ambient_images.filter(Boolean).slice(0, 3)
-    : [];
+  const images = parseAmbientImages(row.ambient_images);
   const mode = row.ambient_mode;
   return {
     _id: row.id,

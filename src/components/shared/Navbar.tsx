@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import Link from "next/link";
 import { APP_NAME } from "@/lib/constants";
 import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
@@ -56,12 +55,7 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-8 flex flex-wrap items-end justify-between gap-3"
-    >
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-3 animate-fade-up">
       <div>
         <h1 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
           {title}
@@ -71,7 +65,7 @@ export function PageHeader({
         ) : null}
       </div>
       {actions}
-    </motion.div>
+    </div>
   );
 }
 
@@ -83,14 +77,7 @@ export function StatCard({
   value: string | number;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.35 }}
-      className="glass glow-border relative overflow-hidden rounded-2xl p-4 shadow-panel"
-    >
+    <div className="glass glow-border relative overflow-hidden rounded-2xl p-4 shadow-panel transition hover:-translate-y-0.5">
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-teal-400/10 blur-2xl" />
       <div className="relative z-[1] text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-200/70">
         {label}
@@ -98,7 +85,7 @@ export function StatCard({
       <div className="relative z-[1] mt-2 font-mono text-3xl font-semibold tracking-tight text-gradient">
         {value}
       </div>
-    </motion.div>
+    </div>
   );
 }
 

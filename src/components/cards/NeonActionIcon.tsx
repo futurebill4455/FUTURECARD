@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 /** Semi-transparent neon SVG icons with glass/glow edges */
@@ -18,7 +19,7 @@ export function NeonActionIcon({
     strokeLinejoin: "round" as const,
   };
 
-  const paths: Record<string, React.ReactNode> = {
+  const paths: Record<string, ReactNode> = {
     call: (
       <>
         <path {...common} d="M8 3.5c1 .4 1.8 1.4 2 2.5.1.6-.1 1.2-.5 1.6L8.2 9c1.4 2.5 3.5 4.5 6 5.8l1.3-1.2c.5-.4 1.1-.6 1.7-.5 1.1.2 2.1 1 2.5 2v.2c0 1.4-1.2 2.6-2.6 2.4C10.2 17 5 11.8 3.6 4.9 3.4 3.5 4.6 2.3 6 2.3h.2c.8 0 1.4.5 1.8 1.2z" />

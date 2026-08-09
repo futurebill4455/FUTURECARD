@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
@@ -16,31 +17,59 @@ import {
 import { CustomDomainSettings } from "@/components/dashboard/CustomDomainSettings";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { canRequestCustomDomain } from "@/lib/custom-domain-access";
-import { resolveFeatures } from "@/types/platform.types";
+import {
+  DEFAULT_PLATFORM_SETTINGS,
+  resolveFeatures,
+} from "@/types/platform.types";
 import {
   isCustomDomainLive,
   normalizeDomainStatus,
 } from "@/lib/custom-domain-access";
+import type { ICard } from "@/types/card.types";
+import type { ISubscription } from "@/types/subscription.types";
+import type { IUser } from "@/types/user.types";
+import type { IPlatformSettings } from "@/types/platform.types";
+
+export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
-  await dbConnect();
+  if (!session?.user?.id) redirect("/login");
 
-  const [cards, sub, settings, userDoc] = await Promise.all([
-    listCardsByUser(session!.user.id),
-    findSubscriptionByUserId(session!.user.id),
-    getPlatformSettings(),
-    findUserById(session!.user.id),
-  ]);
+  let cards: ICard[] = [];
+  let sub: ISubscription | null = null;
+  let settings: IPlatformSettings = { ...DEFAULT_PLATFORM_SETTINGS };
+  let userDoc: IUser | null = null;
+  let loadError: string | null = null;
+
+  try {
+    await dbConnect();
+    const result = await Promise.all([
+      listCardsByUser(session.user.id),
+      findSubscriptionByUserId(session.user.id),
+      getPlatformSettings(),
+      findUserById(session.user.id),
+    ]);
+    cards = result[0] ?? [];
+    sub = result[1];
+    settings = result[2] ?? { ...DEFAULT_PLATFORM_SETTINGS };
+    userDoc = result[3];
+  } catch (err) {
+    console.error("[dashboard] data load failed:", err);
+    loadError =
+      "Could not load account data. Check Supabase connection and that migrations are applied.";
+    // Ambient/settings still useful for shell CNAME hint
+    settings = await getPlatformSettings();
+  }
 
   const features = resolveFeatures(userDoc?.features ?? null);
   const privilege = canRequestCustomDomain(features, sub?.plan ?? "free");
 
-  const recent = cards.slice(0, 5);
-  const domainCards = cards.map((c) => ({
+  const recent = (cards || []).slice(0, 5);
+  const domainCards = (cards || []).map((c) => ({
     _id: c._id,
     username: c.username,
-    companyName: c.companyName,
+    companyName: c.companyName || "",
     customDomain: c.customDomain || "",
     customDomainStatus: normalizeDomainStatus(c.customDomainStatus),
     customDomainActive: isCustomDomainLive(c),
@@ -49,7 +78,7 @@ export default async function DashboardPage() {
   return (
     <div>
       <PageHeader
-        title={`Hello, ${session!.user.name?.split(" ")[0] || "there"}`}
+        title={`Hello, ${session.user.name?.split(" ")[0] || "there"}`}
         description="Manage your digital visiting cards and subscription."
         actions={
           <Button asChild>
@@ -57,6 +86,12 @@ export default async function DashboardPage() {
           </Button>
         }
       />
+
+      {loadError ? (
+        <div className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {loadError}
+        </div>
+      ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Cards" value={cards.length} />
@@ -120,7 +155,10 @@ export default async function DashboardPage() {
         <CardContent>
           <CustomDomainSettings
             cards={domainCards}
-            platformCnameTarget={settings.platformCnameTarget}
+            platformCnameTarget={
+              settings.platformCnameTarget ||
+              DEFAULT_PLATFORM_SETTINGS.platformCnameTarget
+            }
             allowed={privilege.allowed}
             lockReason={privilege.reason}
           />

@@ -170,8 +170,8 @@ export function CardPreview({
         <div className="relative z-20 -mt-16 flex justify-center">
           <HolographicAvatar
             src={card.profileImage}
-            alt={card.companyName}
-            fallbackLetter={card.companyName.slice(0, 1)}
+            alt={card.companyName || "Profile"}
+            fallbackLetter={(card.companyName || "?").slice(0, 1)}
             accent={theme.buttonColor}
             soft={soft}
             size={116}

@@ -45,13 +45,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
-        onMouseMove={(e) => {
-          const el = e.currentTarget as HTMLElement;
-          const rect = el.getBoundingClientRect();
-          el.style.setProperty("--x", `${e.clientX - rect.left}px`);
-          el.style.setProperty("--y", `${e.clientY - rect.top}px`);
-          onMouseMove?.(e as React.MouseEvent<HTMLButtonElement>);
-        }}
+        onMouseMove={
+          asChild
+            ? onMouseMove
+            : (e) => {
+                const el = e.currentTarget;
+                const rect = el.getBoundingClientRect();
+                el.style.setProperty("--x", `${e.clientX - rect.left}px`);
+                el.style.setProperty("--y", `${e.clientY - rect.top}px`);
+                onMouseMove?.(e);
+              }
+        }
         {...props}
       />
     );

@@ -1,3 +1,4 @@
+import { getAuthSecret } from "@/lib/auth-secret";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -59,7 +60,10 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          console.error("[auth] authorize failed — is Supabase configured?", error);
+          console.error(
+            "[auth] authorize failed — is Supabase configured?",
+            error,
+          );
           return null;
         }
       },
@@ -75,7 +79,6 @@ export const authOptions: NextAuthOptions = {
         token.role = role === "admin" ? "admin" : "user";
       }
 
-      // Keep JWT in sync after profile updates via `useSession().update(...)`
       if (trigger === "update" && session) {
         const s = session as { name?: string; email?: string };
         if (typeof s.name === "string") token.name = s.name;
@@ -94,5 +97,5 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: getAuthSecret(),
 };

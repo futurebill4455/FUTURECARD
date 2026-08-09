@@ -1,14 +1,20 @@
 "use client";
 
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  ImmersiveBackground,
-  type AmbientMode,
-} from "@/components/shared/ImmersiveBackground";
+import type { AmbientMode } from "@/components/shared/ImmersiveBackground";
+
+/** Client-only ambient — avoids Framer/video SSR crashes on Vercel */
+const ImmersiveBackground = dynamic(
+  () =>
+    import("@/components/shared/ImmersiveBackground").then(
+      (m) => m.ImmersiveBackground,
+    ),
+  { ssr: false },
+);
 
 const userLinks = [
   { href: "/dashboard", label: "Overview" },
@@ -25,7 +31,6 @@ export function DashboardShell({
   ambientImages,
 }: {
   children: React.ReactNode;
-  /** Server-verified admin flag — Admin Panel only when true */
   isAdmin?: boolean;
   ambientMode?: AmbientMode;
   ambientVideo?: string;
@@ -37,12 +42,19 @@ export function DashboardShell({
 
   return (
     <div className="relative min-h-screen md:grid md:grid-cols-[260px_1fr]">
-      <ImmersiveBackground
-        mode={ambientMode}
-        video={ambientVideo}
-        images={ambientImages}
-        intensity={0.82}
-      />
+      <div className="pointer-events-none absolute inset-0 bg-[#020617]" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-80"
+        aria-hidden
+      >
+        <ImmersiveBackground
+          mode={ambientMode || "gradient"}
+          video={ambientVideo || ""}
+          images={Array.isArray(ambientImages) ? ambientImages : []}
+          intensity={0.82}
+        />
+      </div>
+
       <aside className="relative z-[1] border-b border-white/5 glass-soft md:border-b-0 md:border-r md:border-white/5">
         <div className="flex items-center justify-between px-4 py-5 md:block">
           <Link
@@ -52,6 +64,7 @@ export function DashboardShell({
             Future<span className="text-gradient">Card</span>
           </Link>
           <button
+            type="button"
             className="text-sm text-muted-foreground transition hover:text-teal-300 md:mt-6 md:block"
             onClick={() => signOut({ callbackUrl: "/login" })}
           >
@@ -59,40 +72,23 @@ export function DashboardShell({
           </button>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:px-3 md:pb-6">
-          {userLinks.map((l, i) => {
+          {userLinks.map((l) => {
             const active =
               pathname === l.href ||
               (l.href !== "/dashboard" && pathname.startsWith(l.href));
             return (
-              <motion.div
+              <Link
                 key={l.href}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.04 * i }}
+                href={l.href}
+                className={cn(
+                  "relative block rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
+                  active
+                    ? "border border-teal-400/25 bg-teal-400/10 text-teal-100 shadow-glow"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                )}
               >
-                <Link
-                  href={l.href}
-                  className={cn(
-                    "relative block rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
-                    active
-                      ? "text-teal-100"
-                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                  )}
-                >
-                  {active ? (
-                    <motion.span
-                      layoutId="user-nav-pill"
-                      className="absolute inset-0 -z-10 rounded-xl border border-teal-400/25 bg-teal-400/10 shadow-glow"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  ) : null}
-                  {l.label}
-                </Link>
-              </motion.div>
+                {l.label}
+              </Link>
             );
           })}
           {showAdminPanel ? (
@@ -105,18 +101,13 @@ export function DashboardShell({
           ) : null}
         </nav>
         <p className="hidden truncate px-4 pb-5 font-mono text-[11px] text-muted-foreground md:block">
-          {data?.user?.email}
+          {data?.user?.email || "\u00a0"}
         </p>
       </aside>
       <main className="relative z-[1] px-4 py-6 md:px-8 md:py-8">
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div key={pathname} className="animate-fade-up">
           {children}
-        </motion.div>
+        </div>
       </main>
     </div>
   );

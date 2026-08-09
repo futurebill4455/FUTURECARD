@@ -14,7 +14,7 @@ export async function listCardsByUser(userId: string): Promise<ICard[]> {
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
   if (error) throwDbError(error, "listCardsByUser");
-  return (data as CardRow[]).map(mapCard);
+  return (data ?? []).map((row) => mapCard(row as CardRow));
 }
 
 export async function findCardById(id: string): Promise<ICard | null> {

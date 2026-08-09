@@ -21,7 +21,10 @@ export async function getPlatformSettingsRow(): Promise<IPlatformSettings> {
     .eq("key", "default")
     .maybeSingle();
 
-  if (error) throwDbError(error, "getPlatformSettings");
+  if (error) {
+    console.error("[settings] getPlatformSettings failed:", error);
+    return { ...DEFAULT_PLATFORM_SETTINGS };
+  }
 
   if (!data) {
     const { data: created, error: insertErr } = await sb()
@@ -38,11 +41,19 @@ export async function getPlatformSettingsRow(): Promise<IPlatformSettings> {
       })
       .select("*")
       .single();
-    if (insertErr) throwDbError(insertErr, "createPlatformSettings");
+    if (insertErr) {
+      console.error("[settings] createPlatformSettings failed:", insertErr);
+      return { ...DEFAULT_PLATFORM_SETTINGS };
+    }
     return mapPlatformSettings(created as PlatformSettingsRow);
   }
 
-  return mapPlatformSettings(data as PlatformSettingsRow);
+  try {
+    return mapPlatformSettings(data as PlatformSettingsRow);
+  } catch (err) {
+    console.error("[settings] mapPlatformSettings failed:", err);
+    return { ...DEFAULT_PLATFORM_SETTINGS };
+  }
 }
 
 export async function updatePlatformSettingsRow(

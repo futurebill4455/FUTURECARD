@@ -2,10 +2,22 @@ import {
   getPlatformSettingsRow,
   updatePlatformSettingsRow,
 } from "@/lib/db/settings";
-import type { IPlatformSettings } from "@/types/platform.types";
+import {
+  DEFAULT_PLATFORM_SETTINGS,
+  type IPlatformSettings,
+} from "@/types/platform.types";
 
+/**
+ * Platform settings for shells / public cards.
+ * Never throws — missing DB/columns fall back to defaults so dashboards stay up.
+ */
 export async function getPlatformSettings(): Promise<IPlatformSettings> {
-  return getPlatformSettingsRow();
+  try {
+    return await getPlatformSettingsRow();
+  } catch (err) {
+    console.error("[platform-settings] read failed, using defaults:", err);
+    return { ...DEFAULT_PLATFORM_SETTINGS };
+  }
 }
 
 export async function updatePlatformSettings(

@@ -1,14 +1,19 @@
 "use client";
 
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import {
-  ImmersiveBackground,
-  type AmbientMode,
-} from "@/components/shared/ImmersiveBackground";
+import type { AmbientMode } from "@/components/shared/ImmersiveBackground";
+
+const ImmersiveBackground = dynamic(
+  () =>
+    import("@/components/shared/ImmersiveBackground").then(
+      (m) => m.ImmersiveBackground,
+    ),
+  { ssr: false },
+);
 
 const links = [
   { href: "/admin/dashboard", label: "Dashboard" },
@@ -35,12 +40,15 @@ export function AdminSidebar({
 
   return (
     <div className="relative min-h-screen md:grid md:grid-cols-[260px_1fr]">
-      <ImmersiveBackground
-        mode={ambientMode}
-        video={ambientVideo}
-        images={ambientImages}
-        intensity={0.82}
-      />
+      <div className="pointer-events-none absolute inset-0 bg-[#020617]" aria-hidden />
+      <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden>
+        <ImmersiveBackground
+          mode={ambientMode || "gradient"}
+          video={ambientVideo || ""}
+          images={Array.isArray(ambientImages) ? ambientImages : []}
+          intensity={0.82}
+        />
+      </div>
       <aside className="relative z-[1] border-b border-white/5 glass-soft md:border-b-0 md:border-r md:border-white/5">
         <div className="px-4 py-5">
           <Link
@@ -54,40 +62,23 @@ export function AdminSidebar({
           </p>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:px-3 md:pb-6">
-          {links.map((l, i) => {
+          {links.map((l) => {
             const active =
               pathname === l.href ||
               (l.href !== "/admin/dashboard" && pathname.startsWith(l.href));
             return (
-              <motion.div
+              <Link
                 key={l.href}
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.04 * i }}
+                href={l.href}
+                className={cn(
+                  "relative block rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
+                  active
+                    ? "border border-teal-400/25 bg-teal-400/10 text-teal-100 shadow-glow"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                )}
               >
-                <Link
-                  href={l.href}
-                  className={cn(
-                    "relative block rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
-                    active
-                      ? "text-teal-100"
-                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                  )}
-                >
-                  {active ? (
-                    <motion.span
-                      layoutId="admin-nav-pill"
-                      className="absolute inset-0 -z-10 rounded-xl border border-teal-400/25 bg-teal-400/10 shadow-glow"
-                      transition={{
-                        type: "spring",
-                        stiffness: 380,
-                        damping: 30,
-                      }}
-                    />
-                  ) : null}
-                  {l.label}
-                </Link>
-              </motion.div>
+                {l.label}
+              </Link>
             );
           })}
           <Link
@@ -99,9 +90,10 @@ export function AdminSidebar({
         </nav>
         <div className="hidden px-4 pb-5 md:block">
           <p className="truncate font-mono text-[11px] text-muted-foreground">
-            {data?.user?.email}
+            {data?.user?.email || "\u00a0"}
           </p>
           <button
+            type="button"
             className="mt-2 text-sm text-muted-foreground transition hover:text-teal-300"
             onClick={() => signOut({ callbackUrl: "/login" })}
           >
@@ -110,14 +102,9 @@ export function AdminSidebar({
         </div>
       </aside>
       <main className="relative z-[1] px-4 py-6 md:px-8 md:py-8">
-        <motion.div
-          key={pathname}
-          initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        >
+        <div key={pathname} className="animate-fade-up">
           {children}
-        </motion.div>
+        </div>
       </main>
     </div>
   );
