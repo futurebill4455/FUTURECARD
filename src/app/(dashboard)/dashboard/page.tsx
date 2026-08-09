@@ -2,9 +2,9 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { Subscription } from "@/models/Subscription";
-import { User } from "@/models/User";
+import { listCardsByUser } from "@/lib/db/cards";
+import { findSubscriptionByUserId } from "@/lib/db/subscriptions";
+import { findUserById } from "@/lib/db/users";
 import { PageHeader, StatCard } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,22 +27,18 @@ export default async function DashboardPage() {
   await dbConnect();
 
   const [cards, sub, settings, userDoc] = await Promise.all([
-    Card.find({ userId: session!.user.id }).sort({ updatedAt: -1 }),
-    Subscription.findOne({ userId: session!.user.id }),
+    listCardsByUser(session!.user.id),
+    findSubscriptionByUserId(session!.user.id),
     getPlatformSettings(),
-    User.findById(session!.user.id).select("features").lean(),
+    findUserById(session!.user.id),
   ]);
 
-  const features = resolveFeatures(
-    userDoc && !Array.isArray(userDoc)
-      ? (userDoc as { features?: Record<string, boolean> }).features
-      : null,
-  );
+  const features = resolveFeatures(userDoc?.features ?? null);
   const privilege = canRequestCustomDomain(features, sub?.plan ?? "free");
 
   const recent = cards.slice(0, 5);
   const domainCards = cards.map((c) => ({
-    _id: c._id.toString(),
+    _id: c._id,
     username: c.username,
     companyName: c.companyName,
     customDomain: c.customDomain || "",
@@ -92,7 +88,7 @@ export default async function DashboardPage() {
           ) : (
             recent.map((c) => (
               <Link
-                key={c._id.toString()}
+                key={c._id}
                 href={`/cards/${c._id}/edit`}
                 className="flex items-center justify-between rounded-xl border bg-card px-4 py-3 hover:bg-muted/40"
               >

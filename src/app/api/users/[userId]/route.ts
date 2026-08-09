@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
-import { Subscription } from "@/models/Subscription";
-import { Card } from "@/models/Card";
+import { findUserById, updateUser } from "@/lib/db/users";
+import {
+  createSubscription,
+  findSubscriptionByUserId,
+  updateSubscription,
+} from "@/lib/db/subscriptions";
+import { deactivateCardsByUser } from "@/lib/db/cards";
 import { requireAdmin } from "@/lib/session";
 import { adminUpdateUserSchema } from "@/lib/validations";
 import { PLAN_LIMITS } from "@/lib/constants";
@@ -22,15 +25,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const { userId } = await params;
     await dbConnect();
-    const user = await User.findById(userId).select("-password");
+    const user = await findUserById(userId);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    const subscription = await Subscription.findOne({ userId });
+    const subscription = await findSubscriptionByUserId(userId);
     return NextResponse.json({
       data: {
-        ...user.toObject(),
-        _id: user._id.toString(),
+        ...user,
         subscription,
       },
     });
@@ -49,30 +51,35 @@ export async function PUT(req: NextRequest, { params }: Params) {
       const validated = adminUpdateUserSchema.parse(body);
 
       await dbConnect();
-      const user = await User.findById(userId);
+      const user = await findUserById(userId);
       if (!user) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
-      if (validated.name) user.name = validated.name;
-      if (validated.role) user.role = validated.role;
-      if (validated.isActive !== undefined) user.isActive = validated.isActive;
+      const patch: Parameters<typeof updateUser>[1] = {};
+      if (validated.name) patch.name = validated.name;
+      if (validated.role) patch.role = validated.role;
+      if (validated.isActive !== undefined) patch.isActive = validated.isActive;
       if (validated.features) {
-        user.features = {
-          ...resolveFeatures(user.features as never),
+        patch.features = {
+          ...resolveFeatures(user.features),
           ...validated.features,
         };
       }
       if (validated.limits) {
-        user.limits = { ...user.limits, ...validated.limits };
-      }
-      await user.save();
-
-      if (!user.isActive) {
-        await Card.updateMany({ userId }, { $set: { isActive: false } });
+        patch.limits = { ...user.limits!, ...validated.limits };
       }
 
-      let sub = await Subscription.findOne({ userId });
+      const updated = await updateUser(userId, patch);
+      if (!updated) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      if (updated.isActive === false) {
+        await deactivateCardsByUser(userId);
+      }
+
+      let sub = await findSubscriptionByUserId(userId);
       if (
         !sub &&
         (validated.plan || validated.renewDays || validated.endDate)
@@ -80,7 +87,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
         const startDate = new Date();
         const endDate = new Date(startDate);
         endDate.setFullYear(endDate.getFullYear() + 1);
-        sub = await Subscription.create({
+        sub = await createSubscription({
           userId,
           plan: validated.plan ?? "basic",
           startDate,
@@ -91,58 +98,58 @@ export async function PUT(req: NextRequest, { params }: Params) {
       }
 
       if (sub) {
-        if (validated.plan) sub.plan = validated.plan;
+        const subPatch: Parameters<typeof updateSubscription>[1] = {};
+        if (validated.plan) subPatch.plan = validated.plan;
         if (validated.paymentStatus)
-          sub.paymentStatus = validated.paymentStatus;
+          subPatch.paymentStatus = validated.paymentStatus;
 
         if (validated.endDate) {
           const parsed = new Date(validated.endDate);
           if (!Number.isNaN(parsed.getTime())) {
-            sub.endDate = parsed;
-            sub.isActive = parsed > new Date();
-            sub.paymentStatus = sub.isActive ? "paid" : "expired";
+            subPatch.endDate = parsed;
+            subPatch.isActive = parsed > new Date();
+            subPatch.paymentStatus = subPatch.isActive ? "paid" : "expired";
           }
         }
 
         if (validated.renewDays) {
           const base =
-            sub.endDate && sub.endDate > new Date()
+            sub.endDate && new Date(sub.endDate) > new Date()
               ? new Date(sub.endDate)
               : new Date();
           base.setDate(base.getDate() + validated.renewDays);
-          sub.endDate = base;
-          sub.isActive = true;
-          sub.paymentStatus = "paid";
+          subPatch.endDate = base;
+          subPatch.isActive = true;
+          subPatch.paymentStatus = "paid";
         }
 
         if (validated.renewYears) {
           const base =
-            sub.endDate && sub.endDate > new Date()
+            sub.endDate && new Date(sub.endDate) > new Date()
               ? new Date(sub.endDate)
               : new Date();
           const planKey = (sub.plan || "basic") as keyof typeof PLAN_LIMITS;
           base.setDate(
             base.getDate() + PLAN_LIMITS[planKey].days * validated.renewYears,
           );
-          sub.endDate = base;
-          sub.isActive = true;
-          sub.paymentStatus = "paid";
+          subPatch.endDate = base;
+          subPatch.isActive = true;
+          subPatch.paymentStatus = "paid";
         }
 
-        await sub.save();
+        sub = (await updateSubscription(sub._id, subPatch)) ?? sub;
 
         if (!sub.isActive) {
-          await Card.updateMany({ userId }, { $set: { isActive: false } });
+          await deactivateCardsByUser(userId);
         }
       }
 
-      const fresh = await User.findById(userId).select("-password");
-      const subscription = await Subscription.findOne({ userId });
+      const fresh = await findUserById(userId);
+      const subscription = await findSubscriptionByUserId(userId);
 
       return NextResponse.json({
         data: {
-          ...fresh!.toObject(),
-          _id: fresh!._id.toString(),
+          ...fresh!,
           subscription,
         },
         message: "User updated",
@@ -160,21 +167,20 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
     const { userId } = await params;
     await dbConnect();
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { isActive: false },
-      { new: true },
-    ).select("-password");
+    const user = await updateUser(userId, { isActive: false });
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    await Card.updateMany({ userId }, { $set: { isActive: false } });
-    await Subscription.findOneAndUpdate(
-      { userId },
-      { isActive: false, paymentStatus: "cancelled" },
-    );
+    await deactivateCardsByUser(userId);
+    const sub = await findSubscriptionByUserId(userId);
+    if (sub) {
+      await updateSubscription(sub._id, {
+        isActive: false,
+        paymentStatus: "cancelled",
+      });
+    }
 
     return NextResponse.json({ data: user, message: "User deactivated" });
   });

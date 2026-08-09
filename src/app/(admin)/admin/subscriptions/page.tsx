@@ -1,13 +1,16 @@
 import { dbConnect } from "@/lib/db";
-import { Subscription } from "@/models/Subscription";
+import { listSubscriptions } from "@/lib/db/subscriptions";
+import { listUsers } from "@/lib/db/users";
 import { PageHeader } from "@/components/shared/Navbar";
 import { RenewButton } from "@/components/admin/UserActions";
 
 export default async function AdminSubscriptionsPage() {
   await dbConnect();
-  const subs = await Subscription.find()
-    .populate("userId", "name email")
-    .sort({ endDate: 1 });
+  const [subs, users] = await Promise.all([
+    listSubscriptions(),
+    listUsers(),
+  ]);
+  const userMap = new Map(users.map((u) => [u._id, u]));
 
   return (
     <div>
@@ -30,13 +33,9 @@ export default async function AdminSubscriptionsPage() {
           </thead>
           <tbody>
             {subs.map((s) => {
-              const user = s.userId as unknown as {
-                _id: { toString(): string };
-                name?: string;
-                email?: string;
-              };
+              const user = userMap.get(s.userId);
               return (
-                <tr key={s._id.toString()} className="border-t">
+                <tr key={s._id} className="border-t">
                   <td className="px-4 py-3">
                     <div className="font-medium">{user?.name ?? "—"}</div>
                     <div className="text-xs text-muted-foreground">
@@ -53,7 +52,7 @@ export default async function AdminSubscriptionsPage() {
                   </td>
                   <td className="px-4 py-3">{s.isActive ? "Yes" : "No"}</td>
                   <td className="px-4 py-3">
-                    <RenewButton userId={user._id.toString()} />
+                    <RenewButton userId={s.userId} />
                   </td>
                 </tr>
               );

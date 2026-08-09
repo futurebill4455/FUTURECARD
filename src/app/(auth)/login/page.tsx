@@ -36,7 +36,7 @@ export default function LoginPage() {
 
       if (res.error) {
         setError(
-          "Invalid email or password. If this persists, ensure MongoDB is running (`docker compose up -d`) and you have run `pnpm seed`.",
+          "Invalid email or password. If this persists, check Supabase env vars (`NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`) and run `pnpm seed`.",
         );
         return;
       }
@@ -48,7 +48,7 @@ export default function LoginPage() {
       router.refresh();
     } catch {
       setError(
-        "Could not reach the auth API. Is `pnpm dev` running and MongoDB up?",
+        "Could not reach the auth API. Is `pnpm dev` running and is Supabase configured?",
       );
     } finally {
       setLoading(false);

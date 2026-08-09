@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
+import {
+  countCardsByUser,
+  createCard,
+  findCardByUsername,
+  listCardsByUser,
+} from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
 import { RESERVED_USERNAMES, PLAN_LIMITS } from "@/lib/constants";
@@ -19,10 +24,7 @@ export async function GET() {
     if (error) return error;
 
     await dbConnect();
-    const cards = await Card.find({ userId: session!.user.id }).sort({
-      createdAt: -1,
-    });
-
+    const cards = await listCardsByUser(session!.user.id);
     return NextResponse.json({ data: cards });
   });
 }
@@ -53,14 +55,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const user = await User.findById(session!.user.id).select("limits");
+      const user = await findUserById(session!.user.id);
       const maxCards =
         user?.limits?.maxCards ??
         PLAN_LIMITS[(access.plan as keyof typeof PLAN_LIMITS) || "free"]
           ?.maxCards ??
         DEFAULT_USER_LIMITS.maxCards;
 
-      const count = await Card.countDocuments({ userId: session!.user.id });
+      const count = await countCardsByUser(session!.user.id);
       if (count >= maxCards) {
         return NextResponse.json(
           { error: `Plan limit reached (${maxCards} cards)` },
@@ -68,7 +70,7 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const exists = await Card.findOne({ username: validated.username });
+      const exists = await findCardByUsername(validated.username);
       if (exists) {
         return NextResponse.json(
           { error: "Username already taken" },
@@ -76,11 +78,10 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const card = await Card.create({
-        userId: session!.user.id,
-        ...validated,
-        username: validated.username.toLowerCase(),
-      });
+      const card = await createCard(
+        session!.user.id,
+        validated as unknown as Record<string, unknown>,
+      );
 
       return NextResponse.json(
         { data: card, message: "Card created successfully" },

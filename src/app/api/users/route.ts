@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
-import { Subscription } from "@/models/Subscription";
+import { createUser, findUserByEmail, listUsers } from "@/lib/db/users";
+import {
+  createSubscription,
+  listSubscriptions,
+} from "@/lib/db/subscriptions";
 import { requireAdmin } from "@/lib/session";
 import { createUserSchema } from "@/lib/validations";
 import { PLAN_LIMITS } from "@/lib/constants";
@@ -23,24 +25,14 @@ export async function GET() {
     await dbConnect();
     await expireDueSubscriptions();
 
-    const users = await User.find()
-      .select("-password")
-      .sort({ createdAt: -1 })
-      .lean();
+    const users = await listUsers();
+    const subs = await listSubscriptions();
+    const subMap = Object.fromEntries(subs.map((s) => [s.userId, s]));
 
-    const subs = await Subscription.find().lean();
-    const subMap = Object.fromEntries(
-      subs.map((s) => [s.userId.toString(), s]),
-    );
-
-    const data = users.map((u) => {
-      const id = String(u._id);
-      return {
-        ...u,
-        _id: id,
-        subscription: subMap[id] ?? null,
-      };
-    });
+    const data = users.map((u) => ({
+      ...u,
+      subscription: subMap[u._id] ?? null,
+    }));
 
     return NextResponse.json({ data });
   });
@@ -56,9 +48,7 @@ export async function POST(req: NextRequest) {
       const validated = createUserSchema.parse(body);
 
       await dbConnect();
-      const exists = await User.findOne({
-        email: validated.email.toLowerCase(),
-      });
+      const exists = await findUserByEmail(validated.email);
       if (exists) {
         return NextResponse.json(
           { error: "Email already registered" },
@@ -69,9 +59,9 @@ export async function POST(req: NextRequest) {
       const password = await bcrypt.hash(validated.password, 12);
       const planLimits = PLAN_LIMITS[validated.plan];
 
-      const user = await User.create({
+      const user = await createUser({
         name: validated.name,
-        email: validated.email.toLowerCase(),
+        email: validated.email,
         password,
         role: validated.role,
         features: featuresForNewUser(validated.plan, validated.features),
@@ -83,11 +73,10 @@ export async function POST(req: NextRequest) {
 
       const startDate = new Date();
       const endDate = new Date(startDate);
-      const days =
-        validated.customDays ?? planLimits.days * validated.years;
+      const days = validated.customDays ?? planLimits.days * validated.years;
       endDate.setDate(endDate.getDate() + days);
 
-      await Subscription.create({
+      await createSubscription({
         userId: user._id,
         plan: validated.plan,
         startDate,
@@ -102,11 +91,8 @@ export async function POST(req: NextRequest) {
               : 2499,
       });
 
-      const safe = user.toObject();
-      delete (safe as { password?: string }).password;
-
       return NextResponse.json(
-        { data: safe, message: "User created" },
+        { data: user, message: "User created" },
         { status: 201 },
       );
     } catch (err) {

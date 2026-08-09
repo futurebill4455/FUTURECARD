@@ -1,6 +1,6 @@
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
+import { listCardsWithCustomDomains } from "@/lib/db/cards";
+import { listUsers } from "@/lib/db/users";
 import { PageHeader } from "@/components/shared/Navbar";
 import { AdminDomainsTable } from "@/components/admin/AdminDomainsTable";
 import { getPlatformSettings } from "@/lib/platform-settings";
@@ -34,59 +34,49 @@ export default async function AdminDomainsPage() {
   try {
     await dbConnect();
     const [cards, settings] = await Promise.all([
-      Card.find({
-        customDomain: { $exists: true, $nin: [null, ""] },
-      })
-        .select(
-          "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
-        )
-        .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
-        .lean(),
+      listCardsWithCustomDomains(),
       getPlatformSettings(),
     ]);
 
     platformCnameTarget = settings.platformCnameTarget;
 
-    const userIds = [...new Set(cards.map((c) => String(c.userId)))];
-    const users = await User.find({ _id: { $in: userIds } })
-      .select("name email features")
-      .lean();
+    const userIds = new Set(cards.map((c) => c.userId));
+    const users = await listUsers();
     const userMap = new Map(
-      users.map((u) => [
-        String(u._id),
-        {
-          name: u.name as string,
-          email: u.email as string,
-          customDomainFeature: Boolean(
-            (u as { features?: { customDomain?: boolean } }).features
-              ?.customDomain,
-          ),
-        },
-      ]),
+      users
+        .filter((u) => userIds.has(u._id))
+        .map((u) => [
+          u._id,
+          {
+            name: u.name,
+            email: u.email,
+            customDomainFeature: Boolean(u.features?.customDomain),
+          },
+        ]),
     );
 
     rows = cards.map((c) => {
-      const status = normalizeDomainStatus(c.customDomainStatus as string);
+      const status = normalizeDomainStatus(c.customDomainStatus);
       const live = isCustomDomainLive({
-        customDomain: c.customDomain as string | undefined,
-        customDomainStatus: c.customDomainStatus as string | undefined,
-        customDomainActive: c.customDomainActive as boolean | undefined,
+        customDomain: c.customDomain,
+        customDomainStatus: c.customDomainStatus,
+        customDomainActive: c.customDomainActive,
       });
       return {
-        _id: String(c._id),
-        username: c.username as string,
-        companyName: c.companyName as string,
-        customDomain: c.customDomain as string | undefined,
+        _id: c._id,
+        username: c.username,
+        companyName: c.companyName,
+        customDomain: c.customDomain,
         customDomainStatus: status,
         customDomainActive: live || Boolean(c.customDomainActive),
         customDomainRequestedAt: c.customDomainRequestedAt
-          ? new Date(c.customDomainRequestedAt as Date).toISOString()
+          ? new Date(c.customDomainRequestedAt).toISOString()
           : undefined,
         customDomainReviewedAt: c.customDomainReviewedAt
-          ? new Date(c.customDomainReviewedAt as Date).toISOString()
+          ? new Date(c.customDomainReviewedAt).toISOString()
           : undefined,
         isLive: live,
-        owner: userMap.get(String(c.userId)) ?? null,
+        owner: userMap.get(c.userId) ?? null,
       };
     });
   } catch (err) {

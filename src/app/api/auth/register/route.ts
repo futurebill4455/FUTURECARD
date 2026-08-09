@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
-import { Subscription } from "@/models/Subscription";
+import { createUser, findUserByEmail } from "@/lib/db/users";
+import { createSubscription } from "@/lib/db/subscriptions";
 import { registerSchema } from "@/lib/validations";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 
@@ -17,9 +16,7 @@ export async function POST(req: NextRequest) {
       const validated = registerSchema.parse(body);
 
       await dbConnect();
-      const exists = await User.findOne({
-        email: validated.email.toLowerCase(),
-      });
+      const exists = await findUserByEmail(validated.email);
       if (exists) {
         return NextResponse.json(
           { error: "Email already registered" },
@@ -28,9 +25,9 @@ export async function POST(req: NextRequest) {
       }
 
       const password = await bcrypt.hash(validated.password, 12);
-      const user = await User.create({
+      const user = await createUser({
         name: validated.name,
-        email: validated.email.toLowerCase(),
+        email: validated.email,
         password,
         role: "user",
       });
@@ -39,7 +36,7 @@ export async function POST(req: NextRequest) {
       const endDate = new Date(startDate);
       endDate.setDate(endDate.getDate() + 30);
 
-      await Subscription.create({
+      await createSubscription({
         userId: user._id,
         plan: "free",
         startDate,

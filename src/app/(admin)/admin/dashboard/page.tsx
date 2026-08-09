@@ -1,7 +1,10 @@
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
-import { Card } from "@/models/Card";
-import { Subscription } from "@/models/Subscription";
+import { countUsersByRole } from "@/lib/db/users";
+import { countCards } from "@/lib/db/cards";
+import {
+  countActiveSubscriptions,
+  countExpiredSubscriptions,
+} from "@/lib/db/subscriptions";
 import { PageHeader, StatCard } from "@/components/shared/Navbar";
 import { expireDueSubscriptions } from "@/lib/subscription-access";
 import { ExpireSweepButton } from "@/components/admin/UserActions";
@@ -11,10 +14,10 @@ export default async function AdminDashboardPage() {
   await expireDueSubscriptions();
 
   const [users, cards, activeSubs, expired] = await Promise.all([
-    User.countDocuments({ role: "user" }),
-    Card.countDocuments(),
-    Subscription.countDocuments({ isActive: true }),
-    Subscription.countDocuments({ paymentStatus: "expired" }),
+    countUsersByRole("user"),
+    countCards(),
+    countActiveSubscriptions(),
+    countExpiredSubscriptions(),
   ]);
 
   return (

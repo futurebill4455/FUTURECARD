@@ -1,21 +1,19 @@
 import Link from "next/link";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
-import { Subscription } from "@/models/Subscription";
+import { listUsers } from "@/lib/db/users";
+import { listSubscriptions } from "@/lib/db/subscriptions";
 import { PageHeader } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import { DeactivateUserButton, RenewButton } from "@/components/admin/UserActions";
 
 export default async function AdminUsersPage() {
   await dbConnect();
-  const users = await User.find({ role: "user" })
-    .select("-password")
-    .sort({ createdAt: -1 })
-    .lean();
-  const subs = await Subscription.find().lean();
-  const subMap = Object.fromEntries(
-    subs.map((s) => [s.userId.toString(), s]),
-  );
+  const [allUsers, subs] = await Promise.all([
+    listUsers(),
+    listSubscriptions(),
+  ]);
+  const users = allUsers.filter((u) => u.role === "user");
+  const subMap = Object.fromEntries(subs.map((s) => [s.userId, s]));
 
   return (
     <div>
@@ -43,12 +41,12 @@ export default async function AdminUsersPage() {
           </thead>
           <tbody>
             {users.map((u) => {
-              const id = String(u._id);
+              const id = u._id;
               const sub = subMap[id];
               return (
                 <tr key={id} className="border-t">
-                  <td className="px-4 py-3 font-medium">{u.name as string}</td>
-                  <td className="px-4 py-3">{u.email as string}</td>
+                  <td className="px-4 py-3 font-medium">{u.name}</td>
+                  <td className="px-4 py-3">{u.email}</td>
                   <td className="px-4 py-3">
                     {u.isActive ? "Active" : "Inactive"}
                   </td>

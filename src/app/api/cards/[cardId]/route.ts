@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
+import {
+  deleteCard,
+  findCardByIdForUser,
+  updateCard,
+} from "@/lib/db/cards";
 import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
 import { toApiError, withApiHandler } from "@/lib/api-route";
@@ -18,7 +22,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const { cardId } = await params;
     await dbConnect();
-    const card = await Card.findOne({ _id: cardId, userId: session!.user.id });
+    const card = await findCardByIdForUser(cardId, session!.user.id);
     if (!card) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
@@ -37,13 +41,10 @@ export async function PUT(req: NextRequest, { params }: Params) {
       const validated = cardSchema.parse(body);
 
       await dbConnect();
-      const card = await Card.findOneAndUpdate(
-        { _id: cardId, userId: session!.user.id },
-        {
-          ...validated,
-          username: validated.username.toLowerCase(),
-        },
-        { new: true },
+      const card = await updateCard(
+        cardId,
+        validated as unknown as Record<string, unknown>,
+        { userId: session!.user.id },
       );
 
       if (!card) {
@@ -70,12 +71,9 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
 
     const { cardId } = await params;
     await dbConnect();
-    const card = await Card.findOneAndDelete({
-      _id: cardId,
-      userId: session!.user.id,
-    });
+    const ok = await deleteCard(cardId, session!.user.id);
 
-    if (!card) {
+    if (!ok) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
 

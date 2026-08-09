@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
+import {
+  findCardByCustomDomain,
+  findCardByUsername,
+} from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import {
   getCardAnalyticsSummary,
   trackEvent,
@@ -13,10 +16,9 @@ import { isCardPubliclyAccessible } from "@/lib/subscription-access";
 import { applyFeaturesToCard } from "@/lib/feature-permissions";
 import { resolveFeatures } from "@/types/platform.types";
 import type { ICard } from "@/types/card.types";
-import type { CardDocument } from "@/models/Card";
 import { isCustomDomainLive } from "@/lib/custom-domain-access";
 
-async function renderCardFromDoc(card: CardDocument) {
+async function renderCardFromDoc(card: ICard) {
   const accessible = await isCardPubliclyAccessible(card);
   const settings = await getPlatformSettings();
 
@@ -31,26 +33,16 @@ async function renderCardFromDoc(card: CardDocument) {
   if (!card.isActive) notFound();
 
   await trackEvent({
-    cardId: card._id.toString(),
+    cardId: card._id,
     eventType: "view",
   });
 
-  const analytics = await getCardAnalyticsSummary(
-    card._id.toString(),
-    card.createdAt,
-  );
+  const analytics = await getCardAnalyticsSummary(card._id, card.createdAt);
   analytics.totalViews += 1;
 
-  const ownerDoc = await User.findById(card.userId).select("features").lean();
-  const owner =
-    ownerDoc && !Array.isArray(ownerDoc)
-      ? (ownerDoc as unknown as { features?: Record<string, boolean> })
-      : null;
+  const owner = await findUserById(card.userId);
   const features = resolveFeatures(owner?.features);
-  const data = applyFeaturesToCard(
-    JSON.parse(JSON.stringify(card)) as ICard,
-    features,
-  );
+  const data = applyFeaturesToCard(card, features);
 
   return (
     <PublicCardClient
@@ -64,14 +56,14 @@ async function renderCardFromDoc(card: CardDocument) {
 
 export async function renderPublicCardByUsername(username: string) {
   await dbConnect();
-  const card = await Card.findOne({ username: username.toLowerCase() });
+  const card = await findCardByUsername(username);
   if (!card) notFound();
   return renderCardFromDoc(card);
 }
 
 export async function renderPublicCardByCustomDomain(host: string) {
   await dbConnect();
-  const card = await Card.findOne({ customDomain: host.toLowerCase() });
+  const card = await findCardByCustomDomain(host);
   if (!card) notFound();
 
   if (!isCustomDomainLive(card)) {

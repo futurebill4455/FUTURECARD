@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
-import { Subscription } from "@/models/Subscription";
+import {
+  clearCustomDomain,
+  findCardByDomainExcluding,
+  findCardByIdForUser,
+  updateCardFields,
+} from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
+import { findSubscriptionByUserId } from "@/lib/db/subscriptions";
 import { requireSession } from "@/lib/session";
 import { customDomainSchema } from "@/lib/validations";
 import {
@@ -22,19 +26,11 @@ type Params = { params: Promise<{ cardId: string }> };
 
 async function assertDomainPrivilege(userId: string) {
   const [user, sub] = await Promise.all([
-    User.findById(userId).select("features").lean(),
-    Subscription.findOne({ userId }).select("plan").lean(),
+    findUserById(userId),
+    findSubscriptionByUserId(userId),
   ]);
-  const features =
-    user && !Array.isArray(user)
-      ? resolveFeatures(
-          (user as { features?: Record<string, boolean> }).features,
-        )
-      : resolveFeatures(null);
-  const plan =
-    sub && !Array.isArray(sub)
-      ? ((sub as { plan?: string }).plan ?? "free")
-      : "free";
+  const features = resolveFeatures(user?.features);
+  const plan = sub?.plan ?? "free";
   return canRequestCustomDomain(features, plan);
 }
 
@@ -45,11 +41,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
     const { cardId } = await params;
     await dbConnect();
-    const card = await Card.findOne({ _id: cardId, userId: session!.user.id })
-      .select(
-        "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt",
-      )
-      .lean();
+    const card = await findCardByIdForUser(cardId, session!.user.id);
 
     if (!card) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
@@ -59,8 +51,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const settings = await getPlatformSettings();
     return NextResponse.json({
       data: {
-        ...card,
-        _id: String((card as { _id: unknown })._id),
+        _id: card._id,
+        username: card.username,
+        companyName: card.companyName,
+        customDomain: card.customDomain,
+        customDomainStatus: card.customDomainStatus,
+        customDomainActive: card.customDomainActive,
+        customDomainRequestedAt: card.customDomainRequestedAt,
+        customDomainReviewedAt: card.customDomainReviewedAt,
         platformCnameTarget: settings.platformCnameTarget,
         privilege,
       },
@@ -98,10 +96,7 @@ export async function PUT(req: NextRequest, { params }: Params) {
           );
         }
 
-        const taken = await Card.findOne({
-          customDomain: domain,
-          _id: { $ne: cardId },
-        });
+        const taken = await findCardByDomainExcluding(domain, cardId);
         if (taken) {
           return NextResponse.json(
             { error: "This domain is already linked to another card" },
@@ -110,30 +105,15 @@ export async function PUT(req: NextRequest, { params }: Params) {
         }
       }
 
-      const card = await Card.findOne({
-        _id: cardId,
-        userId: session!.user.id,
-      });
+      const card = await findCardByIdForUser(cardId, session!.user.id);
       if (!card) {
         return NextResponse.json({ error: "Card not found" }, { status: 404 });
       }
 
       if (!domain) {
-        await Card.findOneAndUpdate(
-          { _id: cardId, userId: session!.user.id },
-          {
-            $unset: {
-              customDomain: 1,
-              customDomainRequestedAt: 1,
-              customDomainReviewedAt: 1,
-            },
-            $set: {
-              customDomainStatus: "none",
-              customDomainActive: false,
-            },
-          },
-        );
-        const cleared = await Card.findById(cardId);
+        const cleared = await clearCustomDomain(cardId, {
+          userId: session!.user.id,
+        });
         return NextResponse.json({
           data: cleared,
           message: "Custom domain request withdrawn",
@@ -141,26 +121,28 @@ export async function PUT(req: NextRequest, { params }: Params) {
       }
 
       const domainChanged = card.customDomain !== domain;
-      card.customDomain = domain;
-      if (domainChanged) {
-        card.customDomainStatus = "pending";
-        card.customDomainActive = false;
-        card.customDomainRequestedAt = new Date();
-        card.customDomainReviewedAt = undefined;
-      } else if (
+      const fields: Record<string, unknown> = {
+        custom_domain: domain,
+      };
+
+      if (
+        domainChanged ||
         card.customDomainStatus === "none" ||
         card.customDomainStatus === "rejected" ||
-        card.customDomainStatus === "failed"
+        (card.customDomainStatus as string) === "failed"
       ) {
-        card.customDomainStatus = "pending";
-        card.customDomainActive = false;
-        card.customDomainRequestedAt = new Date();
-        card.customDomainReviewedAt = undefined;
+        fields.custom_domain_status = "pending";
+        fields.custom_domain_active = false;
+        fields.custom_domain_requested_at = new Date().toISOString();
+        fields.custom_domain_reviewed_at = null;
       }
-      await card.save();
+
+      const updated = await updateCardFields(cardId, fields, {
+        userId: session!.user.id,
+      });
 
       return NextResponse.json({
-        data: card,
+        data: updated,
         message:
           "Domain request submitted. It stays inactive until Super Admin approves and activates it.",
       });
@@ -187,24 +169,15 @@ export async function POST(req: NextRequest, { params }: Params) {
     }
 
     await dbConnect();
-    const card = await Card.findOne({ _id: cardId, userId: session!.user.id });
+    const card = await findCardByIdForUser(cardId, session!.user.id);
     if (!card) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
 
     if (action === "withdraw") {
-      await Card.findOneAndUpdate(
-        { _id: cardId, userId: session!.user.id },
-        {
-          $unset: {
-            customDomain: 1,
-            customDomainRequestedAt: 1,
-            customDomainReviewedAt: 1,
-          },
-          $set: { customDomainStatus: "none", customDomainActive: false },
-        },
-      );
-      const cleared = await Card.findById(cardId);
+      const cleared = await clearCustomDomain(cardId, {
+        userId: session!.user.id,
+      });
       return NextResponse.json({
         data: cleared,
         message: "Custom domain request removed",

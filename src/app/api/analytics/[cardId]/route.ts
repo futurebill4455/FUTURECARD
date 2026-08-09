@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
+import { findCardById } from "@/lib/db/cards";
 import { requireSession } from "@/lib/session";
 import {
   getCardAnalyticsSummary,
@@ -27,14 +27,14 @@ export async function GET(_req: NextRequest, { params }: Params) {
     const { cardId } = await params;
     await dbConnect();
 
-    const card = await Card.findById(cardId);
+    const card = await findCardById(cardId);
     if (!card) {
       return NextResponse.json({ error: "Card not found" }, { status: 404 });
     }
 
     if (
       session!.user.role !== "admin" &&
-      card.userId.toString() !== session!.user.id
+      card.userId !== session!.user.id
     ) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest, { params }: Params) {
       const validated = trackSchema.parse(body);
 
       await dbConnect();
-      const card = await Card.findById(cardId);
+      const card = await findCardById(cardId);
       if (!card || !card.isActive) {
         return NextResponse.json({ error: "Card not found" }, { status: 404 });
       }

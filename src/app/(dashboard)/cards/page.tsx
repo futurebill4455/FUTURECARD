@@ -2,16 +2,14 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
+import { listCardsByUser } from "@/lib/db/cards";
 import { PageHeader, EmptyState } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 
 export default async function CardsPage() {
   const session = await getServerSession(authOptions);
   await dbConnect();
-  const cards = await Card.find({ userId: session!.user.id }).sort({
-    createdAt: -1,
-  });
+  const cards = await listCardsByUser(session!.user.id);
 
   return (
     <div>
@@ -39,7 +37,7 @@ export default async function CardsPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {cards.map((c) => (
             <div
-              key={c._id.toString()}
+              key={c._id}
               className="rounded-2xl border bg-card p-5 shadow-sm"
             >
               <div className="flex items-start justify-between gap-3">

@@ -1,19 +1,19 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
+import { listCardsByUser } from "@/lib/db/cards";
 import { getCardAnalyticsSummary } from "@/lib/analytics-tracker";
 import { PageHeader, StatCard } from "@/components/shared/Navbar";
 
 export default async function AnalyticsPage() {
   const session = await getServerSession(authOptions);
   await dbConnect();
-  const cards = await Card.find({ userId: session!.user.id });
+  const cards = await listCardsByUser(session!.user.id);
 
   const summaries = await Promise.all(
     cards.map(async (c) => ({
       card: c,
-      stats: await getCardAnalyticsSummary(c._id.toString(), c.createdAt),
+      stats: await getCardAnalyticsSummary(c._id, c.createdAt),
     })),
   );
 
@@ -43,7 +43,7 @@ export default async function AnalyticsPage() {
       <div className="mt-8 space-y-3">
         {summaries.map(({ card, stats }) => (
           <div
-            key={card._id.toString()}
+            key={card._id}
             className="rounded-2xl border bg-card p-4"
           >
             <div className="font-semibold">{card.companyName}</div>

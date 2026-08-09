@@ -2,7 +2,7 @@ import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { dbConnect } from "@/lib/db";
-import { User } from "@/models/User";
+import { findUserByEmail } from "@/lib/db/users";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
           await dbConnect();
 
           const email = credentials.email.trim().toLowerCase();
-          const user = await User.findOne({ email }).select("password name email role isActive");
+          const user = await findUserByEmail(email, { includePassword: true });
 
           if (!user) {
             console.warn(`[auth] No user found for email: ${email}`);
@@ -53,14 +53,13 @@ export const authOptions: NextAuthOptions = {
           }
 
           return {
-            id: user._id.toString(),
+            id: user._id,
             email: user.email,
             name: user.name,
             role: user.role,
           };
         } catch (error) {
-          console.error("[auth] authorize failed — is MongoDB running?", error);
-          // Returning null surfaces as CredentialsSignin on the client
+          console.error("[auth] authorize failed — is Supabase configured?", error);
           return null;
         }
       },
@@ -78,11 +77,10 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = (token.role as "user" | "admin") ?? "user";
+        session.user.role = (token.role as "user" | "admin") || "user";
       }
       return session;
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === "development",
 };

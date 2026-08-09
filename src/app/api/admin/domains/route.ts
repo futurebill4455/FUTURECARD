@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { dbConnect } from "@/lib/db";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
+import {
+  clearCustomDomain,
+  findCardById,
+  listCardsWithCustomDomains,
+  updateCardFields,
+} from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import { requireAdmin } from "@/lib/session";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import {
@@ -11,7 +16,6 @@ import {
 } from "@/lib/custom-domain-access";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 
-/** Never statically collect this route during `next build`. */
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
@@ -22,68 +26,49 @@ export async function GET() {
 
     try {
       await dbConnect();
-      const cards = await Card.find({
-        customDomain: { $exists: true, $nin: [null, ""] },
-      })
-        .select(
-          "username companyName customDomain customDomainStatus customDomainActive customDomainRequestedAt customDomainReviewedAt userId updatedAt",
-        )
-        .sort({ customDomainRequestedAt: -1, updatedAt: -1 })
-        .lean();
+      const cards = await listCardsWithCustomDomains();
 
-      const userIds = [...new Set(cards.map((c) => String(c.userId)))];
-      const users = await User.find({ _id: { $in: userIds } })
-        .select("name email features")
-        .lean();
+      const userIds = [...new Set(cards.map((c) => c.userId))];
+      const users = await Promise.all(userIds.map((id) => findUserById(id)));
       const userMap = new Map(
-        users.map((u) => [
-          String(u._id),
-          {
-            name: u.name as string,
-            email: u.email as string,
-            customDomainFeature: Boolean(
-              (u as { features?: { customDomain?: boolean } }).features
-                ?.customDomain,
-            ),
-          },
-        ]),
+        users
+          .filter(Boolean)
+          .map((u) => [
+            u!._id,
+            {
+              name: u!.name,
+              email: u!.email,
+              customDomainFeature: Boolean(u!.features?.customDomain),
+            },
+          ]),
       );
 
       const settings = await getPlatformSettings();
 
       return NextResponse.json({
         data: cards.map((c) => {
-          const status = normalizeDomainStatus(c.customDomainStatus as string);
+          const status = normalizeDomainStatus(c.customDomainStatus);
           return {
-            _id: String(c._id),
+            _id: c._id,
             username: c.username,
             companyName: c.companyName,
             customDomain: c.customDomain,
             customDomainStatus: status,
-            customDomainActive: isCustomDomainLive({
-              customDomain: c.customDomain as string,
-              customDomainStatus: c.customDomainStatus as string,
-              customDomainActive: c.customDomainActive as boolean | undefined,
-            })
+            customDomainActive: isCustomDomainLive(c)
               ? true
               : Boolean(c.customDomainActive),
             customDomainRequestedAt: c.customDomainRequestedAt,
             customDomainReviewedAt: c.customDomainReviewedAt,
-            userId: String(c.userId),
-            owner: userMap.get(String(c.userId)) ?? null,
+            userId: c.userId,
+            owner: userMap.get(c.userId) ?? null,
             updatedAt: c.updatedAt,
-            isLive: isCustomDomainLive({
-              customDomain: c.customDomain as string,
-              customDomainStatus: c.customDomainStatus as string,
-              customDomainActive: c.customDomainActive as boolean | undefined,
-            }),
+            isLive: isCustomDomainLive(c),
           };
         }),
         platformCnameTarget: settings.platformCnameTarget,
       });
     } catch (err) {
       console.error("[api/admin/domains GET]", err);
-      // Empty / unreachable DB must not crash the admin UI
       return NextResponse.json(
         {
           data: [],
@@ -122,20 +107,13 @@ export async function PATCH(req: NextRequest) {
     try {
       const body = patchSchema.parse(await req.json());
       await dbConnect();
-      const card = await Card.findById(body.cardId);
+      const card = await findCardById(body.cardId);
       if (!card) {
         return NextResponse.json({ error: "Card not found" }, { status: 404 });
       }
 
       if (body.action === "clear") {
-        await Card.findByIdAndUpdate(body.cardId, {
-          $unset: {
-            customDomain: 1,
-            customDomainRequestedAt: 1,
-            customDomainReviewedAt: 1,
-          },
-          $set: { customDomainStatus: "none", customDomainActive: false },
-        });
+        await clearCustomDomain(body.cardId);
         return NextResponse.json({ message: "Domain cleared" });
       }
 
@@ -147,23 +125,25 @@ export async function PATCH(req: NextRequest) {
       }
 
       if (body.action === "approve") {
-        card.customDomainStatus = "approved";
-        card.customDomainReviewedAt = new Date();
-        card.customDomainActive = false;
-        await card.save();
+        const updated = await updateCardFields(body.cardId, {
+          custom_domain_status: "approved",
+          custom_domain_reviewed_at: new Date().toISOString(),
+          custom_domain_active: false,
+        });
         return NextResponse.json({
-          data: serialize(card),
+          data: serialize(updated!),
           message: "Domain approved. Toggle Active to start mapping.",
         });
       }
 
       if (body.action === "reject") {
-        card.customDomainStatus = "rejected";
-        card.customDomainActive = false;
-        card.customDomainReviewedAt = new Date();
-        await card.save();
+        const updated = await updateCardFields(body.cardId, {
+          custom_domain_status: "rejected",
+          custom_domain_active: false,
+          custom_domain_reviewed_at: new Date().toISOString(),
+        });
         return NextResponse.json({
-          data: serialize(card),
+          data: serialize(updated!),
           message: "Domain request rejected",
         });
       }
@@ -179,25 +159,26 @@ export async function PATCH(req: NextRequest) {
             { status: 400 },
           );
         }
-        card.customDomainActive = true;
-        card.customDomainReviewedAt = new Date();
-        await card.save();
+        const updated = await updateCardFields(body.cardId, {
+          custom_domain_active: true,
+          custom_domain_reviewed_at: new Date().toISOString(),
+        });
         return NextResponse.json({
-          data: serialize(card),
+          data: serialize(updated!),
           message: "Custom domain is now active and mapping traffic",
         });
       }
 
       if (body.action === "deactivate") {
-        card.customDomainActive = false;
-        await card.save();
+        const updated = await updateCardFields(body.cardId, {
+          custom_domain_active: false,
+        });
         return NextResponse.json({
-          data: serialize(card),
+          data: serialize(updated!),
           message: "Custom domain deactivated (mapping paused)",
         });
       }
 
-      // Lazy-load DNS verify so Node `dns` is not required during page-data collection
       const { verifyDomainDns } = await import("@/lib/verify-domain-dns");
       const settings = await getPlatformSettings();
       const result = await verifyDomainDns(
@@ -218,18 +199,18 @@ export async function PATCH(req: NextRequest) {
 }
 
 function serialize(card: {
-  _id: { toString(): string };
+  _id: string;
   username: string;
   companyName: string;
   customDomain?: string;
   customDomainStatus?: string;
   customDomainActive?: boolean;
-  customDomainRequestedAt?: Date;
-  customDomainReviewedAt?: Date;
+  customDomainRequestedAt?: string;
+  customDomainReviewedAt?: string;
 }) {
   const status = normalizeDomainStatus(card.customDomainStatus);
   return {
-    _id: card._id.toString(),
+    _id: card._id,
     username: card.username,
     companyName: card.companyName,
     customDomain: card.customDomain,

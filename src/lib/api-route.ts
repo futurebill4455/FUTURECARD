@@ -4,7 +4,7 @@ import { isDatabaseError, isSelectionError } from "@/lib/db";
 
 /**
  * Map thrown errors to stable JSON responses so serverless functions
- * never crash unhandled on Mongo connection / selection failures.
+ * never crash unhandled on Supabase / network failures.
  */
 export function toApiError(err: unknown, fallback = "Internal server error") {
   if (err instanceof z.ZodError) {

@@ -1,9 +1,9 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
-import { Subscription } from "@/models/Subscription";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
+import { findSubscriptionByUserId } from "@/lib/db/subscriptions";
+import { listCardsByUser } from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import { PageHeader } from "@/components/shared/Navbar";
 import {
   Card as UiCard,
@@ -24,36 +24,25 @@ export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
   await dbConnect();
   const [sub, cards, settings, userDoc] = await Promise.all([
-    Subscription.findOne({ userId: session!.user.id }),
-    Card.find({ userId: session!.user.id })
-      .select(
-        "username companyName customDomain customDomainStatus customDomainActive",
-      )
-      .sort({ updatedAt: -1 })
-      .lean(),
+    findSubscriptionByUserId(session!.user.id),
+    listCardsByUser(session!.user.id),
     getPlatformSettings(),
-    User.findById(session!.user.id).select("features").lean(),
+    findUserById(session!.user.id),
   ]);
 
-  const features = resolveFeatures(
-    userDoc && !Array.isArray(userDoc)
-      ? (userDoc as { features?: Record<string, boolean> }).features
-      : null,
-  );
+  const features = resolveFeatures(userDoc?.features ?? null);
   const privilege = canRequestCustomDomain(features, sub?.plan ?? "free");
 
   const domainCards = cards.map((c) => ({
-    _id: String(c._id),
-    username: c.username as string,
-    companyName: c.companyName as string,
-    customDomain: (c.customDomain as string | undefined) || "",
-    customDomainStatus: normalizeDomainStatus(
-      c.customDomainStatus as string | undefined,
-    ),
+    _id: c._id,
+    username: c.username,
+    companyName: c.companyName,
+    customDomain: c.customDomain || "",
+    customDomainStatus: normalizeDomainStatus(c.customDomainStatus),
     customDomainActive: isCustomDomainLive({
-      customDomain: c.customDomain as string | undefined,
-      customDomainStatus: c.customDomainStatus as string | undefined,
-      customDomainActive: c.customDomainActive as boolean | undefined,
+      customDomain: c.customDomain,
+      customDomainStatus: c.customDomainStatus,
+      customDomainActive: c.customDomainActive,
     }),
   }));
 

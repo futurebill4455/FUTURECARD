@@ -1,14 +1,9 @@
 -- =============================================================================
--- FutureCard — OPTIONAL Supabase / Postgres schema
+-- FutureCard — Supabase / Postgres schema (REQUIRED)
 -- =============================================================================
--- IMPORTANT:
--- This Next.js app currently uses MongoDB + Mongoose (env: MONGODB_URI).
--- The Vercel error on /api/admin/domains is NOT caused by missing Supabase
--- tables. Fix production by setting MONGODB_URI (e.g. MongoDB Atlas) in Vercel.
---
--- Use this SQL only if you intentionally migrate the data layer to Supabase.
--- It mirrors the Mongoose models: User, Card, Subscription, Analytics,
--- PlatformSettings. Nested documents are stored as JSONB.
+-- Run this in the Supabase SQL Editor (or via supabase db push).
+-- The Next.js app uses @supabase/supabase-js with SUPABASE_SERVICE_ROLE_KEY.
+-- Nested documents are stored as JSONB. Auth remains NextAuth + bcrypt.
 -- =============================================================================
 
 create extension if not exists "pgcrypto";

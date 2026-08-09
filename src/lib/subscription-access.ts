@@ -1,8 +1,12 @@
+import {
+  findDueSubscriptions,
+  findSubscriptionByUserId,
+  markSubscriptionsExpired,
+  updateSubscription,
+} from "@/lib/db/subscriptions";
+import { deactivateCardsByUser, deactivateCardsByUserIds } from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
 import { dbConnect } from "@/lib/db";
-import { Subscription } from "@/models/Subscription";
-import { Card } from "@/models/Card";
-import { User } from "@/models/User";
-import type { Types } from "mongoose";
 
 export type AccessStatus = "ok" | "expired" | "inactive" | "missing";
 
@@ -12,39 +16,16 @@ export type AccessStatus = "ok" | "expired" | "inactive" | "missing";
  */
 export async function expireDueSubscriptions(limit = 200) {
   await dbConnect();
-  const now = new Date();
-
-  const due = await Subscription.find({
-    endDate: { $lt: now },
-    $or: [
-      { isActive: true },
-      { paymentStatus: { $ne: "expired" } },
-    ],
-  })
-    .limit(limit)
-    .select("_id userId");
-
+  const due = await findDueSubscriptions(limit);
   if (!due.length) return { expired: 0 };
 
-  const ids = due.map((s) => s._id);
-  const userIds = due.map((s) => s.userId);
-
-  await Subscription.updateMany(
-    { _id: { $in: ids } },
-    { $set: { isActive: false, paymentStatus: "expired" } },
-  );
-
-  await Card.updateMany(
-    { userId: { $in: userIds } },
-    { $set: { isActive: false } },
-  );
+  await markSubscriptionsExpired(due.map((s) => s.id));
+  await deactivateCardsByUserIds(due.map((s) => s.userId));
 
   return { expired: due.length };
 }
 
-export async function getUserAccessStatus(
-  userId: string | Types.ObjectId,
-): Promise<{
+export async function getUserAccessStatus(userId: string): Promise<{
   status: AccessStatus;
   endDate?: Date;
   plan?: string;
@@ -52,34 +33,33 @@ export async function getUserAccessStatus(
   await dbConnect();
   await expireDueSubscriptions();
 
-  const user = await User.findById(userId).select("isActive role");
+  const user = await findUserById(userId);
   if (!user) return { status: "missing" };
   if (user.role === "admin") return { status: "ok" };
   if (!user.isActive) return { status: "inactive" };
 
-  const sub = await Subscription.findOne({ userId });
+  const sub = await findSubscriptionByUserId(userId);
   if (!sub) return { status: "missing" };
 
   const now = new Date();
-  if (!sub.isActive || sub.paymentStatus === "expired" || sub.endDate < now) {
+  const endDate = new Date(sub.endDate);
+  if (!sub.isActive || sub.paymentStatus === "expired" || endDate < now) {
     if (sub.isActive || sub.paymentStatus !== "expired") {
-      sub.isActive = false;
-      sub.paymentStatus = "expired";
-      await sub.save();
-      await Card.updateMany(
-        { userId },
-        { $set: { isActive: false } },
-      );
+      await updateSubscription(sub._id, {
+        isActive: false,
+        paymentStatus: "expired",
+      });
+      await deactivateCardsByUser(userId);
     }
-    return { status: "expired", endDate: sub.endDate, plan: sub.plan };
+    return { status: "expired", endDate, plan: sub.plan };
   }
 
-  return { status: "ok", endDate: sub.endDate, plan: sub.plan };
+  return { status: "ok", endDate, plan: sub.plan };
 }
 
 /** True if the card owner's subscription allows public viewing */
 export async function isCardPubliclyAccessible(card: {
-  userId: Types.ObjectId | string;
+  userId: string;
   isActive?: boolean;
 }) {
   if (card.isActive === false) return false;

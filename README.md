@@ -1,57 +1,43 @@
 # FutureCard
 
-Digital visiting card SaaS — Next.js App Router, MongoDB, NextAuth, Tailwind, Zod.
+Digital visiting card SaaS — Next.js App Router, **Supabase (Postgres)**, NextAuth, Tailwind, Zod.
 
-> **Note:** This is a single Next.js app (not NestJS). Auth uses NextAuth credentials + bcrypt against MongoDB.
+> Auth uses NextAuth credentials + bcrypt against the `users` table in Supabase.
 
-## Fix login (most common issue)
+## Setup
 
-Login fails with “Invalid email or password” when **MongoDB is not running** or users were **never seeded**.
-
-### Option A — In-memory Mongo (works without Docker)
-
-Keep three terminals:
-
-```bash
-# Terminal 1 — start DB (leave running)
-pnpm db:mem
-
-# Terminal 2 — create/reset demo users + verify bcrypt hashes
-pnpm seed
-
-# Terminal 3 — app
-pnpm dev
-```
-
-### Option B — Docker Mongo
+1. Create a [Supabase](https://supabase.com) project.
+2. In **SQL Editor**, run [`supabase/migrations/001_init.sql`](supabase/migrations/001_init.sql).
+3. Copy `.env.example` → `.env.local` and fill:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (Settings → API → `service_role`)
+   - `NEXTAUTH_SECRET`
+4. Seed demo users and start the app:
 
 ```bash
-# Start Docker Desktop first, then:
-pnpm db:up
-# Set MONGODB_URI=mongodb://127.0.0.1:27017/futurecard in .env.local
 pnpm seed
 pnpm dev
 ```
+
+## Vercel + GitHub
+
+Set the same Supabase + NextAuth env vars for **Production** and **Preview**.
 
 ## Demo logins
 
-| Role   | Email                       | Password       |
-|--------|-----------------------------|----------------|
-| Admin  | `admin@digitalvcard.local`  | `Admin@123456` |
-| Admin  | `admin@futurecard.local`    | `Admin@123456` |
-| Client | `client@dhanya.local`       | `Client@123456`|
-| User   | `demo@futurecard.local`     | `Demo@123456`  |
+| Role  | Email                    | Password     |
+|-------|--------------------------|--------------|
+| Admin | `admin@futurecard.local` | `Admin@123456` |
+| User  | `demo@futurecard.local`  | `Demo@123456` |
 
-Demo public card: http://localhost:3000/dhanya_enterprises
+(Override via `SEED_*` env vars before `pnpm seed`.)
 
-## Auth stack (where to look)
+## Scripts
 
-| Piece | Path |
-|-------|------|
-| NextAuth + bcrypt compare | `src/lib/auth.ts` |
-| Login form / `signIn()` | `src/app/(auth)/login/page.tsx` |
-| User model | `src/models/User.ts` |
-| Seed (upsert + hash verify) | `scripts/seed.ts` |
-| DB connection | `src/lib/db.ts` |
-
-`pnpm seed` **re-hashes and upserts** passwords every run, so stale hashes are fixed by re-seeding.
+```bash
+pnpm dev      # Next.js
+pnpm build    # production build
+pnpm seed     # upsert admin + demo user in Supabase
+pnpm lint
+```

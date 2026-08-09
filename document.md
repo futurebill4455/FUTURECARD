@@ -2,7 +2,7 @@
 
 SaaS web application for creating and managing digital visiting cards (vkard-style).
 
-**Stack:** Next.js (App Router) · Tailwind CSS · MongoDB / Mongoose · NextAuth · Zod · Shadcn/ui · UploadThing
+**Stack:** Next.js (App Router) · Tailwind CSS · Supabase (Postgres) · NextAuth · Zod · Shadcn/ui · UploadThing
 
 ---
 
@@ -112,7 +112,9 @@ FUTURE CARD/
 │   │       └── SystemStats.tsx
 │   │
 │   ├── lib/
-│   │   ├── db.ts                         # MongoDB connection singleton
+│   │   ├── supabase.ts                   # Supabase admin client
+│   │   ├── db.ts                         # DB helpers + DatabaseError
+│   │   ├── db/                           # Supabase repositories + mappers
 │   │   ├── auth.ts                       # NextAuth configuration
 │   │   ├── validations.ts                # Zod schemas
 │   │   ├── constants.ts                  # App-wide constants
@@ -121,11 +123,7 @@ FUTURE CARD/
 │   │   ├── analytics-tracker.ts          # View / click / action tracking
 │   │   └── api-client.ts                 # React Query API wrapper
 │   │
-│   ├── models/                           # Mongoose models
-│   │   ├── User.ts
-│   │   ├── Card.ts
-│   │   ├── Subscription.ts
-│   │   └── Analytics.ts
+│   │   # Schema: supabase/migrations/001_init.sql
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts
@@ -150,13 +148,16 @@ FUTURE CARD/
 
 ---
 
-## 2. Database Models (MongoDB / Mongoose)
+## 2. Database Models (Supabase / Postgres)
+
+> Tables live in Supabase. See `supabase/migrations/001_init.sql`.
+> App IDs are UUIDs exposed as `_id` strings via mappers in `src/lib/db/`.
 
 ### 2.1 User
 
 | Field       | Type     | Rules                                      |
 |-------------|----------|--------------------------------------------|
-| `_id`       | ObjectId | Auto                                       |
+| `_id`       | uuid | Auto                                       |
 | `name`      | String   | Required                                   |
 | `email`     | String   | Required, unique, lowercase                |
 | `password`  | String   | Required, hashed with bcrypt               |
@@ -170,8 +171,8 @@ FUTURE CARD/
 
 | Field             | Type     | Rules                                                                 |
 |-------------------|----------|-----------------------------------------------------------------------|
-| `_id`             | ObjectId | Auto                                                                  |
-| `userId`          | ObjectId | Ref: User, required                                                   |
+| `_id`             | uuid | Auto                                                                  |
+| `userId`          | uuid | Ref: User, required                                                   |
 | `username`        | String   | Required, unique — vanity URL: `/[username]`                          |
 | `profileImage`    | String   | URL                                                                   |
 | `coverImage`      | String   | URL                                                                   |
@@ -231,8 +232,8 @@ FUTURE CARD/
 
 | Field           | Type     | Rules                                                           |
 |-----------------|----------|-----------------------------------------------------------------|
-| `_id`           | ObjectId | Auto                                                            |
-| `userId`        | ObjectId | Ref: User, required, unique                                     |
+| `_id`           | uuid | Auto                                                            |
+| `userId`        | uuid | Ref: User, required, unique                                     |
 | `plan`          | String   | Enum: `free` \| `basic` \| `premium`, default: `free`           |
 | `startDate`     | Date     | Required                                                        |
 | `endDate`       | Date     | Required                                                        |
@@ -247,8 +248,8 @@ FUTURE CARD/
 
 | Field         | Type     | Rules                                                                      |
 |---------------|----------|----------------------------------------------------------------------------|
-| `_id`         | ObjectId | Auto                                                                       |
-| `cardId`      | ObjectId | Ref: Card, required                                                        |
+| `_id`         | uuid | Auto                                                                       |
+| `cardId`      | uuid | Ref: Card, required                                                        |
 | `eventType`   | String   | Enum: `view` \| `click` \| `action` \| `share` \| `save_contact`           |
 | `eventDetail` | String   | e.g. `whatsapp_click`, `call_click`, `email_click`                         |
 | `ipAddress`   | String   | Optional                                                                   |
@@ -386,8 +387,10 @@ export async function POST(req: NextRequest) {
 ## 5. Environment Variables
 
 ```env
-# Database
-MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/vkard
+# Supabase (required)
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # NextAuth
 NEXTAUTH_URL=http://localhost:3000
