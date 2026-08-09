@@ -15,6 +15,7 @@ import {
   DEFAULT_THEME,
 } from "@/types/card.types";
 import { resolveCardSections } from "@/types/card-sections.types";
+import { resolveCardProfileType } from "@/types/card-profile.types";
 import { getDefaultCnameTarget } from "@/lib/custom-domain";
 
 /** Raw `users` row (snake_case) */
@@ -74,6 +75,7 @@ export type CardRow = {
   custom_domain_reviewed_at: string | null;
   is_active: boolean;
   template: string;
+  profile_type?: string | null;
   features_enabled?: Record<string, boolean> | null;
   created_at: string;
   updated_at: string;
@@ -208,6 +210,7 @@ export function mapCard(row: CardRow): ICard {
     customDomainReviewedAt: row.custom_domain_reviewed_at ?? undefined,
     isActive: row.is_active,
     template: row.template || "classic",
+    profileType: resolveCardProfileType(row.profile_type),
     featuresEnabled: resolveCardSections(row.features_enabled),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -300,6 +303,7 @@ export function cardPayloadToRow(
     customDomainReviewedAt: "custom_domain_reviewed_at",
     isActive: "is_active",
     template: "template",
+    profileType: "profile_type",
     featuresEnabled: "features_enabled",
   };
 

@@ -191,7 +191,13 @@ export interface ICard {
   customDomainRequestedAt?: string;
   customDomainReviewedAt?: string;
   isActive: boolean;
+  /** Legacy theme/layout key (classic, etc.) */
   template: string;
+  /**
+   * Super Admin–controlled public mini-site profile type.
+   * individual | business | shop
+   */
+  profileType?: import("./card-profile.types").CardProfileType;
   /**
    * Per-card section prefs (user level).
    * Only sections allowed by the owner's admin `cardSections` can appear.

@@ -6,19 +6,30 @@ import { DEFAULT_WHY_CHOOSE, type MiniSiteWhyItem } from "@/data/minisite-defaul
 export function MiniSiteWhyChoose({
   accent,
   items = DEFAULT_WHY_CHOOSE,
+  eyebrow = "Trust",
+  title = "Why choose me",
+  subtitle,
 }: {
   accent: string;
   items?: MiniSiteWhyItem[];
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
 }) {
   return (
     <section className="px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-          Trust
+          {eyebrow}
         </p>
         <h2 className="mt-2 text-center font-display text-2xl font-bold text-slate-50 sm:text-3xl">
-          Why choose me
+          {title}
         </h2>
+        {subtitle ? (
+          <p className="mx-auto mt-2 max-w-lg text-center text-sm text-slate-400">
+            {subtitle}
+          </p>
+        ) : null}
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((item, i) => (
             <motion.div

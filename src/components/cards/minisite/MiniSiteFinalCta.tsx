@@ -10,6 +10,9 @@ export function MiniSiteFinalCta({
   onCall,
   hasWhatsApp,
   hasCall,
+  title,
+  subtitle,
+  connectLabel = "Let’s Connect",
 }: {
   accent: string;
   name: string;
@@ -18,6 +21,9 @@ export function MiniSiteFinalCta({
   onCall?: () => void;
   hasWhatsApp?: boolean;
   hasCall?: boolean;
+  title?: string;
+  subtitle?: string;
+  connectLabel?: string;
 }) {
   return (
     <section className="relative overflow-hidden px-4 py-16 sm:px-6">
@@ -52,11 +58,11 @@ export function MiniSiteFinalCta({
           Next step
         </p>
         <h2 className="mt-3 font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl">
-          Let&apos;s build your secure tomorrow
+          {title || "Let’s build your secure tomorrow"}
         </h2>
         <p className="mt-3 text-sm text-slate-400 sm:text-base">
-          I&apos;m just a message or call away
-          {name ? ` — ${name}` : ""}.
+          {subtitle ||
+            `I’m just a message or call away${name ? ` — ${name}` : ""}.`}
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
@@ -71,7 +77,7 @@ export function MiniSiteFinalCta({
               boxShadow: `0 14px 36px ${accent}45`,
             }}
           >
-            Let&apos;s Connect
+            {connectLabel}
           </motion.button>
           {hasWhatsApp ? (
             <motion.button

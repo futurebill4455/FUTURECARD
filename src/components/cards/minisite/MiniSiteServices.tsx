@@ -9,10 +9,16 @@ export function MiniSiteServices({
   card,
   accent,
   onSelect,
+  eyebrow = "Capabilities",
+  title = "Services & solutions",
+  subtitle = "A flexible catalog across insurance, finance, travel, technology, and more — tailored to this profile.",
 }: {
   card: ICard;
   accent: string;
   onSelect: (service: IServiceItem) => void;
+  eyebrow?: string;
+  title?: string;
+  subtitle?: string;
 }) {
   const services = card.services?.filter((s) => s.title.trim()) ?? [];
   if (!services.length) return null;
@@ -21,14 +27,13 @@ export function MiniSiteServices({
     <section id="services" className="scroll-mt-24 px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-4xl">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-          Capabilities
+          {eyebrow}
         </p>
         <h2 className="mt-2 text-center font-display text-2xl font-bold text-slate-50 sm:text-3xl">
-          Services & solutions
+          {title}
         </h2>
         <p className="mx-auto mt-2 max-w-lg text-center text-sm text-slate-400">
-          A flexible catalog across insurance, finance, travel, technology, and
-          more — tailored to this profile.
+          {subtitle}
         </p>
 
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

@@ -49,6 +49,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
       }
 
       const payload = { ...(validated as unknown as Record<string, unknown>) };
+      // Super Admin only — never allow user PUT to change profile type
+      delete payload.profileType;
+      delete payload.profile_type;
       if (validated.featuresEnabled) {
         const owner = await findUserById(session!.user.id);
         payload.featuresEnabled = mergeFeaturesEnabledRespectingAdmin(

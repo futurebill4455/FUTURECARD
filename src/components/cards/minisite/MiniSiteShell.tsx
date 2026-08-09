@@ -10,6 +10,10 @@ import {
   resolveCardSections,
   type ICardSections,
 } from "@/types/card-sections.types";
+import {
+  PROFILE_TYPE_COPY,
+  resolveCardProfileType,
+} from "@/types/card-profile.types";
 import { DEFAULT_PRIMARY_CTAS } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
@@ -71,6 +75,8 @@ function MiniSiteShellInner({
   sections?: ICardSections;
 }) {
   const sections = resolveCardSections(rawSections ?? DEFAULT_CARD_SECTIONS);
+  const profileType = resolveCardProfileType(card.profileType);
+  const copy = PROFILE_TYPE_COPY[profileType];
   const { mode } = useMiniSiteTheme();
   const theme = resolveTheme(card);
   const accent = theme.buttonColor || "#22d3ee";
@@ -295,16 +301,21 @@ function MiniSiteShellInner({
         ) : null}
 
         {sections.about &&
-        (card.aboutUs?.trim() || card.gstNumber || card.businessCategory) ? (
+        (card.aboutUs?.trim() ||
+          card.gstNumber ||
+          card.businessCategory ||
+          (profileType === "shop" && card.businessHours?.length)) ? (
           <section
             id={sections.identityCard ? "profile-about" : "profile"}
             className="mx-auto max-w-2xl scroll-mt-24 px-4 py-6 sm:px-6"
           >
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300/55">
-                Profile
+                {copy.aboutEyebrow}
               </p>
-              <h2 className="mt-1 font-display text-xl font-bold">About</h2>
+              <h2 className="mt-1 font-display text-xl font-bold">
+                {copy.aboutTitle}
+              </h2>
               {card.businessCategory || card.businessType ? (
                 <p className="mt-2 text-sm text-cyan-100/65">
                   {[card.businessCategory, card.businessType]
@@ -312,7 +323,7 @@ function MiniSiteShellInner({
                     .join(" · ")}
                 </p>
               ) : null}
-              {card.gstNumber ? (
+              {profileType !== "individual" && card.gstNumber ? (
                 <p className="mt-2 font-mono text-xs text-slate-400">
                   GST: <span className="text-slate-200">{card.gstNumber}</span>
                 </p>
@@ -322,7 +333,18 @@ function MiniSiteShellInner({
                 accent={accent}
                 className="mt-4 text-left [&_p]:text-slate-300/80"
               />
-              <div className="mt-4">
+              <div
+                className={cn(
+                  "mt-4",
+                  profileType === "shop" &&
+                    "rounded-2xl border border-cyan-400/15 bg-cyan-400/5 p-3",
+                )}
+              >
+                {profileType === "shop" ? (
+                  <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-cyan-300/70">
+                    Store timings
+                  </p>
+                ) : null}
                 <BusinessHoursBadge hours={card.businessHours} accent={accent} />
               </div>
             </div>
@@ -335,6 +357,9 @@ function MiniSiteShellInner({
           <MiniSiteServices
             card={card}
             accent={accent}
+            eyebrow={copy.servicesEyebrow}
+            title={copy.servicesTitle}
+            subtitle={copy.servicesSubtitle}
             onSelect={(svc) => {
               setSelectedService(svc);
               void trackEvent("action", `service_view_${svc.id}`);
@@ -342,17 +367,23 @@ function MiniSiteShellInner({
           />
         ) : null}
 
-        {sections.whyChoose ? <MiniSiteWhyChoose accent={accent} /> : null}
+        {sections.whyChoose ? (
+          <MiniSiteWhyChoose
+            accent={accent}
+            title={copy.whyTitle}
+            subtitle={copy.whySubtitle}
+          />
+        ) : null}
 
         {sections.portfolio ? (
           card.galleryImages?.length || card.galleryVideos?.length ? (
             <section id="portfolio" className="scroll-mt-24 px-4 py-10 sm:px-6">
               <div className="mx-auto max-w-4xl">
                 <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-                  Portfolio
+                  {copy.portfolioEyebrow}
                 </p>
                 <h2 className="mt-2 text-center font-display text-2xl font-bold">
-                  Work & media
+                  {copy.portfolioTitle}
                 </h2>
                 <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
                   <ImageGallery images={card.galleryImages} accent={accent} />
@@ -365,7 +396,13 @@ function MiniSiteShellInner({
           )
         ) : null}
 
-        {sections.reviews ? <MiniSiteTestimonials accent={accent} /> : null}
+        {sections.reviews ? (
+          <MiniSiteTestimonials
+            accent={accent}
+            eyebrow={copy.reviewsEyebrow}
+            title={copy.reviewsTitle}
+          />
+        ) : null}
 
         {sections.qrTerminal ? (
           <MiniSiteQrTerminal
@@ -380,10 +417,10 @@ function MiniSiteShellInner({
           <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
             <div className="mx-auto max-w-3xl">
               <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-                Connect with me
+                {copy.connectEyebrow}
               </p>
               <h2 className="mt-2 text-center font-display text-2xl font-bold sm:text-3xl">
-                One tap to reach out
+                {copy.connectTitle}
               </h2>
               <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-panel backdrop-blur-xl sm:p-7">
                 <ActionIconGrid
@@ -436,6 +473,9 @@ function MiniSiteShellInner({
           <MiniSiteFinalCta
             accent={accent}
             name={card.companyName || ""}
+            title={copy.finalCtaTitle(card.companyName || "")}
+            subtitle={copy.finalCtaSubtitle}
+            connectLabel={copy.finalConnectLabel}
             onConnect={() =>
               document
                 .getElementById("connect")

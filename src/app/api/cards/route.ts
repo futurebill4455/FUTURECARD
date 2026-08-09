@@ -80,6 +80,10 @@ export async function POST(req: NextRequest) {
       }
 
       const payload = { ...(validated as unknown as Record<string, unknown>) };
+      delete payload.profileType;
+      delete payload.profile_type;
+      // New cards start as business until Super Admin assigns a template
+      payload.profileType = "business";
       if (validated.featuresEnabled) {
         payload.featuresEnabled = mergeFeaturesEnabledRespectingAdmin(
           user?.cardSections,

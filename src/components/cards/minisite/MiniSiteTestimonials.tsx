@@ -10,9 +10,13 @@ import {
 export function MiniSiteTestimonials({
   accent,
   items = DEFAULT_TESTIMONIALS,
+  eyebrow = "Social proof",
+  title = "Client voices",
 }: {
   accent: string;
   items?: MiniSiteTestimonial[];
+  eyebrow?: string;
+  title?: string;
 }) {
   const [index, setIndex] = useState(0);
   const current = items[index] || items[0];
@@ -30,10 +34,10 @@ export function MiniSiteTestimonials({
     <section id="reviews" className="scroll-mt-24 px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-2xl">
         <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-          Social proof
+          {eyebrow}
         </p>
         <h2 className="mt-2 text-center font-display text-2xl font-bold text-slate-50 sm:text-3xl">
-          Client voices
+          {title}
         </h2>
 
         <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-panel backdrop-blur-2xl sm:p-8">
