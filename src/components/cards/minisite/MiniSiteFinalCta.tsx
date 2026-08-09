@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 
 export function MiniSiteFinalCta({
   accent,
@@ -66,40 +67,30 @@ export function MiniSiteFinalCta({
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
-          <motion.button
-            type="button"
-            whileHover={{ y: -2, scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+          <PremiumMotionButton
+            accent={accent}
             onClick={onConnect}
-            className="rounded-2xl px-6 py-3.5 text-xs font-extrabold uppercase tracking-wide text-slate-950"
-            style={{
-              background: `linear-gradient(145deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 14px 36px ${accent}45`,
-            }}
+            className="min-w-[9rem] px-6 py-3.5"
           >
             {connectLabel}
-          </motion.button>
+          </PremiumMotionButton>
           {hasWhatsApp ? (
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
+            <PremiumMotionButton
+              variant="success"
               onClick={onWhatsApp}
-              className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 px-5 py-3.5 text-xs font-extrabold uppercase tracking-wide text-emerald-100"
+              className="min-w-[8rem] px-5 py-3.5"
             >
               WhatsApp
-            </motion.button>
+            </PremiumMotionButton>
           ) : null}
           {hasCall ? (
-            <motion.button
-              type="button"
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
+            <PremiumMotionButton
+              variant="outline"
               onClick={onCall}
-              className="rounded-2xl border border-white/15 bg-white/5 px-5 py-3.5 text-xs font-extrabold uppercase tracking-wide text-slate-100"
+              className="min-w-[8rem] px-5 py-3.5"
             >
               Call Now
-            </motion.button>
+            </PremiumMotionButton>
           ) : null}
         </div>
       </div>

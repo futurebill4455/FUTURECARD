@@ -3,6 +3,7 @@
 import { motion } from "framer-motion";
 import { absoluteUrl } from "@/lib/utils";
 import type { ICard } from "@/types/card.types";
+import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 
 export function MiniSiteQrTerminal({
   card,
@@ -37,7 +38,11 @@ export function MiniSiteQrTerminal({
           Scan to connect
         </h2>
 
-        <div className="relative mx-auto mt-7 w-fit rounded-[1.35rem] bg-gradient-to-br from-cyan-400/40 via-violet-400/20 to-transparent p-[2px] fx-pulse-glow">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20 }}
+          className="relative mx-auto mt-7 w-fit rounded-[1.35rem] bg-gradient-to-br from-cyan-400/40 via-violet-400/20 to-transparent p-[2px] fx-pulse-glow"
+        >
           <div className="rounded-[1.25rem] bg-white p-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -47,38 +52,30 @@ export function MiniSiteQrTerminal({
               loading="lazy"
             />
           </div>
-        </div>
+        </motion.div>
 
         <p className="relative mt-4 break-all text-center font-mono text-[10px] text-slate-500">
           {url}
         </p>
 
         <div className="relative mt-5 flex flex-wrap items-center justify-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-200">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-200 shadow-[0_0_16px_rgba(34,211,238,0.15)]">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
             NFC Enabled
           </span>
         </div>
 
         <div className="relative mt-6 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={onSave}
-            className="rounded-2xl px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide text-slate-950"
-            style={{
-              background: `linear-gradient(145deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 10px 28px ${accent}40`,
-            }}
-          >
+          <PremiumMotionButton accent={accent} onClick={onSave} className="w-full">
             Save Contact
-          </button>
-          <button
-            type="button"
+          </PremiumMotionButton>
+          <PremiumMotionButton
+            variant="outline"
             onClick={onShare}
-            className="rounded-2xl border border-white/15 bg-white/[0.05] px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide text-slate-100 transition hover:bg-white/10"
+            className="w-full"
           >
             Share Profile
-          </button>
+          </PremiumMotionButton>
         </div>
       </div>
     </section>

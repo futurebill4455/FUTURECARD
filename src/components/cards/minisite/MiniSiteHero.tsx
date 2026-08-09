@@ -1,9 +1,11 @@
 "use client";
 
-import { useRef, type MouseEvent } from "react";
+import { useCallback, useRef, useState, type MouseEvent } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { HolographicAvatar } from "@/components/cards/HolographicAvatar";
 import { VerifiedBadge } from "@/components/cards/VerifiedBadge";
+import { TypewriterName } from "@/components/cards/minisite/TypewriterName";
+import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 import { PLATFORM_BRAND, PLATFORM_TAGLINE } from "@/lib/service-categories";
 import type { ICard, IPrimaryCta } from "@/types/card.types";
 import { cn } from "@/lib/utils";
@@ -28,6 +30,10 @@ export function MiniSiteHero({
   const sy = useSpring(my, { stiffness: 80, damping: 20 });
   const glowX = useTransform(sx, [0, 1], ["20%", "80%"]);
   const glowY = useTransform(sy, [0, 1], ["15%", "70%"]);
+
+  const displayName = card.companyName || "Your Name";
+  const [nameReady, setNameReady] = useState(false);
+  const onNameDone = useCallback(() => setNameReady(true), []);
 
   const title =
     card.jobTitle?.trim() ||
@@ -70,7 +76,8 @@ export function MiniSiteHero({
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55 }}
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-md"
+          whileHover={{ scale: 1.02 }}
+          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 shadow-[0_0_0_1px_rgba(34,211,238,0.08)] backdrop-blur-md transition hover:border-cyan-300/30 hover:shadow-[0_0_28px_rgba(34,211,238,0.18)]"
         >
           <span className="font-display text-xs font-bold tracking-[0.18em] text-cyan-50/90 uppercase">
             {PLATFORM_BRAND}
@@ -91,7 +98,12 @@ export function MiniSiteHero({
           {PLATFORM_TAGLINE}
         </motion.p>
 
-        <div className="relative mx-auto mt-8 flex justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.12, type: "spring", stiffness: 160, damping: 18 }}
+          className="relative mx-auto mt-8 flex justify-center"
+        >
           <HolographicAvatar
             src={card.profileImage}
             alt={card.companyName || "Profile"}
@@ -101,19 +113,32 @@ export function MiniSiteHero({
             size={132}
             showStatus
           />
-        </div>
+        </motion.div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.55 }}
-          className="mt-6 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl md:text-[2.75rem]"
+        <h1
+          className="mt-6 inline-flex max-w-full flex-wrap items-center justify-center gap-2 font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl md:text-[2.75rem]"
         >
-          <span className="text-balance">{card.companyName || "Your Name"}</span>
+          <span className="sr-only">{displayName}</span>
+          <TypewriterName
+            text={displayName}
+            className="font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl md:text-[2.75rem]"
+            onComplete={onNameDone}
+          />
           {card.isVerified ? (
-            <VerifiedBadge size="md" className="relative top-px" />
+            <motion.span
+              initial={{ opacity: 0, scale: 0.6, y: 4 }}
+              animate={
+                nameReady
+                  ? { opacity: 1, scale: 1, y: 0 }
+                  : { opacity: 0, scale: 0.6, y: 4 }
+              }
+              transition={{ type: "spring", stiffness: 380, damping: 18 }}
+              className="inline-flex"
+            >
+              <VerifiedBadge size="lg" className="relative top-px" />
+            </motion.span>
           ) : null}
-        </motion.h1>
+        </h1>
 
         <motion.p
           initial={{ opacity: 0, y: 10 }}
@@ -139,22 +164,33 @@ export function MiniSiteHero({
           transition={{ delay: 0.42 }}
           className="mx-auto mt-8 grid max-w-lg grid-cols-2 gap-2.5 sm:grid-cols-4"
         >
-          {ctas.filter((c) => c.enabled).slice(0, 4).map((cta, i) => (
-            <HeroCta
-              key={cta.id}
-              label={cta.label}
-              accent={accent}
-              delay={0.05 * i}
-              onClick={() => onCta(cta.id)}
-            />
-          ))}
+          {ctas
+            .filter((c) => c.enabled)
+            .slice(0, 4)
+            .map((cta, i) => (
+              <motion.div
+                key={cta.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.48 + i * 0.06 }}
+              >
+                <PremiumMotionButton
+                  accent={accent}
+                  onClick={() => onCta(cta.id)}
+                  className="w-full py-3.5 text-[10px] sm:text-[11px]"
+                >
+                  {cta.label}
+                </PremiumMotionButton>
+              </motion.div>
+            ))}
         </motion.div>
       </div>
     </section>
   );
 }
 
-function HeroCta({
+/** Kept for any external imports that still reference HeroCta styling */
+export function HeroCta({
   label,
   accent,
   delay,
@@ -166,30 +202,18 @@ function HeroCta({
   onClick: () => void;
 }) {
   return (
-    <motion.button
-      type="button"
+    <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay }}
-      whileHover={{ y: -3, scale: 1.03 }}
-      whileTap={{ scale: 0.97 }}
-      onClick={onClick}
-      className={cn(
-        "group relative overflow-hidden rounded-2xl border border-white/15 px-2 py-3.5 text-[10px] font-extrabold uppercase tracking-wide text-slate-950 shadow-lg sm:text-[11px]",
-      )}
-      style={{
-        background: `linear-gradient(145deg, ${accent}, ${accent}cc)`,
-        boxShadow: `0 10px 28px ${accent}40`,
-      }}
     >
-      <span
-        className="pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100"
-        style={{
-          background:
-            "radial-gradient(circle at 30% 20%, rgba(255,255,255,0.45), transparent 55%)",
-        }}
-      />
-      <span className="relative z-[1]">{label}</span>
-    </motion.button>
+      <PremiumMotionButton
+        accent={accent}
+        onClick={onClick}
+        className={cn("w-full py-3.5 text-[10px] sm:text-[11px]")}
+      >
+        {label}
+      </PremiumMotionButton>
+    </motion.div>
   );
 }

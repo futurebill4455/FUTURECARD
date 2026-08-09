@@ -47,11 +47,15 @@ export function MiniSiteServices({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                whileHover={{ y: -6, scale: 1.015 }}
+                whileHover={{
+                  y: -6,
+                  scale: 1.02,
+                  boxShadow: `0 18px 40px rgba(0,0,0,0.35), 0 0 0 1px ${accent}55, 0 0 28px ${accent}33`,
+                }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => onSelect(svc)}
                 className={cn(
-                  "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left shadow-panel backdrop-blur-xl transition",
+                  "group relative overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left shadow-panel backdrop-blur-xl transition-[border-color] duration-300 hover:border-cyan-300/35",
                 )}
                 style={{
                   boxShadow: `inset 0 1px 0 rgba(255,255,255,0.06)`,

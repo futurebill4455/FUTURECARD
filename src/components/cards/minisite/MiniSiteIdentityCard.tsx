@@ -12,6 +12,7 @@ import { PLATFORM_BRAND } from "@/lib/service-categories";
 import type { ICard } from "@/types/card.types";
 import { absoluteUrl, cn } from "@/lib/utils";
 import { VerifiedBadge } from "@/components/cards/VerifiedBadge";
+import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 
 export function MiniSiteIdentityCard({
   card,
@@ -106,7 +107,7 @@ export function MiniSiteIdentityCard({
                     <h3 className="mt-1 inline-flex max-w-full flex-wrap items-center gap-1 font-display text-xl font-bold text-slate-50">
                       <span className="truncate">{card.companyName}</span>
                       {card.isVerified ? (
-                        <VerifiedBadge size="sm" className="relative top-px" />
+                        <VerifiedBadge size="md" className="relative top-px" />
                       ) : null}
                     </h3>
                     <p className="mt-0.5 text-sm text-cyan-100/65">
@@ -185,27 +186,17 @@ function CardAction({
   className?: string;
 }) {
   return (
-    <button
-      type="button"
+    <PremiumMotionButton
       onClick={onClick}
       disabled={!onClick}
+      accent={accent}
+      variant={primary ? "primary" : "ghost"}
       className={cn(
-        "rounded-xl border px-2 py-2.5 text-[10px] font-bold uppercase tracking-wide transition disabled:opacity-40",
-        primary
-          ? "border-transparent text-slate-950"
-          : "border-white/10 bg-white/[0.04] text-slate-200 hover:bg-white/[0.08]",
+        "w-full rounded-xl px-2 py-2.5 text-[10px]",
         className,
       )}
-      style={
-        primary
-          ? {
-              background: `linear-gradient(135deg, ${accent}, ${accent}cc)`,
-              boxShadow: `0 8px 24px ${accent}33`,
-            }
-          : undefined
-      }
     >
       {label}
-    </button>
+    </PremiumMotionButton>
   );
 }
