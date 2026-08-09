@@ -40,13 +40,13 @@ export function CardPromoFooter({
             target="_blank"
             rel="noreferrer"
             onClick={onTrack}
-            className="inline-flex min-h-0 flex-1 items-center justify-center rounded-md px-2 py-1 text-[10px] font-bold leading-tight text-white shadow-sm transition active:scale-[0.98]"
+            className="inline-flex min-h-0 flex-1 items-center justify-center rounded-md px-2 py-1 text-[10px] font-semibold leading-tight tracking-tight text-white shadow-sm transition active:scale-[0.98]"
             style={{ backgroundColor: accent || "#0F766E" }}
           >
             Need This Digital Card?
           </a>
         ) : (
-          <span className="flex-1 text-[9px] text-zinc-500">
+          <span className="flex-1 text-[10px] font-semibold text-zinc-500">
             Contact link not configured
           </span>
         )}
@@ -55,9 +55,9 @@ export function CardPromoFooter({
             href={website}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-0 items-center justify-center rounded-md border border-zinc-200 px-2 py-1 text-[10px] font-semibold leading-tight text-zinc-600 transition hover:bg-zinc-50"
+            className="inline-flex min-h-0 flex-1 items-center justify-center rounded-md border border-zinc-200 px-2 py-1 text-[10px] font-semibold leading-tight tracking-tight text-zinc-700 transition hover:bg-zinc-50"
           >
-            Website
+            Visit our website
           </a>
         ) : null}
       </div>
