@@ -102,9 +102,10 @@ export function PlatformSettingsForm({
           Immersive shell background
         </h3>
         <p className="text-xs text-muted-foreground">
-          Applies across dashboards and landing. Run{" "}
+          Full-page stage for landing, dashboards, admin, and public cards. Run{" "}
           <code className="text-teal-300">002_ambient_background.sql</code> in
-          Supabase once. Dark neon media works best.
+          Supabase once. Dark neon media works best. Each card’s own cover /
+          slideshow stays inside the card header only.
         </p>
         <div className="flex flex-wrap gap-2">
           {(

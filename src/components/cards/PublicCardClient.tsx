@@ -9,6 +9,10 @@ import type { IPlatformSettings, IUserFeatures } from "@/types/platform.types";
 import { absoluteUrl } from "@/lib/utils";
 import { resolveTheme } from "@/lib/theme";
 
+/**
+ * Public card stage: platform ambient (admin video/slideshow/gradient)
+ * fills the viewport; the card’s own media stays on the header cover only.
+ */
 export function PublicCardClient({
   card,
   analytics,
@@ -22,17 +26,9 @@ export function PublicCardClient({
 }) {
   const theme = resolveTheme(card);
 
-  const stageMode =
-    card.backgroundMediaType === "video" && card.backgroundVideo
-      ? "video"
-      : card.backgroundMediaType === "slideshow" &&
-          (card.backgroundImages?.length || 0) > 0
-        ? "slideshow"
-        : card.backgroundImages?.length
-          ? "slideshow"
-          : card.backgroundVideo
-            ? "video"
-            : "gradient";
+  const ambientMode = platformSettings?.ambientMode || "gradient";
+  const ambientVideo = platformSettings?.ambientVideo || "";
+  const ambientImages = platformSettings?.ambientImages || [];
 
   async function onShare() {
     const url = absoluteUrl(`/c/${card.username}`);
@@ -51,11 +47,11 @@ export function PublicCardClient({
   return (
     <div className="relative min-h-screen overflow-hidden px-3 py-8 sm:px-4 sm:py-12">
       <ImmersiveBackground
-        mode={stageMode}
-        video={card.backgroundVideo}
-        images={card.backgroundImages}
+        mode={ambientMode}
+        video={ambientVideo}
+        images={ambientImages}
         accent={theme.buttonColor}
-        intensity={0.7}
+        intensity={0.72}
       />
 
       <motion.div
@@ -73,7 +69,7 @@ export function PublicCardClient({
           Digital identity
         </motion.p>
         <div className="glow-border relative rounded-[2rem] p-[1px] fx-pulse-glow">
-          <div className="overflow-hidden rounded-[1.95rem] shadow-glow-lg">
+          <div className="overflow-hidden rounded-[1.95rem] border border-white/10 shadow-glow-lg backdrop-blur-[2px]">
             <CardPreview
               card={card}
               analytics={analytics}

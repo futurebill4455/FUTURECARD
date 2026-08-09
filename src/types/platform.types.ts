@@ -145,7 +145,7 @@ export interface IPlatformSettings {
   footerTagline: string;
   /** Hostname clients point CNAME records to */
   platformCnameTarget: string;
-  /** Shell ambient background for dashboards / landing */
+  /** Shell ambient background for dashboards, landing, and public cards */
   ambientMode?: "gradient" | "video" | "slideshow";
   ambientVideo?: string;
   ambientImages?: string[];
