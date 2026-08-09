@@ -1,5 +1,6 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -22,55 +23,76 @@ export function DashboardShell({
 }) {
   const { data } = useSession();
   const pathname = usePathname();
-
-  // Strict: only show when the server layout confirms admin role.
-  // Regular users never see or get this link.
   const showAdminPanel = isAdmin === true;
 
   return (
-    <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
-      <aside className="border-b bg-card md:border-b-0 md:border-r">
-        <div className="flex items-center justify-between px-4 py-4 md:block">
-          <Link href="/" className="font-display text-xl font-extrabold">
-            Future<span className="text-teal-700">Card</span>
+    <div className="relative min-h-screen md:grid md:grid-cols-[260px_1fr]">
+      <div className="pointer-events-none absolute inset-0 ambient-grid opacity-60" />
+      <aside className="relative z-[1] border-b border-white/5 glass-soft md:border-b-0 md:border-r md:border-white/5">
+        <div className="flex items-center justify-between px-4 py-5 md:block">
+          <Link
+            href="/"
+            className="font-display text-xl font-bold tracking-tight"
+          >
+            Future<span className="text-gradient">Card</span>
           </Link>
           <button
-            className="text-sm text-muted-foreground md:mt-6 md:block"
+            className="text-sm text-muted-foreground transition hover:text-teal-300 md:mt-6 md:block"
             onClick={() => signOut({ callbackUrl: "/login" })}
           >
             Sign out
           </button>
         </div>
-        <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:px-3">
-          {userLinks.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className={cn(
-                "rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
-                pathname === l.href ||
-                  (l.href !== "/dashboard" && pathname.startsWith(l.href))
-                  ? "bg-teal-700 text-white"
-                  : "hover:bg-muted",
-              )}
-            >
-              {l.label}
-            </Link>
-          ))}
+        <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:px-3 md:pb-6">
+          {userLinks.map((l) => {
+            const active =
+              pathname === l.href ||
+              (l.href !== "/dashboard" && pathname.startsWith(l.href));
+            return (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={cn(
+                  "relative rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
+                  active
+                    ? "bg-teal-400/15 text-teal-100 shadow-glow"
+                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                )}
+              >
+                {active ? (
+                  <motion.span
+                    layoutId="user-nav-pill"
+                    className="absolute inset-0 -z-10 rounded-xl border border-teal-400/25 bg-teal-400/10"
+                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  />
+                ) : null}
+                {l.label}
+              </Link>
+            );
+          })}
           {showAdminPanel ? (
             <Link
               href="/admin/dashboard"
-              className="rounded-xl px-3 py-2 text-sm font-medium text-teal-800 hover:bg-muted"
+              className="mt-1 rounded-xl border border-teal-400/20 px-3 py-2.5 text-sm font-medium text-teal-200 transition hover:bg-teal-400/10"
             >
               Admin panel
             </Link>
           ) : null}
         </nav>
-        <p className="hidden px-4 pb-4 text-xs text-muted-foreground md:block">
+        <p className="hidden truncate px-4 pb-5 text-xs text-muted-foreground md:block">
           {data?.user?.email}
         </p>
       </aside>
-      <main className="px-4 py-6 md:px-8">{children}</main>
+      <main className="relative z-[1] px-4 py-6 md:px-8 md:py-8">
+        <motion.div
+          key={pathname}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
+          {children}
+        </motion.div>
+      </main>
     </div>
   );
 }

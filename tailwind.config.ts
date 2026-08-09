@@ -46,13 +46,23 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        display: ["var(--font-display)", "Georgia", "serif"],
-        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        display: ["var(--font-display)", "ui-sans-serif", "system-ui"],
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui"],
+      },
+      boxShadow: {
+        glow: "0 0 24px rgba(45, 212, 191, 0.25)",
+        "glow-lg": "0 0 48px rgba(45, 212, 191, 0.3)",
+        panel:
+          "0 0 0 1px rgba(45, 212, 191, 0.08), 0 20px 50px rgba(0, 0, 0, 0.5)",
       },
       keyframes: {
         "fade-up": {
-          from: { opacity: "0", transform: "translateY(12px)" },
+          from: { opacity: "0", transform: "translateY(14px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
         },
         "soft-pulse": {
           "0%, 100%": { transform: "scale(1)" },
@@ -62,12 +72,19 @@ const config: Config = {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
         },
+        shimmer: {
+          from: { backgroundPosition: "-200% 0" },
+          to: { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
-        "fade-up": "fade-up 0.5s ease-out both",
-        "fade-up-delay": "fade-up 0.5s ease-out 0.1s both",
+        "fade-up": "fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
+        "fade-up-delay":
+          "fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both",
+        "fade-in": "fade-in 0.4s ease-out both",
         "soft-pulse": "soft-pulse 3.5s ease-in-out infinite",
-        "gradient-shift": "gradient-shift 6s ease infinite",
+        "gradient-shift": "gradient-shift 8s ease infinite",
+        shimmer: "shimmer 2.8s linear infinite",
       },
     },
   },

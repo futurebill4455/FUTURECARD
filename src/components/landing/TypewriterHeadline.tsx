@@ -46,15 +46,15 @@ export function TypewriterHeadline({
   }, [display, deleting, phraseIndex]);
 
   return (
-    <h1 className="mt-4 max-w-xl font-display text-3xl font-bold leading-[1.15] tracking-tight text-zinc-800 sm:text-4xl md:text-[2.75rem]">
+    <h1 className="mt-4 max-w-xl font-display text-3xl font-bold leading-[1.15] tracking-tight text-teal-50 sm:text-4xl md:text-[2.75rem]">
       {prefix}{" "}
-      <span className="relative inline bg-gradient-to-r from-teal-700 via-emerald-500 to-amber-500 bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-shift">
+      <span className="relative inline bg-gradient-to-r from-teal-300 via-emerald-400 to-amber-400 bg-[length:200%_auto] bg-clip-text text-transparent animate-gradient-shift">
         {display}
         <motion.span
           aria-hidden
           animate={{ opacity: [1, 0] }}
           transition={{ duration: 0.7, repeat: Infinity, ease: "easeInOut" }}
-          className="ml-0.5 inline-block h-[0.9em] w-[3px] translate-y-[0.12em] bg-teal-700 align-baseline"
+          className="ml-0.5 inline-block h-[0.9em] w-[3px] translate-y-[0.12em] bg-teal-300 align-baseline"
         />
       </span>{" "}
       <AnimatePresence mode="wait">
@@ -62,7 +62,7 @@ export function TypewriterHeadline({
           key={suffix}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="text-zinc-800"
+          className="text-teal-100"
         >
           {suffix}
         </motion.span>

@@ -229,7 +229,7 @@ export function CustomDomainSettings({
               <Button
                 type="submit"
                 disabled={busy || !allowed}
-                className="bg-teal-700 hover:bg-teal-800"
+               
               >
                 {busy ? "Working…" : "Submit request"}
               </Button>

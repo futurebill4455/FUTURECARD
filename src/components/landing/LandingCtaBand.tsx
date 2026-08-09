@@ -25,15 +25,15 @@ export function LandingCtaBand() {
           transition={{ duration: 9, repeat: Infinity }}
           className="pointer-events-none absolute -right-10 bottom-0 h-48 w-48 rounded-full bg-emerald-400/25 blur-3xl"
         />
-        <h2 className="relative font-display text-3xl font-extrabold text-white sm:text-4xl">
+        <h2 className="relative font-display text-3xl font-extrabold text-teal-50 sm:text-4xl">
           Your next customer is one tap away
         </h2>
-        <p className="relative mx-auto mt-3 max-w-lg text-teal-100/75">
+        <p className="relative mx-auto mt-3 max-w-lg text-teal-100">
           Launch a polished digital card today — free to start, ready to scale.
         </p>
         <Link
           href="/register"
-          className="relative mt-8 inline-flex items-center gap-2 rounded-2xl bg-white px-6 py-3.5 text-sm font-bold text-teal-900 transition hover:scale-105 hover:bg-teal-50"
+          className="relative mt-8 inline-flex items-center gap-2 rounded-2xl bg-teal-50 px-6 py-3.5 text-sm font-bold text-teal-950 transition hover:scale-105 hover:bg-white"
         >
           Create your FutureCard
           <ArrowRight className="h-4 w-4" />

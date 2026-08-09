@@ -119,6 +119,7 @@ export function CardHeaderIdentity({
       <div className="mt-2.5 flex justify-center">
         <VerifiedByBrand
           size="sm"
+          dark={false}
           className="rounded-full border border-teal-800/10 bg-white/80 px-3 py-1 shadow-sm backdrop-blur-sm"
         />
       </div>

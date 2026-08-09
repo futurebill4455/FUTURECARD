@@ -1,18 +1,18 @@
 import type { Metadata } from "next";
-import { Manrope, Syne } from "next/font/google";
+import { Outfit, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/providers/Providers";
 import "./globals.css";
 
-const display = Syne({
+const display = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-display",
-  weight: ["600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
-const sans = Manrope({
+const sans = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -25,8 +25,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en">
-      <body className={`${display.variable} ${sans.variable} font-sans`}>
+    <html lang="en" className="dark">
+      <body
+        className={`${display.variable} ${sans.variable} font-sans selection:bg-teal-400/30`}
+      >
         <Providers>{children}</Providers>
       </body>
     </html>

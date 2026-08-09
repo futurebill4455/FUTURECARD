@@ -66,7 +66,7 @@ export function LandingHero() {
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.75, 0.4] }}
           transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -right-24 top-8 h-[440px] w-[440px] rounded-full bg-[radial-gradient(circle,rgba(217,119,6,0.32),transparent_65%)] blur-2xl"
+          className="absolute -right-24 top-8 h-[440px] w-[440px] rounded-full bg-[radial-gradient(circle,rgba(56,189,248,0.28),transparent_65%)] blur-2xl"
         />
         <motion.div
           animate={{ scale: [1.15, 1, 1.15], x: [0, 40, 0] }}
@@ -84,7 +84,7 @@ export function LandingHero() {
           initial={{ scale: 0.2, opacity: 0.35 }}
           animate={{ scale: 3.2, opacity: 0 }}
           transition={{ duration: 2, delay: 0.15, ease: "easeOut" }}
-          className="absolute left-1/2 top-[42%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-amber-400/30"
+          className="absolute left-1/2 top-[42%] h-40 w-40 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cyan-400/30"
         />
       </div>
 
@@ -102,7 +102,7 @@ export function LandingHero() {
             >
               <VerifiedByBrand
                 size="md"
-                className="rounded-2xl border border-teal-800/10 bg-white/60 px-3 py-1.5 shadow-sm backdrop-blur-md"
+                className="rounded-2xl border border-teal-400/20 bg-white/5 px-3 py-1.5 shadow-sm backdrop-blur-md"
               />
             </motion.div>
 
@@ -110,9 +110,9 @@ export function LandingHero() {
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ ...springSoft, delay: 0.25 }}
-              className="inline-flex items-center gap-2 rounded-2xl border border-teal-800/10 bg-white/50 px-3 py-1.5 text-xs font-bold text-teal-800 backdrop-blur-md"
+              className="inline-flex items-center gap-2 rounded-2xl border border-teal-400/20 bg-white/5 px-3 py-1.5 text-xs font-bold text-teal-100 backdrop-blur-md"
             >
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+              <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               Cinematic digital identity
             </motion.div>
 
@@ -120,16 +120,16 @@ export function LandingHero() {
               initial={{ opacity: 0, y: 40, filter: "blur(8px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ ...springSoft, delay: 0.35 }}
-              className="mt-5 font-display text-4xl font-extrabold tracking-tight text-zinc-900 sm:text-5xl md:text-6xl"
+              className="mt-5 font-display text-4xl font-extrabold tracking-tight text-teal-50 sm:text-5xl md:text-6xl"
             >
-              Future<span className="text-teal-700">Card</span>
+              Future<span className="text-teal-300">Card</span>
             </motion.p>
 
             <div className="mt-4">
               <TypewriterHeadline />
             </div>
 
-            <p className="mt-5 max-w-lg text-base leading-relaxed text-zinc-600 sm:text-lg">
+            <p className="mt-5 max-w-lg text-base leading-relaxed text-teal-100/70 sm:text-lg">
               <KineticWords
                 text="One explosive link for Call, WhatsApp, UPI Pay, galleries, and Future Shield verification — built for modern Indian businesses."
                 delay={0.55}
@@ -144,14 +144,14 @@ export function LandingHero() {
             >
               <Link
                 href="/register"
-                className="group relative overflow-hidden rounded-2xl bg-teal-800 px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_40px_-10px_rgba(15,118,110,0.75)] transition hover:scale-[1.03] hover:bg-teal-900"
+                className="group relative overflow-hidden rounded-2xl bg-teal-400 px-6 py-3.5 text-sm font-bold text-teal-950 shadow-[0_12px_40px_-10px_rgba(45,212,191,0.55)] transition hover:scale-[1.03] hover:bg-teal-300"
               >
                 <span className="relative z-10">Get Started Free</span>
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition duration-700 group-hover:translate-x-full" />
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition duration-700 group-hover:translate-x-full" />
               </Link>
               <Link
                 href="/dhanya_enterprises"
-                className="rounded-2xl border border-teal-800/15 bg-white/55 px-6 py-3.5 text-sm font-bold text-teal-900 shadow-sm backdrop-blur-md transition hover:scale-[1.03] hover:border-teal-700/35 hover:bg-white"
+                className="rounded-2xl border border-teal-400/30 bg-white/5 px-6 py-3.5 text-sm font-bold text-teal-50 shadow-sm backdrop-blur-md transition hover:scale-[1.03] hover:border-teal-300/50 hover:bg-white/10"
               >
                 View Live Demo
               </Link>

@@ -92,13 +92,13 @@ export function LandingFeatures() {
           viewport={{ once: true, margin: "-80px" }}
           className="max-w-2xl"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-700">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-300">
             Platform
           </p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-teal-50 sm:text-4xl">
             <KineticWords text="Interactive power, beautifully packed" />
           </h2>
-          <p className="mt-3 text-zinc-600">
+          <p className="mt-3 text-teal-100/70">
             <KineticWords
               text="Scroll to watch each tile burst into place — liquid hover, glow borders, and spring physics."
               delay={0.15}
@@ -143,7 +143,7 @@ export function LandingFeatures() {
                   transition: { type: "spring", stiffness: 280, damping: 18 },
                 }}
                 className={cn(
-                  "group relative overflow-hidden rounded-3xl border border-teal-900/8 bg-white/65 p-6 backdrop-blur-md transition-shadow duration-300",
+                  "group relative overflow-hidden rounded-3xl border border-teal-400/15 bg-white/5 p-6 backdrop-blur-md transition-shadow duration-300",
                   f.glow,
                   f.className,
                 )}
@@ -155,7 +155,7 @@ export function LandingFeatures() {
                   )}
                 />
                 <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
-                  <div className="absolute -left-1/2 top-0 h-full w-1/2 skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent group-hover:animate-[feature-shine_1.1s_ease]" />
+                  <div className="absolute -left-1/2 top-0 h-full w-1/2 skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[feature-shine_1.1s_ease]" />
                 </div>
 
                 <div className="relative flex h-full flex-col">
@@ -169,13 +169,13 @@ export function LandingFeatures() {
                   >
                     <Icon className="h-5 w-5" />
                   </motion.div>
-                  <h3 className="mt-5 font-display text-xl font-bold text-zinc-900">
+                  <h3 className="mt-5 font-display text-xl font-bold text-teal-50">
                     {f.title}
                   </h3>
-                  <p className="mt-2 flex-1 text-sm leading-relaxed text-zinc-600">
+                  <p className="mt-2 flex-1 text-sm leading-relaxed text-teal-100/65">
                     {f.description}
                   </p>
-                  <div className="mt-4 h-px w-12 origin-left scale-x-0 bg-gradient-to-r from-teal-600 to-amber-500 transition duration-300 group-hover:scale-x-100" />
+                  <div className="mt-4 h-px w-12 origin-left scale-x-0 bg-gradient-to-r from-teal-400 to-amber-400 transition duration-300 group-hover:scale-x-100" />
                 </div>
               </motion.article>
             );

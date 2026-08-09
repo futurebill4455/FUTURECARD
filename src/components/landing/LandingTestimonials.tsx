@@ -73,18 +73,18 @@ export function LandingTestimonials() {
           viewport={{ once: true }}
           className="text-center"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-700">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-300">
             Stories
           </p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-teal-50 sm:text-4xl">
             Voices that slide into view
           </h2>
         </motion.div>
 
         <div className="relative mt-12">
           {/* Side peek cards */}
-          <div className="pointer-events-none absolute inset-y-8 left-0 hidden w-16 rounded-3xl bg-gradient-to-r from-[#f3f8f6] to-transparent lg:block" />
-          <div className="pointer-events-none absolute inset-y-8 right-0 hidden w-16 rounded-3xl bg-gradient-to-l from-[#f3f8f6] to-transparent lg:block" />
+          <div className="pointer-events-none absolute inset-y-8 left-0 hidden w-16 rounded-3xl bg-gradient-to-r from-background to-transparent lg:block" />
+          <div className="pointer-events-none absolute inset-y-8 right-0 hidden w-16 rounded-3xl bg-gradient-to-l from-background to-transparent lg:block" />
 
           <div className="relative mx-auto max-w-3xl overflow-hidden">
             <AnimatePresence mode="wait" custom={direction}>
@@ -95,9 +95,9 @@ export function LandingTestimonials() {
                 animate={{ opacity: 1, x: 0, scale: 1, rotateY: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, x: direction * -100, scale: 0.9, rotateY: direction * -12, filter: "blur(6px)" }}
                 transition={{ type: "spring", stiffness: 100, damping: 16 }}
-                className={`relative overflow-hidden rounded-[2rem] border border-teal-900/8 bg-gradient-to-br ${review.accent} from-white/95 p-8 shadow-[0_30px_80px_-40px_rgba(15,80,70,0.45)] backdrop-blur-md sm:p-12`}
+                className={`relative overflow-hidden rounded-[2rem] border border-teal-400/15 bg-gradient-to-br ${review.accent} from-white/5 p-8 shadow-[0_30px_80px_-40px_rgba(0,0,0,0.55)] backdrop-blur-md sm:p-12`}
               >
-                <Quote className="absolute right-8 top-8 h-14 w-14 text-teal-700/10" />
+                <Quote className="absolute right-8 top-8 h-14 w-14 text-teal-200/10" />
                 <div className="mb-4 flex gap-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <motion.span
@@ -110,21 +110,21 @@ export function LandingTestimonials() {
                     </motion.span>
                   ))}
                 </div>
-                <p className="font-display text-xl font-semibold leading-relaxed text-zinc-800 sm:text-2xl">
+                <p className="font-display text-xl font-semibold leading-relaxed text-teal-50 sm:text-2xl">
                   “{review.quote}”
                 </p>
                 <footer className="mt-8 flex items-center gap-3">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-800 font-display text-sm font-bold text-white">
+                  <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-500 font-display text-sm font-bold text-teal-950">
                     {review.name
                       .split(" ")
                       .map((n) => n[0])
                       .join("")}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-zinc-900">
+                    <p className="text-sm font-bold text-teal-50">
                       {review.name}
                     </p>
-                    <p className="text-sm text-zinc-500">{review.role}</p>
+                    <p className="text-sm text-teal-100/55">{review.role}</p>
                   </div>
                 </footer>
               </motion.article>
@@ -136,7 +136,7 @@ export function LandingTestimonials() {
               type="button"
               onClick={prev}
               aria-label="Previous review"
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-900/10 bg-white/80 text-teal-800 shadow-sm transition hover:scale-105 hover:bg-white"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-400/20 bg-white/5 text-teal-100 shadow-sm transition hover:scale-105 hover:border-teal-400/40 hover:bg-white/10"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -148,7 +148,7 @@ export function LandingTestimonials() {
                   aria-label={`Show review ${i + 1}`}
                   onClick={() => go(i)}
                   className={`h-2 rounded-full transition-all ${
-                    i === index ? "w-8 bg-teal-700" : "w-2 bg-teal-700/25"
+                    i === index ? "w-8 bg-teal-300" : "w-2 bg-teal-400/25"
                   }`}
                 />
               ))}
@@ -157,7 +157,7 @@ export function LandingTestimonials() {
               type="button"
               onClick={next}
               aria-label="Next review"
-              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-900/10 bg-white/80 text-teal-800 shadow-sm transition hover:scale-105 hover:bg-white"
+              className="flex h-10 w-10 items-center justify-center rounded-2xl border border-teal-400/20 bg-white/5 text-teal-100 shadow-sm transition hover:scale-105 hover:border-teal-400/40 hover:bg-white/10"
             >
               <ChevronRight className="h-5 w-5" />
             </button>

@@ -238,7 +238,7 @@ export function AdminDomainsTable({
                       <div className="flex flex-wrap gap-1.5">
                         <Button
                           size="sm"
-                          className="bg-teal-700 hover:bg-teal-800"
+                         
                           disabled={
                             busyId === row._id ||
                             row.customDomainStatus === "approved"

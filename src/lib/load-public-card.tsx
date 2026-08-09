@@ -24,7 +24,7 @@ async function renderCardFromDoc(card: ICard) {
 
   if (!accessible) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
+            <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
         <ExpiredCardNotice companyName={card.companyName} />
       </div>
     );
@@ -82,11 +82,11 @@ export async function renderPublicCardByCustomDomain(host: string) {
           : "This domain is linked to a card but is waiting for Super Admin approval and activation.";
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4">
-        <div className="max-w-md rounded-2xl border bg-white p-6 text-center shadow-sm">
-          <h1 className="font-display text-xl font-bold">{title}</h1>
+      <div className="flex min-h-screen items-center justify-center bg-slate-950 px-4">
+        <div className="glass glow-border max-w-md rounded-2xl p-6 text-center shadow-panel">
+          <h1 className="font-display text-xl font-bold text-teal-50">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            <span className="font-medium text-foreground">{host}</span> —{" "}
+            <span className="font-medium text-teal-100/90">{host}</span> —{" "}
             {detail}
           </p>
         </div>

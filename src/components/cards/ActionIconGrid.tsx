@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import type { ICard } from "@/types/card.types";
 import {
   actionHref,
@@ -118,17 +119,23 @@ export function ActionIconGrid({
   return (
     <>
       <div className="grid grid-cols-4 gap-x-1 gap-y-4 sm:grid-cols-5">
-        {visible.map((btn) => {
+        {visible.map((btn, i) => {
           const meta = metaFor(btn.key);
 
           const inner = (
             <>
-              <span
-                className="flex h-14 w-14 items-center justify-center rounded-[1.35rem] shadow-sm ring-1 ring-black/[0.04] transition hover:scale-105 active:scale-95"
-                style={{ backgroundColor: meta.softBg, color: meta.softFg }}
+              <motion.span
+                whileHover={{ scale: 1.08, y: -2 }}
+                whileTap={{ scale: 0.94 }}
+                className="flex h-14 w-14 items-center justify-center rounded-[1.35rem] shadow-md ring-1 ring-black/[0.06] transition"
+                style={{
+                  backgroundColor: meta.softBg,
+                  color: meta.softFg,
+                  boxShadow: `0 8px 20px ${meta.softFg}22`,
+                }}
               >
                 <IconGlyph name={btn.key} />
-              </span>
+              </motion.span>
               <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-foreground">
                 {meta.label}
               </span>
@@ -141,14 +148,17 @@ export function ActionIconGrid({
             btn.key === "brochures"
           ) {
             return (
-              <button
+              <motion.button
                 key={btn.key}
                 type="button"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.03 * i }}
                 className="flex flex-col items-center"
                 onClick={() => runAction(btn.key, btn.value)}
               >
                 {inner}
-              </button>
+              </motion.button>
             );
           }
 
@@ -156,62 +166,80 @@ export function ActionIconGrid({
           if (!href) return null;
 
           return (
-            <a
+            <motion.a
               key={btn.key}
               href={href}
               target={href.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.03 * i }}
               className="flex flex-col items-center"
               onClick={() => onTrack?.(btn.key)}
             >
               {inner}
-            </a>
+            </motion.a>
           );
         })}
       </div>
 
-      {qrOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => setQrOpen(false)}
-        >
-          <div
-            className="w-full max-w-xs rounded-2xl bg-white p-5 text-center shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+      <AnimatePresence>
+        {qrOpen ? (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setQrOpen(false)}
           >
-            <h3 className="font-display text-lg font-bold">Scan QR Code</h3>
-            <p className="mt-1 break-all text-xs text-muted-foreground">
-              {publicUrl}
-            </p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={qrSrc}
-              alt="QR code"
-              className="mx-auto mt-4 h-52 w-52 rounded-xl border bg-white p-2"
-            />
-            <button
-              type="button"
-              className="mt-4 w-full rounded-xl py-2.5 text-sm font-bold text-white"
-              style={{ backgroundColor: metaFor("qr").softFg }}
-              onClick={() =>
-                void downloadUrlAsFile(
-                  qrSrc,
-                  `${card.username || "card"}-qr.png`,
-                )
-              }
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 320, damping: 26 }}
+              className="relative w-full max-w-xs overflow-hidden rounded-3xl border border-teal-400/25 bg-slate-950/90 p-6 text-center shadow-glow-lg"
+              onClick={(e) => e.stopPropagation()}
             >
-              Download QR Code
-            </button>
-            <button
-              type="button"
-              className="mt-2 w-full rounded-xl border py-2.5 text-sm font-semibold text-muted-foreground"
-              onClick={() => setQrOpen(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      ) : null}
+              <div className="pointer-events-none absolute -left-10 -top-10 h-32 w-32 rounded-full bg-teal-400/20 blur-3xl" />
+              <h3 className="relative font-display text-lg font-bold text-teal-50">
+                Scan to connect
+              </h3>
+              <p className="relative mt-1 break-all text-xs text-teal-100/50">
+                {publicUrl}
+              </p>
+              <div className="relative mx-auto mt-5 w-fit rounded-2xl bg-gradient-to-br from-teal-400/40 via-cyan-400/20 to-transparent p-[2px] fx-pulse-glow">
+                <div className="rounded-[0.9rem] bg-white p-3">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={qrSrc}
+                    alt="QR code"
+                    className="h-48 w-48 rounded-lg"
+                  />
+                </div>
+              </div>
+              <button
+                type="button"
+                className="relative mt-5 w-full rounded-xl bg-gradient-to-br from-teal-400 to-cyan-500 py-2.5 text-sm font-bold text-slate-950 shadow-glow"
+                onClick={() =>
+                  void downloadUrlAsFile(
+                    qrSrc,
+                    `${card.username || "card"}-qr.png`,
+                  )
+                }
+              >
+                Download QR Code
+              </button>
+              <button
+                type="button"
+                className="relative mt-2 w-full rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-teal-100/70 transition hover:bg-white/5"
+                onClick={() => setQrOpen(false)}
+              >
+                Close
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       {bankOpen ? (
         <BankDetailsModal

@@ -46,7 +46,7 @@ export function FeaturePermissionChecklist({
         {ADMIN_FEATURE_CHECKLIST.map((item) => (
           <label
             key={item.key}
-            className="flex cursor-pointer items-start gap-3 rounded-xl border bg-white/70 px-3 py-2.5"
+            className="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2.5"
           >
             <input
               type="checkbox"

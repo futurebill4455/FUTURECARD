@@ -52,7 +52,7 @@ export default async function DashboardPage() {
         title={`Hello, ${session!.user.name?.split(" ")[0] || "there"}`}
         description="Manage your digital visiting cards and subscription."
         actions={
-          <Button asChild className="bg-teal-700 hover:bg-teal-800">
+          <Button asChild>
             <Link href="/cards/create">New card</Link>
           </Button>
         }
@@ -81,7 +81,7 @@ export default async function DashboardPage() {
           {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">
               No cards yet.{" "}
-              <Link href="/cards/create" className="text-teal-800 underline">
+              <Link href="/cards/create" className="text-teal-300 underline">
                 Create your first card
               </Link>
             </p>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
                   <div className="text-xs text-muted-foreground">
                     /{c.username}
                     {c.customDomain ? (
-                      <span className="ml-2 text-teal-800">
+                      <span className="ml-2 text-teal-300">
                         · {c.customDomain}
                         {isCustomDomainLive(c) ? " (live)" : " (pending)"}
                       </span>

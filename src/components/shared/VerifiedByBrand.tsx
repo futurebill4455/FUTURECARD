@@ -9,7 +9,8 @@ export const PLATFORM_VERIFY_BRAND = "Future Shield";
 export function VerifiedByBrand({
   className,
   size = "md",
-  dark = false,
+  /** Force light-on-dark (default) or dark-on-light for light card surfaces */
+  dark = true,
 }: {
   className?: string;
   size?: "sm" | "md" | "lg";
@@ -26,19 +27,32 @@ export function VerifiedByBrand({
       className={cn(
         "inline-flex items-center font-display font-extrabold tracking-tight",
         sizes[size],
-        dark ? "text-white" : "text-zinc-900",
+        dark ? "text-teal-50" : "text-zinc-900",
         className,
       )}
     >
-      <span className={cn(dark ? "text-teal-100/80" : "text-zinc-500", "font-sans font-semibold")}>
+      <span
+        className={cn(
+          "font-sans font-semibold",
+          dark ? "text-teal-200/70" : "text-zinc-500",
+        )}
+      >
         Verified by
       </span>
-      <span className={dark ? "text-white" : "bg-gradient-to-r from-teal-800 to-emerald-600 bg-clip-text text-transparent"}>
+      <span
+        className={
+          dark
+            ? "text-gradient"
+            : "bg-gradient-to-r from-teal-800 to-emerald-600 bg-clip-text text-transparent"
+        }
+      >
         {PLATFORM_VERIFY_BRAND}
       </span>
       <VerifiedBadge
         title={`Verified by ${PLATFORM_VERIFY_BRAND}`}
-        className={size === "lg" ? "scale-110" : size === "sm" ? "scale-90" : undefined}
+        className={
+          size === "lg" ? "scale-110" : size === "sm" ? "scale-90" : undefined
+        }
       />
     </div>
   );

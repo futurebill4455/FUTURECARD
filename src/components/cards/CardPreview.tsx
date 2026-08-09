@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 import type { ICard, IServiceItem } from "@/types/card.types";
 import type { IAnalyticsSummary } from "@/types/analytics.types";
 import { CardBackground } from "./CardBackground";
@@ -139,9 +140,12 @@ export function CardPreview({
   }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "mx-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border border-black/5 shadow-xl",
+        "mx-auto w-full max-w-md overflow-hidden rounded-[1.75rem] border border-white/10 shadow-2xl",
         className,
       )}
       style={themeStyleVars(theme)}
@@ -154,16 +158,20 @@ export function CardPreview({
           fallbackCover={card.coverImage}
           className="!rounded-none h-48 sm:h-52"
         />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10" />
       </div>
 
       <div
-        className="relative z-10 px-4 pb-6 pt-0"
+        className="relative z-10 px-4 pb-7 pt-0"
         style={{ backgroundColor: theme.backgroundColor }}
       >
         {/* Profile logo overlapping cover */}
         <div className="relative z-20 -mt-14 flex justify-center">
-          <div
-            className="h-[7.25rem] w-[7.25rem] overflow-hidden rounded-full border-[5px] border-white bg-white shadow-[0_10px_28px_rgba(0,0,0,0.18)] ring-1 ring-black/5"
+          <motion.div
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 18 }}
+            className="h-[7.25rem] w-[7.25rem] overflow-hidden rounded-full border-[5px] border-white/95 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-2 ring-black/5"
             style={{ backgroundColor: soft }}
           >
             {card.profileImage ? (
@@ -181,7 +189,7 @@ export function CardPreview({
                 {card.companyName.slice(0, 1)}
               </div>
             )}
-          </div>
+          </motion.div>
         </div>
 
         <CardHeaderIdentity
@@ -243,8 +251,8 @@ export function CardPreview({
         />
 
         {analytics ? (
-          <section className="mt-6 rounded-2xl bg-white/70 p-4 ring-1 ring-black/5">
-            <h2 className="font-display text-lg font-bold">Analytics</h2>
+          <section className="mt-6 rounded-2xl bg-black/[0.04] p-4 shadow-inner ring-1 ring-black/5 backdrop-blur-sm">
+            <h2 className="font-display text-lg font-bold">Live pulse</h2>
             <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-5">
               <Stat
                 label="Views"
@@ -275,16 +283,18 @@ export function CardPreview({
           </section>
         ) : null}
 
-        <button
+        <motion.button
           type="button"
-          className="mt-5 w-full rounded-xl border border-dashed bg-white/50 py-3 text-sm font-semibold text-muted-foreground"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          className="mt-5 w-full rounded-xl border border-black/10 bg-white/60 py-3 text-sm font-semibold text-foreground/80 shadow-sm backdrop-blur-sm transition hover:bg-white/80"
           onClick={() => {
             void trackEvent("share");
             onShare?.();
           }}
         >
           Share this card
-        </button>
+        </motion.button>
 
         {platformSettings ? (
           <CardPromoFooter
@@ -318,7 +328,7 @@ export function CardPreview({
           onClose={() => setPayOpen(false)}
         />
       ) : null}
-    </div>
+    </motion.div>
   );
 }
 
@@ -332,11 +342,11 @@ function Stat({
   color: string;
 }) {
   return (
-    <div className="rounded-xl bg-white px-2 py-3 text-center ring-1 ring-black/5">
+    <div className="rounded-xl bg-white/80 px-2 py-3 text-center shadow-sm ring-1 ring-black/5 backdrop-blur-sm">
       <div className="font-display text-lg font-bold" style={{ color }}>
         {value}
       </div>
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <div className="text-[10px] font-semibold uppercase tracking-wide text-black/45">
         {label}
       </div>
     </div>

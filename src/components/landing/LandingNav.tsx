@@ -28,7 +28,7 @@ export function LandingNav() {
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
         scrolled
-          ? "border-b border-white/40 bg-[#f4faf8]/85 backdrop-blur-xl shadow-sm"
+          ? "border-b border-teal-400/15 bg-slate-950/75 backdrop-blur-xl shadow-glow"
           : "bg-transparent",
       )}
     >
@@ -38,7 +38,7 @@ export function LandingNav() {
             href="/"
             className="font-display text-xl font-extrabold tracking-tight sm:text-2xl"
           >
-            Future<span className="text-teal-700">Card</span>
+            Future<span className="text-gradient">Card</span>
           </Link>
           <VerifiedByBrand size="sm" className="hidden sm:inline-flex" />
         </div>
@@ -48,7 +48,7 @@ export function LandingNav() {
             <a
               key={l.href}
               href={l.href}
-              className="text-sm font-semibold text-zinc-600 transition hover:text-teal-800"
+              className="text-sm font-semibold text-teal-100/60 transition hover:text-teal-200"
             >
               {l.label}
             </a>
@@ -56,25 +56,21 @@ export function LandingNav() {
         </nav>
 
         <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-          <div className="hidden lg:block">
-            <VerifiedByBrand size="sm" />
-          </div>
           <Link
             href="/login"
-            className="hidden text-sm font-semibold text-zinc-700 sm:inline hover:text-teal-800"
+            className="hidden text-sm font-semibold text-teal-100/70 sm:inline hover:text-teal-200"
           >
             Sign in
           </Link>
           <Link
             href="/register"
-            className="rounded-2xl bg-teal-800 px-4 py-2 text-sm font-semibold text-white transition hover:scale-105 hover:bg-teal-900"
+            className="rounded-2xl bg-gradient-to-br from-teal-400 to-cyan-500 px-4 py-2 text-sm font-semibold text-slate-950 shadow-glow transition hover:scale-105 hover:brightness-110"
           >
             Get Started
           </Link>
         </div>
       </div>
-      {/* Mobile verified strip */}
-      <div className="border-t border-teal-900/5 bg-white/40 px-4 py-1.5 backdrop-blur-md sm:hidden">
+      <div className="border-t border-white/5 bg-slate-950/50 px-4 py-1.5 backdrop-blur-md sm:hidden">
         <VerifiedByBrand size="sm" className="justify-center" />
       </div>
     </motion.header>

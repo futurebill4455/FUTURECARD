@@ -240,7 +240,7 @@ export function UserManageForm({
       <Button
         type="submit"
         disabled={saving}
-        className="bg-teal-700 hover:bg-teal-800"
+       
       >
         {saving ? "Saving…" : "Save changes"}
       </Button>

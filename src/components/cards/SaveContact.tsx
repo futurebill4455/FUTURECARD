@@ -13,7 +13,7 @@ export function SaveContact({
 }) {
   return (
     <Button
-      className="bg-teal-700 hover:bg-teal-800"
+      className="bg-gradient-to-br from-teal-400 to-cyan-500 text-slate-950 hover:brightness-110"
       onClick={() => {
         downloadVCard(card.username, generateVCard(card));
         onSave?.();

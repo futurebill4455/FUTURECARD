@@ -3,39 +3,149 @@
 @tailwind utilities;
 
 :root {
-  --background: 150 20% 97%;
-  --foreground: 160 25% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 160 25% 10%;
-  --primary: 173 80% 26%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 150 15% 92%;
-  --secondary-foreground: 160 25% 15%;
-  --muted: 150 12% 93%;
-  --muted-foreground: 160 8% 40%;
-  --accent: 150 15% 92%;
-  --accent-foreground: 160 25% 15%;
-  --destructive: 0 72% 45%;
+  /* Deep void + cyan/mint accent — dark by default */
+  --background: 200 30% 4%;
+  --foreground: 170 20% 96%;
+  --card: 195 28% 8%;
+  --card-foreground: 170 20% 96%;
+  --primary: 168 84% 42%;
+  --primary-foreground: 200 40% 4%;
+  --secondary: 195 22% 14%;
+  --secondary-foreground: 170 15% 92%;
+  --muted: 195 18% 12%;
+  --muted-foreground: 180 10% 62%;
+  --accent: 195 22% 16%;
+  --accent-foreground: 168 70% 72%;
+  --destructive: 0 72% 52%;
   --destructive-foreground: 0 0% 100%;
-  --border: 150 12% 86%;
-  --input: 150 12% 86%;
-  --ring: 173 80% 26%;
-  --radius: 0.9rem;
+  --border: 190 20% 18%;
+  --input: 190 20% 16%;
+  --ring: 168 84% 42%;
+  --radius: 1rem;
+  --glow: 168 84% 42%;
+  --fx-cyan: #2dd4bf;
+  --fx-mint: #5eead4;
+  --fx-deep: #020617;
+  --fx-panel: rgba(8, 20, 28, 0.72);
 }
 
 * {
   @apply border-border;
 }
 
+html {
+  color-scheme: dark;
+}
+
 body {
   @apply bg-background text-foreground antialiased;
+  background-color: hsl(var(--background));
   background-image:
-    radial-gradient(ellipse 80% 50% at 10% -10%, rgba(15, 118, 110, 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(196, 120, 60, 0.1), transparent 45%);
+    radial-gradient(ellipse 90% 55% at 15% -15%, rgba(45, 212, 191, 0.16), transparent 55%),
+    radial-gradient(ellipse 70% 45% at 95% 5%, rgba(14, 165, 233, 0.1), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(45, 212, 191, 0.06), transparent 55%),
+    linear-gradient(180deg, #020617 0%, #041018 50%, #020617 100%);
+  background-attachment: fixed;
   min-height: 100vh;
 }
 
-/* Landing-only: animated gradient text + soft section rhythm */
+::selection {
+  background: rgba(45, 212, 191, 0.35);
+  color: #ecfeff;
+}
+
+@layer utilities {
+  .glass {
+    background: var(--fx-panel);
+    backdrop-filter: blur(18px) saturate(1.35);
+    -webkit-backdrop-filter: blur(18px) saturate(1.35);
+    border: 1px solid rgba(45, 212, 191, 0.14);
+    box-shadow:
+      0 0 0 1px rgba(255, 255, 255, 0.03) inset,
+      0 18px 50px rgba(0, 0, 0, 0.45);
+  }
+
+  .glass-soft {
+    background: rgba(8, 24, 32, 0.55);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .glow-border {
+    position: relative;
+  }
+
+  .glow-border::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      rgba(45, 212, 191, 0.65),
+      transparent 38%,
+      rgba(56, 189, 248, 0.35) 70%,
+      transparent
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.9;
+    z-index: 0;
+  }
+
+  .text-gradient {
+    background: linear-gradient(120deg, #5eead4 0%, #67e8f9 45%, #a5f3fc 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .ambient-grid {
+    background-image:
+      linear-gradient(rgba(45, 212, 191, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(45, 212, 191, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, #000 20%, transparent 75%);
+  }
+
+  .fx-float {
+    animation: fx-float 6s ease-in-out infinite;
+  }
+
+  .fx-pulse-glow {
+    animation: fx-pulse-glow 3.5s ease-in-out infinite;
+  }
+}
+
+@keyframes fx-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes fx-pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(45, 212, 191, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(45, 212, 191, 0.35);
+  }
+}
+
 @keyframes gradient-shift {
   0%,
   100% {
@@ -44,17 +154,6 @@ body {
   50% {
     background-position: 100% 50%;
   }
-}
-
-.landing-page {
-  background-image:
-    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(15, 118, 110, 0.14), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 100% 30%, rgba(217, 119, 6, 0.08), transparent 45%),
-    linear-gradient(180deg, #f3f8f6 0%, #eef6f3 40%, #f7f5f0 100%);
-}
-
-.landing-page section + section {
-  scroll-margin-top: 5rem;
 }
 
 @keyframes feature-shine {
@@ -66,6 +165,20 @@ body {
   }
 }
 
+/* Landing — aligned to dark futuristic shell */
+.landing-page {
+  background-color: #020617;
+  background-image:
+    radial-gradient(ellipse 100% 60% at 50% -10%, rgba(45, 212, 191, 0.18), transparent 52%),
+    radial-gradient(ellipse 50% 40% at 100% 25%, rgba(14, 165, 233, 0.12), transparent 45%),
+    linear-gradient(180deg, #020617 0%, #04141a 45%, #020617 100%);
+  color: #ecfeff;
+}
+
+.landing-page section + section {
+  scroll-margin-top: 5rem;
+}
+
 .landing-glow-border::before {
   content: "";
   pointer-events: none;
@@ -75,9 +188,9 @@ body {
   padding: 1px;
   background: linear-gradient(
     135deg,
-    rgba(45, 212, 191, 0.55),
+    rgba(45, 212, 191, 0.65),
     transparent 40%,
-    rgba(245, 158, 11, 0.4)
+    rgba(56, 189, 248, 0.4)
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -87,6 +200,22 @@ body {
     linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: 0.85;
+  opacity: 0.9;
   z-index: 1;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(45, 212, 191, 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(45, 212, 191, 0.45);
 }

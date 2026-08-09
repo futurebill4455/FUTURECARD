@@ -62,18 +62,18 @@ export function LandingPricing() {
           viewport={{ once: true }}
           className="mx-auto max-w-2xl text-center"
         >
-          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-700">
+          <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-300">
             Pricing
           </p>
-          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-zinc-900 sm:text-4xl">
+          <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-teal-50 sm:text-4xl">
             Plans that glow as you grow
           </h2>
-          <p className="mt-3 text-zinc-600">
+          <p className="mt-3 text-teal-100/70">
             Start free. Upgrade when you need more cards, domains, and control.
           </p>
 
           <LayoutGroup>
-            <div className="relative mt-8 inline-flex items-center gap-1 rounded-2xl border border-teal-900/10 bg-white/70 p-1.5 backdrop-blur-md">
+            <div className="relative mt-8 inline-flex items-center gap-1 rounded-2xl border border-teal-400/15 bg-white/5 p-1.5 backdrop-blur-md">
               {(
                 [
                   { key: false, label: "Monthly" },
@@ -88,7 +88,7 @@ export function LandingPricing() {
                     "relative rounded-xl px-5 py-2 text-sm font-bold transition",
                     yearly === opt.key
                       ? "text-white"
-                      : "text-zinc-600 hover:text-zinc-900",
+                      : "text-teal-100/60 hover:text-teal-50",
                   )}
                 >
                   {yearly === opt.key ? (
@@ -140,7 +140,7 @@ export function LandingPricing() {
                 "relative overflow-hidden rounded-3xl border p-6 backdrop-blur-md",
                 plan.popular
                   ? "border-teal-400/50 bg-gradient-to-b from-teal-900 to-teal-950 text-white shadow-[0_0_50px_-12px_rgba(45,212,191,0.55)]"
-                  : "border-teal-900/8 bg-white/75 shadow-[0_20px_50px_-30px_rgba(15,80,70,0.3)] hover:border-teal-500/30 hover:shadow-[0_0_40px_-16px_rgba(15,118,110,0.45)]",
+                  : "border-teal-400/15 bg-white/5 shadow-[0_20px_50px_-30px_rgba(0,0,0,0.45)] hover:border-teal-400/35 hover:shadow-[0_0_40px_-16px_rgba(45,212,191,0.35)]",
               )}
             >
               {plan.popular ? (
@@ -156,7 +156,7 @@ export function LandingPricing() {
               <h3
                 className={cn(
                   "font-display text-2xl font-bold",
-                  plan.popular ? "text-white" : "text-zinc-900",
+                  plan.popular ? "text-white" : "text-teal-50",
                 )}
               >
                 {plan.name}
@@ -164,7 +164,7 @@ export function LandingPricing() {
               <p
                 className={cn(
                   "mt-1 text-sm",
-                  plan.popular ? "text-teal-100/80" : "text-zinc-500",
+                  plan.popular ? "text-teal-100/80" : "text-teal-100/60",
                 )}
               >
                 {plan.blurb}
@@ -178,7 +178,10 @@ export function LandingPricing() {
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}
                     transition={{ duration: 0.28 }}
-                    className="font-display text-4xl font-extrabold"
+                    className={cn(
+                      "font-display text-4xl font-extrabold",
+                      plan.popular ? "text-white" : "text-teal-50",
+                    )}
                   >
                     ₹{yearly ? plan.yearly : plan.monthly}
                   </motion.span>
@@ -186,7 +189,7 @@ export function LandingPricing() {
                 <span
                   className={cn(
                     "mb-1 text-sm font-medium",
-                    plan.popular ? "text-teal-200/70" : "text-zinc-400",
+                    plan.popular ? "text-teal-200/70" : "text-teal-100/45",
                   )}
                 >
                   /{yearly ? "year" : "mo"}
@@ -199,12 +202,12 @@ export function LandingPricing() {
                     <Check
                       className={cn(
                         "mt-0.5 h-4 w-4 shrink-0",
-                        plan.popular ? "text-amber-300" : "text-teal-700",
+                        plan.popular ? "text-amber-300" : "text-teal-300",
                       )}
                     />
                     <span
                       className={
-                        plan.popular ? "text-teal-50/90" : "text-zinc-600"
+                        plan.popular ? "text-teal-50/90" : "text-teal-100/70"
                       }
                     >
                       {feat}
@@ -219,7 +222,7 @@ export function LandingPricing() {
                   "mt-8 block rounded-2xl py-3 text-center text-sm font-bold transition hover:scale-[1.02]",
                   plan.popular
                     ? "bg-white text-teal-900 hover:bg-teal-50"
-                    : "bg-teal-800 text-white hover:bg-teal-900",
+                    : "bg-teal-500 text-teal-950 hover:bg-teal-400",
                 )}
               >
                 {plan.monthly === 0 ? "Start free" : "Choose plan"}

@@ -21,7 +21,7 @@ export default async function AdminUsersPage() {
         title="Users"
         description="Create accounts and manage client access."
         actions={
-          <Button asChild className="bg-teal-700 hover:bg-teal-800">
+          <Button asChild>
             <Link href="/admin/users/create">Create user</Link>
           </Button>
         }

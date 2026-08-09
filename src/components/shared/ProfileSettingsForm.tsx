@@ -135,21 +135,17 @@ export function ProfileSettingsForm({
       </div>
 
       {error ? (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-red-300" role="alert">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="text-sm text-teal-800" role="status">
+        <p className="text-sm text-teal-300" role="status">
           {message}
         </p>
       ) : null}
 
-      <Button
-        type="submit"
-        disabled={loading}
-        className="bg-teal-700 hover:bg-teal-800"
-      >
+      <Button type="submit" disabled={loading}>
         {loading ? "Saving…" : "Save profile"}
       </Button>
     </form>

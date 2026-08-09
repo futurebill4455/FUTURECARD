@@ -111,7 +111,7 @@ export function PlatformSettingsForm({
       <Button
         type="submit"
         disabled={saving}
-        className="bg-teal-700 hover:bg-teal-800"
+       
       >
         {saving ? "Saving…" : "Save branding settings"}
       </Button>

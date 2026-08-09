@@ -17,7 +17,7 @@ export default async function CardsPage() {
         title="Your cards"
         description="All digital visiting cards on your account."
         actions={
-          <Button asChild className="bg-teal-700 hover:bg-teal-800">
+          <Button asChild>
             <Link href="/cards/create">Create card</Link>
           </Button>
         }
@@ -28,40 +28,45 @@ export default async function CardsPage() {
           title="No cards yet"
           description="Build your first digital visiting card in a few minutes."
           action={
-            <Button asChild className="bg-teal-700 hover:bg-teal-800">
+            <Button asChild>
               <Link href="/cards/create">Create card</Link>
             </Button>
           }
         />
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-2">
           {cards.map((c) => (
             <div
               key={c._id}
-              className="rounded-2xl border bg-card p-5 shadow-sm"
+              className="glass glow-border group relative overflow-hidden rounded-2xl p-5 transition hover:-translate-y-0.5 hover:shadow-glow"
             >
-              <div className="flex items-start justify-between gap-3">
+              <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-teal-400/10 blur-2xl transition group-hover:bg-teal-400/20" />
+              <div className="relative z-[1] flex items-start justify-between gap-3">
                 <div>
                   <h3 className="font-display text-lg font-bold">
                     {c.companyName}
                   </h3>
                   <p className="text-sm text-muted-foreground">{c.jobTitle}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    /{c.username}
-                  </p>
+                  <p className="mt-1 text-xs text-teal-300/70">/{c.username}</p>
                 </div>
-                <span className="rounded-full bg-muted px-2 py-1 text-[10px] font-bold uppercase">
+                <span
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
+                    c.isActive
+                      ? "border border-teal-400/30 bg-teal-400/15 text-teal-200"
+                      : "border border-white/10 bg-white/5 text-muted-foreground"
+                  }`}
+                >
                   {c.isActive ? "Live" : "Draft"}
                 </span>
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="relative z-[1] mt-4 flex flex-wrap gap-2">
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/cards/${c._id}/edit`}>Edit</Link>
                 </Button>
                 <Button asChild size="sm" variant="outline">
                   <Link href={`/cards/${c._id}/preview`}>Preview</Link>
                 </Button>
-                <Button asChild size="sm" className="bg-teal-700 hover:bg-teal-800">
+                <Button asChild size="sm">
                   <Link href={`/${c.username}`} target="_blank">
                     Open public
                   </Link>
