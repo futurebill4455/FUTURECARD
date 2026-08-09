@@ -21,7 +21,6 @@ import { MiniSiteStats } from "./MiniSiteStats";
 import { MiniSiteWhyChoose } from "./MiniSiteWhyChoose";
 import { MiniSiteTestimonials } from "./MiniSiteTestimonials";
 import { MiniSiteQrTerminal } from "./MiniSiteQrTerminal";
-import { MiniSiteFeatures } from "./MiniSiteFeatures";
 import { MiniSiteFinalCta } from "./MiniSiteFinalCta";
 import {
   MiniSiteThemeProvider,
@@ -348,8 +347,6 @@ function MiniSiteShellInner({
           onSave={() => handleCta("save")}
           onShare={() => void onShare()}
         />
-
-        <MiniSiteFeatures accent={accent} />
 
         <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
           <div className="mx-auto max-w-3xl">

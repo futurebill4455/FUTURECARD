@@ -24,12 +24,6 @@ export type MiniSiteTestimonial = {
   initials: string;
 };
 
-export type MiniSiteFeature = {
-  id: string;
-  title: string;
-  description: string;
-};
-
 export const DEFAULT_MINISITE_STATS: MiniSiteStat[] = [
   { id: "years", value: 5, suffix: "+", label: "Years Experience" },
   { id: "clients", value: 500, suffix: "+", label: "Happy Clients" },
@@ -97,48 +91,5 @@ export const DEFAULT_TESTIMONIALS: MiniSiteTestimonial[] = [
       "Trustworthy guidance with a digital identity that finally looks like 2026.",
     rating: 5,
     initials: "MS",
-  },
-];
-
-export const DEFAULT_SMART_FEATURES: MiniSiteFeature[] = [
-  {
-    id: "one-tap",
-    title: "One Tap Connect",
-    description: "Call, WhatsApp, email, and maps — instantly.",
-  },
-  {
-    id: "save",
-    title: "Save Contact Instantly",
-    description: "Download a vCard with one action.",
-  },
-  {
-    id: "share",
-    title: "Share Anywhere",
-    description: "Native share or clipboard in a second.",
-  },
-  {
-    id: "live",
-    title: "Live Updates",
-    description: "Services and links stay current for every visitor.",
-  },
-  {
-    id: "secure",
-    title: "Secure & Private",
-    description: "Share what you choose — nothing more.",
-  },
-  {
-    id: "access",
-    title: "Always Accessible",
-    description: "Works on mobile, tablet, and desktop.",
-  },
-  {
-    id: "analytics",
-    title: "Analytics",
-    description: "Understand views, clicks, and engagement.",
-  },
-  {
-    id: "links",
-    title: "Multiple Links",
-    description: "Social, bank, brochures, booking — unified.",
   },
 ];
