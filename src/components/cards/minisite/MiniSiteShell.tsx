@@ -423,14 +423,25 @@ function MiniSiteShellInner({
 
         {sections.connect ? (
           <section id="connect" className="scroll-mt-24 px-4 sm:px-6">
-            <div className="mx-auto max-w-3xl">
-              <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
+            <div className="relative mx-auto max-w-3xl">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-x-6 -top-8 bottom-0 -z-0 opacity-80"
+                style={{
+                  background: `
+                    radial-gradient(ellipse 70% 45% at 15% 20%, rgba(56,189,248,0.14), transparent 55%),
+                    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(139,92,246,0.16), transparent 50%),
+                    radial-gradient(ellipse 80% 35% at 50% 100%, rgba(99,102,241,0.12), transparent 60%)
+                  `,
+                }}
+              />
+              <p className="relative text-center font-mono text-[10px] font-medium uppercase tracking-[0.28em] text-cyan-200/60 [text-shadow:0_0_12px_rgba(56,189,248,0.35)]">
                 {copy.connectEyebrow}
               </p>
-              <h2 className="mt-2 text-center font-display text-2xl font-bold sm:text-3xl">
+              <h2 className="relative mt-2 text-center font-display text-2xl font-semibold tracking-tight text-slate-50 sm:text-3xl [text-shadow:0_0_24px_rgba(125,211,252,0.25)]">
                 {copy.connectTitle}
               </h2>
-              <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-panel backdrop-blur-xl sm:p-7">
+              <div className="ms-holo-stage relative mt-8 p-5 sm:p-7">
                 <ActionIconGrid
                   card={card}
                   features={features}
@@ -444,30 +455,28 @@ function MiniSiteShellInner({
               </div>
 
               {analytics ? (
-                <div className="mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                <div className="relative mt-6 grid grid-cols-2 gap-2 sm:grid-cols-5">
                   {(
                     [
-                      ["Views", analytics.totalViews],
-                      ["Clicks", analytics.totalClicks],
-                      ["Actions", analytics.totalActions],
-                      ["Days", analytics.daysLive],
-                      ["Engage", `${analytics.engagementRate}%`],
+                      ["Views", analytics.totalViews, "#38bdf8"],
+                      ["Clicks", analytics.totalClicks, "#22d3ee"],
+                      ["Actions", analytics.totalActions, "#a78bfa"],
+                      ["Days", analytics.daysLive, "#67e8f9"],
+                      ["Engage", `${analytics.engagementRate}%`, accent],
                     ] as const
-                  ).map(([label, value]) => (
-                    <div
+                  ).map(([label, value, neon], i) => (
+                    <motion.div
                       key={label}
-                      className="rounded-2xl border border-white/10 bg-white/[0.03] px-2 py-3 text-center backdrop-blur-md"
+                      initial={{ opacity: 0, y: 8 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: 0.04 * i }}
+                      className="ms-holo-metric"
+                      style={{ ["--ms-holo-neon" as string]: neon }}
                     >
-                      <div
-                        className="font-mono text-lg font-semibold"
-                        style={{ color: accent }}
-                      >
-                        {value}
-                      </div>
-                      <div className="text-[9px] font-semibold uppercase tracking-wider text-slate-500">
-                        {label}
-                      </div>
-                    </div>
+                      <div className="ms-holo-metric-value">{value}</div>
+                      <div className="ms-holo-metric-label">{label}</div>
+                    </motion.div>
                   ))}
                 </div>
               ) : null}

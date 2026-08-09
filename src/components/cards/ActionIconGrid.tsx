@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { ICard } from "@/types/card.types";
 import {
@@ -19,7 +19,12 @@ import { NeonActionIcon } from "./NeonActionIcon";
 import type { IUserFeatures } from "@/types/platform.types";
 
 function IconGlyph({ name }: { name: string }) {
-  return <NeonActionIcon name={name} />;
+  return (
+    <NeonActionIcon
+      name={name}
+      className="h-[1.35rem] w-[1.35rem] drop-shadow-[0_0_10px_currentColor] drop-shadow-[0_0_18px_currentColor]"
+    />
+  );
 }
 
 export function ActionIconGrid({
@@ -99,37 +104,47 @@ export function ActionIconGrid({
 
   return (
     <>
-      <div className="grid grid-cols-4 gap-x-1 gap-y-4 sm:grid-cols-5">
+      <div className="ms-holo-grid grid grid-cols-4 gap-x-1 gap-y-4 sm:grid-cols-5">
         {visible.map((btn, i) => {
           const meta = metaFor(btn.key);
+          const neon = meta.softFg;
 
           const inner = (
             <>
               <motion.span
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.97 }}
-                title={meta.label}
-                className="ms-luminous-icon relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.35rem] backdrop-blur-md transition"
-                style={{
-                  background: `linear-gradient(155deg, ${meta.softFg}55, rgba(2,6,23,0.72) 48%, ${meta.softFg}33)`,
-                  color: meta.softFg,
+                whileHover={{
+                  scale: 1.1,
+                  y: -8,
+                  rotateX: 8,
+                  rotateY: -6,
+                  z: 40,
                 }}
+                whileTap={{ scale: 0.96, y: -2 }}
+                transition={{ type: "spring", stiffness: 380, damping: 22 }}
+                title={meta.label}
+                className="ms-holo-icon"
+                style={
+                  {
+                    ["--ms-holo-neon" as string]: neon,
+                    color: neon,
+                  } as CSSProperties
+                }
               >
-                <span
-                  className="pointer-events-none absolute inset-0 opacity-55"
-                  style={{
-                    background: `radial-gradient(circle at 30% 20%, ${meta.softFg}66, transparent 55%), linear-gradient(180deg, rgba(255,255,255,0.28), transparent 42%)`,
-                  }}
-                />
-                <span className="relative z-[1] drop-shadow-[0_0_8px_rgba(255,255,255,0.35)]">
+                <span className="relative z-[1]">
                   <IconGlyph name={btn.key} />
                 </span>
               </motion.span>
-              <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-slate-200/85">
+              <span
+                className="ms-holo-label"
+                style={{ ["--ms-holo-neon" as string]: neon }}
+              >
                 {meta.label}
               </span>
             </>
           );
+
+          const itemClass =
+            "group/holo flex flex-col items-center outline-none";
 
           if (
             meta.valueKind === "none" ||
@@ -140,10 +155,10 @@ export function ActionIconGrid({
               <motion.button
                 key={btn.key}
                 type="button"
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.03 * i }}
-                className="flex flex-col items-center"
+                className={itemClass}
                 onClick={() => runAction(btn.key, btn.value)}
               >
                 {inner}
@@ -160,10 +175,10 @@ export function ActionIconGrid({
               href={href}
               target={href.startsWith("http") ? "_blank" : undefined}
               rel="noreferrer"
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.03 * i }}
-              className="flex flex-col items-center"
+              className={itemClass}
               onClick={() => onTrack?.(btn.key)}
             >
               {inner}
