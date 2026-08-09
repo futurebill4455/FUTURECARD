@@ -80,6 +80,7 @@ export type CardRow = {
   template: string;
   profile_type?: string | null;
   features_enabled?: Record<string, boolean> | null;
+  background_animation_slug?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -219,6 +220,7 @@ export function mapCard(row: CardRow): ICard {
     template: row.template || "classic",
     profileType: resolveCardProfileType(row.profile_type),
     featuresEnabled: resolveCardSections(row.features_enabled),
+    backgroundAnimationSlug: row.background_animation_slug || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -315,6 +317,7 @@ export function cardPayloadToRow(
     template: "template",
     profileType: "profile_type",
     featuresEnabled: "features_enabled",
+    backgroundAnimationSlug: "background_animation_slug",
   };
 
   for (const [camel, snake] of Object.entries(map)) {

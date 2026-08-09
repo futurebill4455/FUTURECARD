@@ -162,7 +162,7 @@ export function MiniSiteHero({
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.42 }}
-          className="mx-auto mt-8 grid max-w-lg grid-cols-2 gap-2.5 sm:grid-cols-4"
+          className="mx-auto mt-8 grid max-w-lg grid-cols-2 gap-2.5 sm:grid-cols-4 [&>*]:min-h-[3.25rem] [&>*]:h-full"
         >
           {ctas
             .filter((c) => c.enabled)
@@ -173,11 +173,12 @@ export function MiniSiteHero({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.48 + i * 0.06 }}
+                className="h-full min-h-[3.25rem]"
               >
                 <PremiumMotionButton
                   accent={accent}
                   onClick={() => onCta(cta.id)}
-                  className="w-full py-3.5 text-[10px] sm:text-[11px]"
+                  className="flex h-full min-h-[3.25rem] w-full items-center justify-center py-3.5 text-[10px] sm:text-[11px]"
                 >
                   {cta.label}
                 </PremiumMotionButton>

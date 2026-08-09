@@ -18,6 +18,8 @@ import { resolveFeatures } from "@/types/platform.types";
 import { resolveEffectiveSections } from "@/types/card-sections.types";
 import type { ICard } from "@/types/card.types";
 import { isCustomDomainLive } from "@/lib/custom-domain-access";
+import { listBackgroundAnimations } from "@/lib/db/background-animations";
+import { resolveBackgroundAnimationSlug } from "@/types/background-animation.types";
 
 async function renderCardFromDoc(card: ICard) {
   const accessible = await isCardPubliclyAccessible(card);
@@ -49,9 +51,20 @@ async function renderCardFromDoc(card: ICard) {
     card.featuresEnabled,
   );
 
+  let backgroundAnimationSlug = card.backgroundAnimationSlug || "";
+  try {
+    const catalog = await listBackgroundAnimations();
+    backgroundAnimationSlug = resolveBackgroundAnimationSlug({
+      cardSlug: card.backgroundAnimationSlug,
+      catalog,
+    });
+  } catch {
+    /* catalog migration may be pending — keep card value / empty */
+  }
+
   return (
     <PublicCardClient
-      card={data}
+      card={{ ...data, backgroundAnimationSlug }}
       analytics={features.analytics ? analytics : undefined}
       platformSettings={settings}
       features={features}

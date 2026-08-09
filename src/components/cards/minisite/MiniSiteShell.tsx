@@ -45,6 +45,7 @@ import { hasPaymentDetails, PayNowModal } from "@/components/cards/PayNowModal";
 import { CardPromoFooter } from "@/components/cards/CardPromoFooter";
 import { CompactAboutUs } from "@/components/cards/CompanyDetails";
 import { ImmersiveBackground } from "@/components/shared/ImmersiveBackground";
+import { CardBackgroundAnimation } from "@/components/cards/minisite/CardBackgroundAnimation";
 import { PLATFORM_BRAND } from "@/lib/service-categories";
 
 export function MiniSiteShell(props: {
@@ -248,13 +249,22 @@ function MiniSiteShellInner({
       style={cssVars}
     >
       {!isLight ? (
-        <ImmersiveBackground
-          mode={ambientMode}
-          video={ambientVideo}
-          images={ambientImages}
-          accent={accent}
-          intensity={0.78}
-        />
+        <>
+          {/* Platform ambient (video / slideshow) under card animation */}
+          {ambientMode === "video" || ambientMode === "slideshow" ? (
+            <ImmersiveBackground
+              mode={ambientMode}
+              video={ambientVideo}
+              images={ambientImages}
+              accent={accent}
+              intensity={0.78}
+            />
+          ) : null}
+          <CardBackgroundAnimation
+            slug={card.backgroundAnimationSlug}
+            accent={accent}
+          />
+        </>
       ) : (
         <div
           className="pointer-events-none absolute inset-0"
@@ -274,7 +284,7 @@ function MiniSiteShellInner({
 
       <MiniSiteNav visibleIds={navIds} />
 
-      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col gap-0 [&>section]:py-7 [&>section]:sm:py-8">
         <MiniSiteHero
           card={card}
           accent={accent}
@@ -307,7 +317,7 @@ function MiniSiteShellInner({
           (profileType === "shop" && card.businessHours?.length)) ? (
           <section
             id={sections.identityCard ? "profile-about" : "profile"}
-            className="mx-auto max-w-2xl scroll-mt-24 px-4 py-6 sm:px-6"
+            className="mx-auto w-full max-w-2xl scroll-mt-24 px-4 sm:px-6"
           >
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300/55">
@@ -375,25 +385,22 @@ function MiniSiteShellInner({
           />
         ) : null}
 
-        {sections.portfolio ? (
-          card.galleryImages?.length || card.galleryVideos?.length ? (
-            <section id="portfolio" className="scroll-mt-24 px-4 py-10 sm:px-6">
-              <div className="mx-auto max-w-4xl">
-                <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-                  {copy.portfolioEyebrow}
-                </p>
-                <h2 className="mt-2 text-center font-display text-2xl font-bold">
-                  {copy.portfolioTitle}
-                </h2>
-                <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
-                  <ImageGallery images={card.galleryImages} accent={accent} />
-                  <VideoGallery videos={card.galleryVideos} accent={accent} />
-                </div>
+        {sections.portfolio &&
+        (card.galleryImages?.length || card.galleryVideos?.length) ? (
+          <section id="portfolio" className="scroll-mt-24 px-4 sm:px-6">
+            <div className="mx-auto max-w-4xl">
+              <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
+                {copy.portfolioEyebrow}
+              </p>
+              <h2 className="mt-2 text-center font-display text-2xl font-bold">
+                {copy.portfolioTitle}
+              </h2>
+              <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
+                <ImageGallery images={card.galleryImages} accent={accent} />
+                <VideoGallery videos={card.galleryVideos} accent={accent} />
               </div>
-            </section>
-          ) : (
-            <div id="portfolio" className="h-0 scroll-mt-24" aria-hidden />
-          )
+            </div>
+          </section>
         ) : null}
 
         {sections.reviews ? (
@@ -414,7 +421,7 @@ function MiniSiteShellInner({
         ) : null}
 
         {sections.connect ? (
-          <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
+          <section id="connect" className="scroll-mt-24 px-4 sm:px-6">
             <div className="mx-auto max-w-3xl">
               <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
                 {copy.connectEyebrow}
@@ -465,9 +472,7 @@ function MiniSiteShellInner({
               ) : null}
             </div>
           </section>
-        ) : (
-          <div id="connect" className="h-0 scroll-mt-24" aria-hidden />
-        )}
+        ) : null}
 
         {sections.finalCta ? (
           <MiniSiteFinalCta

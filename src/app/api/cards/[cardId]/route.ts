@@ -11,6 +11,7 @@ import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
 import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
+import { assertActiveBackgroundAnimationSlug } from "@/lib/background-animation-access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -59,6 +60,16 @@ export async function PUT(req: NextRequest, { params }: Params) {
           existing.featuresEnabled,
           validated.featuresEnabled,
         );
+      }
+
+      if (validated.backgroundAnimationSlug !== undefined) {
+        const bg = await assertActiveBackgroundAnimationSlug(
+          validated.backgroundAnimationSlug,
+        );
+        if (!bg.ok) {
+          return NextResponse.json({ error: bg.error }, { status: 400 });
+        }
+        payload.backgroundAnimationSlug = bg.slug;
       }
 
       const card = await updateCard(cardId, payload, {

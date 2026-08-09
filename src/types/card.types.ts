@@ -203,6 +203,11 @@ export interface ICard {
    * Only sections allowed by the owner's admin `cardSections` can appear.
    */
   featuresEnabled?: import("./card-sections.types").ICardSections;
+  /**
+   * Mini-site background animation slug from admin catalog
+   * (e.g. design_a_particles).
+   */
+  backgroundAnimationSlug?: string;
   createdAt: string;
   updatedAt: string;
 }

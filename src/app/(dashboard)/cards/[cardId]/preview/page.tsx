@@ -10,6 +10,8 @@ import { getPlatformSettings } from "@/lib/platform-settings";
 import { applyFeaturesToCard } from "@/lib/feature-permissions";
 import { resolveFeatures } from "@/types/platform.types";
 import { resolveEffectiveSections } from "@/types/card-sections.types";
+import { listBackgroundAnimations } from "@/lib/db/background-animations";
+import { resolveBackgroundAnimationSlug } from "@/types/background-animation.types";
 import Link from "next/link";
 
 type Props = { params: Promise<{ cardId: string }> };
@@ -39,6 +41,17 @@ export default async function PreviewCardPage({ params }: Props) {
     card.featuresEnabled,
   );
 
+  let backgroundAnimationSlug = card.backgroundAnimationSlug || "";
+  try {
+    const catalog = await listBackgroundAnimations();
+    backgroundAnimationSlug = resolveBackgroundAnimationSlug({
+      cardSlug: card.backgroundAnimationSlug,
+      catalog,
+    });
+  } catch {
+    /* ignore */
+  }
+
   return (
     <div className="relative -mx-4 -mb-8 md:-mx-8">
       <div className="sticky top-0 z-50 flex items-center justify-between gap-3 border-b border-white/10 bg-slate-950/80 px-4 py-2.5 backdrop-blur-xl">
@@ -53,7 +66,7 @@ export default async function PreviewCardPage({ params }: Props) {
         </Link>
       </div>
       <PublicCardClient
-        card={data}
+        card={{ ...data, backgroundAnimationSlug }}
         analytics={features.analytics ? analytics : undefined}
         platformSettings={settings}
         features={features}

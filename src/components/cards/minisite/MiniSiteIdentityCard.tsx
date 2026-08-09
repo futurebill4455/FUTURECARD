@@ -141,16 +141,12 @@ export function MiniSiteIdentityCard({
                   </span>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5">
+                <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5 [&>*]:min-h-[2.75rem]">
                   <CardAction label="Save" onClick={onSave} accent={accent} primary />
                   <CardAction label="Share" onClick={onShare} />
                   <CardAction label="QR" onClick={onQr} />
                   <CardAction label="Call" onClick={onCall} />
-                  <CardAction
-                    label="WhatsApp"
-                    onClick={onWhatsApp}
-                    className="col-span-2 sm:col-span-1"
-                  />
+                  <CardAction label="WhatsApp" onClick={onWhatsApp} />
                 </div>
               </div>
             </div>
@@ -192,7 +188,7 @@ function CardAction({
       accent={accent}
       variant={primary ? "primary" : "ghost"}
       className={cn(
-        "w-full rounded-xl px-2 py-2.5 text-[10px]",
+        "flex h-full min-h-[2.75rem] w-full items-center justify-center rounded-xl px-2 py-2.5 text-[10px]",
         className,
       )}
     >

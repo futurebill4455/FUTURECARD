@@ -43,6 +43,7 @@ import {
 } from "@/lib/action-buttons";
 import { FeatureLock } from "@/components/admin/FeaturePermissionChecklist";
 import { CardSectionToggles } from "@/components/admin/CardSectionsChecklist";
+import { BackgroundAnimationPicker } from "@/components/forms/BackgroundAnimationPicker";
 import {
   resolveFeatures,
   type IUserFeatures,
@@ -74,6 +75,9 @@ export function CardBuilderForm({
   const [error, setError] = useState("");
   const [featuresEnabled, setFeaturesEnabled] = useState<ICardSections>(() =>
     resolveCardSections(initial?.featuresEnabled ?? DEFAULT_CARD_SECTIONS),
+  );
+  const [backgroundAnimationSlug, setBackgroundAnimationSlug] = useState(
+    initial?.backgroundAnimationSlug || "",
   );
   const [form, setForm] = useState({
     username: initial?.username ?? "",
@@ -184,6 +188,7 @@ export function CardBuilderForm({
     isActive: form.isActive,
     template: "classic",
     featuresEnabled,
+    backgroundAnimationSlug: backgroundAnimationSlug || undefined,
     createdAt: initial?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -264,6 +269,7 @@ export function CardBuilderForm({
         isVerified: form.isVerified,
         isActive: form.isActive,
         featuresEnabled,
+        backgroundAnimationSlug: backgroundAnimationSlug || undefined,
       };
 
       if (mode === "create") {
@@ -304,6 +310,17 @@ export function CardBuilderForm({
             adminSections={adminSections}
             value={featuresEnabled}
             onChange={setFeaturesEnabled}
+          />
+        </Section>
+
+        <Section title="Background animation">
+          <p className="mb-3 text-xs text-muted-foreground">
+            Choose a mini-site background animation from designs activated by
+            Super Admin.
+          </p>
+          <BackgroundAnimationPicker
+            value={backgroundAnimationSlug}
+            onChange={setBackgroundAnimationSlug}
           />
         </Section>
 

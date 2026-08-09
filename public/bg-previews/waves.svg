@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" fill="none">
+  <rect width="320" height="180" rx="16" fill="#020617"/>
+  <path d="M0 110 C40 90 80 130 120 110 C160 90 200 130 240 105 C270 90 300 115 320 100" stroke="#22d3ee" stroke-width="2.5" opacity="0.7" fill="none"/>
+  <path d="M0 130 C50 110 90 150 140 125 C190 100 230 145 280 120 C300 112 310 120 320 118" stroke="#2dd4bf" stroke-width="2" opacity="0.5" fill="none"/>
+  <text x="24" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Waves</text>
+</svg>

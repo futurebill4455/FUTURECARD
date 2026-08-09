@@ -21,6 +21,7 @@ const links = [
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/domains", label: "Domain Requests" },
   { href: "/admin/landing", label: "Landing CMS" },
+  { href: "/admin/backgrounds", label: "Backgrounds" },
   { href: "/admin/settings", label: "Platform" },
   { href: "/admin/profile", label: "My Profile" },
 ];

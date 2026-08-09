@@ -66,11 +66,11 @@ export function MiniSiteFinalCta({
             `I’m just a message or call away${name ? ` — ${name}` : ""}.`}
         </p>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
+        <div className="mx-auto mt-8 grid w-full max-w-md grid-cols-1 gap-2.5 sm:grid-cols-3 sm:max-w-xl [&>*]:min-h-[3.25rem]">
           <PremiumMotionButton
             accent={accent}
             onClick={onConnect}
-            className="min-w-[9rem] px-6 py-3.5"
+            className="flex h-full min-h-[3.25rem] w-full items-center justify-center px-4 py-3.5"
           >
             {connectLabel}
           </PremiumMotionButton>
@@ -78,7 +78,7 @@ export function MiniSiteFinalCta({
             <PremiumMotionButton
               variant="success"
               onClick={onWhatsApp}
-              className="min-w-[8rem] px-5 py-3.5"
+              className="flex h-full min-h-[3.25rem] w-full items-center justify-center px-4 py-3.5"
             >
               WhatsApp
             </PremiumMotionButton>
@@ -87,7 +87,7 @@ export function MiniSiteFinalCta({
             <PremiumMotionButton
               variant="outline"
               onClick={onCall}
-              className="min-w-[8rem] px-5 py-3.5"
+              className="flex h-full min-h-[3.25rem] w-full items-center justify-center px-4 py-3.5"
             >
               Call Now
             </PremiumMotionButton>

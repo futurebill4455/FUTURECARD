@@ -372,6 +372,13 @@ export const cardSchema = z.object({
   template: z.string().optional(),
   /** Per-card section visibility prefs (user level) */
   featuresEnabled: cardSectionsSchema.optional(),
+  /** Mini-site background animation (admin catalog slug) */
+  backgroundAnimationSlug: z
+    .string()
+    .regex(/^[a-z0-9_]+$/, "Invalid animation")
+    .max(64)
+    .optional()
+    .or(z.literal("")),
 });
 
 export const subscriptionUpdateSchema = z.object({
