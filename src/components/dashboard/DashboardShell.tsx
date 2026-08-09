@@ -9,12 +9,23 @@ const userLinks = [
   { href: "/dashboard", label: "Overview" },
   { href: "/cards", label: "Cards" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/settings", label: "Settings" },
+  { href: "/settings", label: "Profile & Settings" },
 ];
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+export function DashboardShell({
+  children,
+  isAdmin = false,
+}: {
+  children: React.ReactNode;
+  /** Server-verified admin flag — Admin Panel only when true */
+  isAdmin?: boolean;
+}) {
   const { data } = useSession();
   const pathname = usePathname();
+
+  // Strict: only show when the server layout confirms admin role.
+  // Regular users never see or get this link.
+  const showAdminPanel = isAdmin === true;
 
   return (
     <div className="min-h-screen md:grid md:grid-cols-[240px_1fr]">
@@ -37,7 +48,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               href={l.href}
               className={cn(
                 "rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
-                pathname.startsWith(l.href)
+                pathname === l.href ||
+                  (l.href !== "/dashboard" && pathname.startsWith(l.href))
                   ? "bg-teal-700 text-white"
                   : "hover:bg-muted",
               )}
@@ -45,7 +57,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
               {l.label}
             </Link>
           ))}
-          {data?.user?.role === "admin" ? (
+          {showAdminPanel ? (
             <Link
               href="/admin/dashboard"
               className="rounded-xl px-3 py-2 text-sm font-medium text-teal-800 hover:bg-muted"

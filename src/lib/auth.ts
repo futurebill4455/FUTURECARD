@@ -66,18 +66,30 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
         const role = (user as { role?: "user" | "admin" }).role;
         token.role = role === "admin" ? "admin" : "user";
       }
+
+      // Keep JWT in sync after profile updates via `useSession().update(...)`
+      if (trigger === "update" && session) {
+        const s = session as { name?: string; email?: string };
+        if (typeof s.name === "string") token.name = s.name;
+        if (typeof s.email === "string") token.email = s.email;
+      }
+
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "user" | "admin") || "user";
+        if (token.name) session.user.name = token.name as string;
+        if (token.email) session.user.email = token.email as string;
       }
       return session;
     },

@@ -25,7 +25,6 @@ const columns = [
     links: [
       { href: "#stories", label: "Customers" },
       { href: "mailto:hello@futurecard.pro", label: "Contact" },
-      { href: "/admin/dashboard", label: "Admin" },
     ],
   },
 ];

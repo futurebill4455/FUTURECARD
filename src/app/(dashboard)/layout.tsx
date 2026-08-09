@@ -11,5 +11,9 @@ export default async function DashboardLayout({
   const session = await getServerSession(authOptions);
   if (!session) redirect("/login");
 
-  return <DashboardShell>{children}</DashboardShell>;
+  return (
+    <DashboardShell isAdmin={session.user.role === "admin"}>
+      {children}
+    </DashboardShell>
+  );
 }

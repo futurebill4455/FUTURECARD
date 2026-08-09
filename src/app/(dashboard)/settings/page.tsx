@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { CustomDomainSettings } from "@/components/dashboard/CustomDomainSettings";
+import { ProfileSettingsForm } from "@/components/shared/ProfileSettingsForm";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import {
   canRequestCustomDomain,
@@ -19,18 +20,23 @@ import {
   normalizeDomainStatus,
 } from "@/lib/custom-domain-access";
 import { resolveFeatures } from "@/types/platform.types";
+import { redirect } from "next/navigation";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);
+  if (!session?.user?.id) redirect("/login");
+
   await dbConnect();
   const [sub, cards, settings, userDoc] = await Promise.all([
-    findSubscriptionByUserId(session!.user.id),
-    listCardsByUser(session!.user.id),
+    findSubscriptionByUserId(session.user.id),
+    listCardsByUser(session.user.id),
     getPlatformSettings(),
-    findUserById(session!.user.id),
+    findUserById(session.user.id),
   ]);
 
-  const features = resolveFeatures(userDoc?.features ?? null);
+  if (!userDoc) redirect("/login");
+
+  const features = resolveFeatures(userDoc.features ?? null);
   const privilege = canRequestCustomDomain(features, sub?.plan ?? "free");
 
   const domainCards = cards.map((c) => ({
@@ -49,29 +55,24 @@ export default async function SettingsPage() {
   return (
     <div>
       <PageHeader
-        title="Settings"
-        description="Account, subscription, and custom domain requests."
+        title="Profile & Settings"
+        description="Update your display name, email, password, and domain requests."
       />
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <UiCard>
           <CardHeader>
-            <CardTitle className="text-xl">Profile</CardTitle>
+            <CardTitle className="text-xl">Your profile</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="text-muted-foreground">Name:</span>{" "}
-              {session!.user.name}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Email:</span>{" "}
-              {session!.user.email}
-            </p>
-            <p>
-              <span className="text-muted-foreground">Role:</span>{" "}
-              {session!.user.role}
-            </p>
+          <CardContent>
+            <ProfileSettingsForm
+              initial={{
+                name: userDoc.name,
+                email: userDoc.email,
+              }}
+            />
           </CardContent>
         </UiCard>
+
         <UiCard>
           <CardHeader>
             <CardTitle className="text-xl">Subscription</CardTitle>
@@ -90,6 +91,9 @@ export default async function SettingsPage() {
               {sub?.endDate
                 ? new Date(sub.endDate).toLocaleDateString()
                 : "—"}
+            </p>
+            <p className="pt-2 normal-case text-muted-foreground">
+              Role: {userDoc.role}
             </p>
           </CardContent>
         </UiCard>

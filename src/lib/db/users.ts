@@ -79,6 +79,7 @@ export async function updateUser(
   id: string,
   patch: {
     name?: string;
+    email?: string;
     role?: "user" | "admin";
     isActive?: boolean;
     features?: IUserFeatures;
@@ -89,6 +90,7 @@ export async function updateUser(
 ): Promise<IUser | null> {
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name;
+  if (patch.email !== undefined) row.email = patch.email.toLowerCase();
   if (patch.role !== undefined) row.role = patch.role;
   if (patch.isActive !== undefined) row.is_active = patch.isActive;
   if (patch.features !== undefined) row.features = patch.features;
@@ -102,7 +104,14 @@ export async function updateUser(
     .eq("id", id)
     .select("*")
     .maybeSingle();
-  if (error) throwDbError(error, "updateUser");
+  if (error) {
+    if ((error as { code?: string }).code === "23505") {
+      throw Object.assign(new Error("Email already in use"), {
+        code: "CONFLICT",
+      });
+    }
+    throwDbError(error, "updateUser");
+  }
   if (!data) return null;
   return mapUser(data as UserRow);
 }

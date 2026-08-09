@@ -10,7 +10,8 @@ const links = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/subscriptions", label: "Subscriptions" },
   { href: "/admin/domains", label: "Domain Requests" },
-  { href: "/admin/settings", label: "Settings" },
+  { href: "/admin/settings", label: "Platform" },
+  { href: "/admin/profile", label: "My Profile" },
 ];
 
 export function AdminSidebar({ children }: { children: React.ReactNode }) {
@@ -35,7 +36,8 @@ export function AdminSidebar({ children }: { children: React.ReactNode }) {
               href={l.href}
               className={cn(
                 "rounded-xl px-3 py-2 text-sm font-medium whitespace-nowrap",
-                pathname.startsWith(l.href)
+                pathname === l.href ||
+                  (l.href !== "/admin/dashboard" && pathname.startsWith(l.href))
                   ? "bg-teal-700 text-white"
                   : "hover:bg-muted",
               )}

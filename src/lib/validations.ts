@@ -12,6 +12,35 @@ export const registerSchema = z.object({
   password: z.string().min(8).max(72),
 });
 
+/** Self-service profile update (display name + email + optional password change) */
+export const profileUpdateSchema = z
+  .object({
+    name: z.string().min(2).max(80),
+    email: z.string().email(),
+    currentPassword: z.string().min(1).optional().or(z.literal("")),
+    newPassword: z.string().min(8).max(72).optional().or(z.literal("")),
+    confirmPassword: z.string().optional().or(z.literal("")),
+  })
+  .superRefine((data, ctx) => {
+    const changingPassword = Boolean(data.newPassword);
+    if (changingPassword) {
+      if (!data.currentPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Current password is required to set a new password",
+          path: ["currentPassword"],
+        });
+      }
+      if (data.newPassword !== data.confirmPassword) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "New passwords do not match",
+          path: ["confirmPassword"],
+        });
+      }
+    }
+  });
+
 export const userFeaturesSchema = z.object({
   services: z.boolean(),
   payment: z.boolean(),
