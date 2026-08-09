@@ -10,20 +10,47 @@ import { Label } from "@/components/ui/misc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiClient, ApiError } from "@/lib/api-client";
 
+function validateMobile(phone: string): string | null {
+  const trimmed = phone.trim();
+  if (!trimmed) return "Mobile number is required";
+  const digits = trimmed.replace(/\D/g, "");
+  if (digits.length < 10 || digits.length > 15) {
+    return "Enter a valid mobile number (10–15 digits)";
+  }
+  return null;
+}
+
 export default function RegisterPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError("");
+
+    const phoneError = validateMobile(form.phone);
+    if (phoneError) {
+      setError(phoneError);
+      return;
+    }
+
+    setLoading(true);
     try {
       await apiClient("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim(),
+          password: form.password,
+        }),
       });
       const q = form.email
         ? `?email=${encodeURIComponent(form.email.trim().toLowerCase())}`
@@ -55,30 +82,58 @@ export default function RegisterPage() {
             </p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={onSubmit} className="space-y-4">
+            <form onSubmit={onSubmit} className="space-y-4" noValidate>
               <div className="space-y-1.5">
-                <Label>Display name</Label>
+                <Label htmlFor="register-name">Display name</Label>
                 <Input
+                  id="register-name"
+                  name="name"
                   required
+                  autoComplete="name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Email</Label>
+                <Label htmlFor="register-email">Email</Label>
                 <Input
+                  id="register-email"
+                  name="email"
                   type="email"
                   required
+                  autoComplete="email"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Password</Label>
+                <Label htmlFor="register-phone">
+                  Mobile number <span className="text-red-400">*</span>
+                </Label>
                 <Input
+                  id="register-phone"
+                  name="phone"
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  autoComplete="tel"
+                  placeholder="10-digit mobile number"
+                  minLength={10}
+                  maxLength={20}
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  aria-required="true"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="register-password">Password</Label>
+                <Input
+                  id="register-password"
+                  name="password"
                   type="password"
                   required
                   minLength={8}
+                  autoComplete="new-password"
                   value={form.password}
                   onChange={(e) =>
                     setForm({ ...form, password: e.target.value })

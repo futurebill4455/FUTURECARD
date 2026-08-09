@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
 import { dbConnect } from "@/lib/db";
 import { createUser, findUserByEmail } from "@/lib/db/users";
 import { createSubscription } from "@/lib/db/subscriptions";
@@ -13,7 +14,22 @@ export async function POST(req: NextRequest) {
   return withApiHandler(async () => {
     try {
       const body = await req.json();
-      const validated = registerSchema.parse(body);
+
+      const rawPhone =
+        body?.phone === undefined || body?.phone === null
+          ? ""
+          : String(body.phone);
+      if (!rawPhone.trim()) {
+        return NextResponse.json(
+          { error: "Mobile number is required" },
+          { status: 400 },
+        );
+      }
+
+      const validated = registerSchema.parse({
+        ...body,
+        phone: rawPhone,
+      });
 
       await dbConnect();
       const exists = await findUserByEmail(validated.email);
@@ -28,6 +44,7 @@ export async function POST(req: NextRequest) {
       const user = await createUser({
         name: validated.name,
         email: validated.email,
+        phone: validated.phone,
         password,
         role: "user",
         isApproved: false,
@@ -56,6 +73,19 @@ export async function POST(req: NextRequest) {
         { status: 201 },
       );
     } catch (err) {
+      if (err instanceof z.ZodError) {
+        const phoneIssue = err.errors.find((e) => e.path[0] === "phone");
+        return NextResponse.json(
+          {
+            error:
+              phoneIssue?.message ||
+              err.errors[0]?.message ||
+              "Validation failed",
+            details: err.errors,
+          },
+          { status: 400 },
+        );
+      }
       return toApiError(err);
     }
   });

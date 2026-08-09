@@ -7,10 +7,22 @@ export const loginSchema = z.object({
   password: z.string().min(8),
 });
 
+/** Mobile for signup — required, 10–15 digits after stripping non-digits */
+export const mobilePhoneRequiredSchema = z
+  .string({ required_error: "Mobile number is required" })
+  .trim()
+  .min(1, "Mobile number is required")
+  .max(20, "Mobile number is too long")
+  .refine((value) => {
+    const digits = value.replace(/\D/g, "");
+    return digits.length >= 10 && digits.length <= 15;
+  }, "Enter a valid mobile number (10–15 digits)");
+
 export const registerSchema = z.object({
   name: z.string().min(2).max(80),
   email: z.string().email(),
   password: z.string().min(8).max(72),
+  phone: mobilePhoneRequiredSchema,
 });
 
 /** Self-service profile update (display name + email + optional password change) */

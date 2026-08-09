@@ -24,6 +24,7 @@ export type UserRow = {
   id: string;
   name: string;
   email: string;
+  phone?: string | null;
   password: string;
   role: "user" | "admin";
   avatar: string | null;
@@ -125,6 +126,7 @@ export function mapUser(
     _id: row.id,
     name: row.name,
     email: row.email,
+    phone: row.phone?.trim() || undefined,
     role: row.role,
     avatar: row.avatar ?? undefined,
     isActive: row.is_active,

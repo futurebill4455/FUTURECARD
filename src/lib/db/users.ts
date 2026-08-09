@@ -56,6 +56,7 @@ export async function createUser(input: {
   name: string;
   email: string;
   password: string;
+  phone?: string;
   role?: "user" | "admin";
   features?: IUserFeatures;
   cardSections?: ICardSections;
@@ -87,6 +88,7 @@ export async function createUser(input: {
       name: input.name,
       email: input.email.toLowerCase(),
       password: input.password,
+      phone: input.phone?.trim() || null,
       role,
       features: input.features ?? DEFAULT_USER_FEATURES,
       card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
@@ -106,6 +108,7 @@ export async function updateUser(
   patch: {
     name?: string;
     email?: string;
+    phone?: string;
     role?: "user" | "admin";
     isActive?: boolean;
     isApproved?: boolean;
@@ -120,6 +123,7 @@ export async function updateUser(
   const row: Record<string, unknown> = {};
   if (patch.name !== undefined) row.name = patch.name;
   if (patch.email !== undefined) row.email = patch.email.toLowerCase();
+  if (patch.phone !== undefined) row.phone = patch.phone.trim() || null;
   if (patch.role !== undefined) row.role = patch.role;
   if (patch.isActive !== undefined) row.is_active = patch.isActive;
   if (patch.isApproved !== undefined) row.is_approved = patch.isApproved;

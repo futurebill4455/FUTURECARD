@@ -7,6 +7,8 @@ export interface IUser {
   _id: string;
   name: string;
   email: string;
+  /** Mobile collected at signup (required for new self-registrations) */
+  phone?: string;
   password?: string;
   role: UserRole;
   avatar?: string;
