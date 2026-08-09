@@ -5,6 +5,10 @@ import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import {
+  ImmersiveBackground,
+  type AmbientMode,
+} from "@/components/shared/ImmersiveBackground";
 
 const userLinks = [
   { href: "/dashboard", label: "Overview" },
@@ -16,10 +20,16 @@ const userLinks = [
 export function DashboardShell({
   children,
   isAdmin = false,
+  ambientMode = "gradient",
+  ambientVideo,
+  ambientImages,
 }: {
   children: React.ReactNode;
   /** Server-verified admin flag — Admin Panel only when true */
   isAdmin?: boolean;
+  ambientMode?: AmbientMode;
+  ambientVideo?: string;
+  ambientImages?: string[];
 }) {
   const { data } = useSession();
   const pathname = usePathname();
@@ -27,7 +37,12 @@ export function DashboardShell({
 
   return (
     <div className="relative min-h-screen md:grid md:grid-cols-[260px_1fr]">
-      <div className="pointer-events-none absolute inset-0 ambient-grid opacity-60" />
+      <ImmersiveBackground
+        mode={ambientMode}
+        video={ambientVideo}
+        images={ambientImages}
+        intensity={0.82}
+      />
       <aside className="relative z-[1] border-b border-white/5 glass-soft md:border-b-0 md:border-r md:border-white/5">
         <div className="flex items-center justify-between px-4 py-5 md:block">
           <Link
@@ -44,30 +59,40 @@ export function DashboardShell({
           </button>
         </div>
         <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:px-3 md:pb-6">
-          {userLinks.map((l) => {
+          {userLinks.map((l, i) => {
             const active =
               pathname === l.href ||
               (l.href !== "/dashboard" && pathname.startsWith(l.href));
             return (
-              <Link
+              <motion.div
                 key={l.href}
-                href={l.href}
-                className={cn(
-                  "relative rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
-                  active
-                    ? "bg-teal-400/15 text-teal-100 shadow-glow"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
-                )}
+                initial={{ opacity: 0, x: -8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.04 * i }}
               >
-                {active ? (
-                  <motion.span
-                    layoutId="user-nav-pill"
-                    className="absolute inset-0 -z-10 rounded-xl border border-teal-400/25 bg-teal-400/10"
-                    transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                  />
-                ) : null}
-                {l.label}
-              </Link>
+                <Link
+                  href={l.href}
+                  className={cn(
+                    "relative block rounded-xl px-3 py-2.5 text-sm font-medium whitespace-nowrap transition",
+                    active
+                      ? "text-teal-100"
+                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                  )}
+                >
+                  {active ? (
+                    <motion.span
+                      layoutId="user-nav-pill"
+                      className="absolute inset-0 -z-10 rounded-xl border border-teal-400/25 bg-teal-400/10 shadow-glow"
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 30,
+                      }}
+                    />
+                  ) : null}
+                  {l.label}
+                </Link>
+              </motion.div>
             );
           })}
           {showAdminPanel ? (
@@ -79,16 +104,16 @@ export function DashboardShell({
             </Link>
           ) : null}
         </nav>
-        <p className="hidden truncate px-4 pb-5 text-xs text-muted-foreground md:block">
+        <p className="hidden truncate px-4 pb-5 font-mono text-[11px] text-muted-foreground md:block">
           {data?.user?.email}
         </p>
       </aside>
       <main className="relative z-[1] px-4 py-6 md:px-8 md:py-8">
         <motion.div
           key={pathname}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+          initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
         >
           {children}
         </motion.div>

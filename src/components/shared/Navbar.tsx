@@ -95,7 +95,7 @@ export function StatCard({
       <div className="relative z-[1] text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-200/70">
         {label}
       </div>
-      <div className="relative z-[1] mt-2 font-display text-3xl font-bold tracking-tight text-gradient">
+      <div className="relative z-[1] mt-2 font-mono text-3xl font-semibold tracking-tight text-gradient">
         {value}
       </div>
     </motion.div>

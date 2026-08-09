@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/misc";
 import { apiClient, ApiError } from "@/lib/api-client";
 import type { IPlatformSettings } from "@/types/platform.types";
+import { MediaUpload } from "@/components/forms/ImageUpload";
 
 export function PlatformSettingsForm({
   initial,
@@ -14,7 +15,12 @@ export function PlatformSettingsForm({
   initial: IPlatformSettings;
 }) {
   const router = useRouter();
-  const [form, setForm] = useState(initial);
+  const [form, setForm] = useState<IPlatformSettings>({
+    ...initial,
+    ambientMode: initial.ambientMode || "gradient",
+    ambientVideo: initial.ambientVideo || "",
+    ambientImages: initial.ambientImages || [],
+  });
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -38,10 +44,12 @@ export function PlatformSettingsForm({
     }
   }
 
+  const images = form.ambientImages || [];
+
   return (
     <form
       onSubmit={onSubmit}
-      className="max-w-xl space-y-4 rounded-2xl border bg-card p-5"
+      className="max-w-2xl space-y-5 rounded-2xl border border-white/10 glass p-6 shadow-panel"
     >
       <div className="space-y-1.5">
         <Label>Brand / company name</Label>
@@ -56,7 +64,6 @@ export function PlatformSettingsForm({
         <Input
           value={form.footerTagline}
           onChange={(e) => setForm({ ...form, footerTagline: e.target.value })}
-          placeholder="Create your own digital visiting card"
         />
       </div>
       <div className="space-y-1.5">
@@ -68,9 +75,6 @@ export function PlatformSettingsForm({
           }
           placeholder="+91 98765 43210"
         />
-        <p className="text-xs text-muted-foreground">
-          Used by “Need This Digital Card? Contact Us” on every public card.
-        </p>
       </div>
       <div className="space-y-1.5">
         <Label>Company website URL</Label>
@@ -80,7 +84,6 @@ export function PlatformSettingsForm({
           onChange={(e) =>
             setForm({ ...form, companyWebsiteUrl: e.target.value })
           }
-          placeholder="https://youragency.com"
         />
       </div>
       <div className="space-y-1.5">
@@ -92,27 +95,109 @@ export function PlatformSettingsForm({
           }
           placeholder="app.futurecard.pro"
         />
-        <p className="text-xs text-muted-foreground">
-          Clients create a CNAME from their custom domain to this hostname. Also
-          set PLATFORM_HOSTS / NEXT_PUBLIC_PLATFORM_HOST so middleware treats it
-          as the main app (not a tenant domain).
-        </p>
       </div>
+
+      <section className="space-y-3 rounded-2xl border border-teal-400/20 bg-teal-400/5 p-4">
+        <h3 className="font-display text-lg font-bold text-teal-100">
+          Immersive shell background
+        </h3>
+        <p className="text-xs text-muted-foreground">
+          Applies across dashboards and landing. Run{" "}
+          <code className="text-teal-300">002_ambient_background.sql</code> in
+          Supabase once. Dark neon media works best.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {(
+            [
+              ["gradient", "Neon gradient"],
+              ["video", "Looping video"],
+              ["slideshow", "3-image slideshow"],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setForm({ ...form, ambientMode: value })}
+              className={`rounded-xl border px-3 py-2 text-xs font-semibold transition ${
+                form.ambientMode === value
+                  ? "border-teal-400/50 bg-teal-400/20 text-teal-100"
+                  : "border-white/10 text-muted-foreground hover:bg-white/5"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {form.ambientMode === "video" ? (
+          <div className="space-y-2">
+            <Label>Background video URL</Label>
+            <MediaUpload
+              label="Ambient video"
+              kind="video"
+              value={form.ambientVideo || ""}
+              onChange={(url) => setForm({ ...form, ambientVideo: url })}
+              maxSeconds={30}
+            />
+            <Input
+              value={form.ambientVideo || ""}
+              onChange={(e) =>
+                setForm({ ...form, ambientVideo: e.target.value })
+              }
+              placeholder="https://…/ambient.mp4"
+            />
+          </div>
+        ) : null}
+
+        {form.ambientMode === "slideshow" ? (
+          <div className="space-y-3">
+            <p className="text-xs text-muted-foreground">
+              Provide exactly 3 dark cinematic images for cross-fade.
+            </p>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="space-y-1.5">
+                <Label>Slide {i + 1}</Label>
+                <MediaUpload
+                  label={`Ambient slide ${i + 1}`}
+                  value={images[i] || ""}
+                  onChange={(url) => {
+                    const next = [...images];
+                    next[i] = url;
+                    setForm({
+                      ...form,
+                      ambientImages: next.filter(Boolean).slice(0, 3),
+                    });
+                  }}
+                />
+                <Input
+                  value={images[i] || ""}
+                  onChange={(e) => {
+                    const next = [...images];
+                    next[i] = e.target.value;
+                    setForm({
+                      ...form,
+                      ambientImages: next,
+                    });
+                  }}
+                  placeholder="https://…/slide.jpg"
+                />
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
       {error ? (
-        <p className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p className="rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
           {error}
         </p>
       ) : null}
       {message ? (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">
+        <p className="rounded-xl border border-teal-400/30 bg-teal-500/10 px-3 py-2 text-sm text-teal-200">
           {message}
         </p>
       ) : null}
-      <Button
-        type="submit"
-        disabled={saving}
-       
-      >
+      <Button type="submit" disabled={saving}>
         {saving ? "Saving…" : "Save branding settings"}
       </Button>
     </form>

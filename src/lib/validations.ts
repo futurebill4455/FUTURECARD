@@ -72,6 +72,9 @@ export const platformSettingsSchema = z.object({
   companyName: z.string().max(120).optional().or(z.literal("")),
   footerTagline: z.string().max(200).optional().or(z.literal("")),
   platformCnameTarget: z.string().max(253).optional().or(z.literal("")),
+  ambientMode: z.enum(["gradient", "video", "slideshow"]).optional(),
+  ambientVideo: z.string().max(800).optional().or(z.literal("")),
+  ambientImages: z.array(z.string().url().or(z.string().min(1))).max(3).optional(),
 });
 
 export const customDomainSchema = z.object({

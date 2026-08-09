@@ -68,12 +68,40 @@ export async function updatePlatformSettingsRow(
       .replace(/^https?:\/\//, "")
       .split("/")[0];
   }
+  if (patch.ambientMode !== undefined) {
+    row.ambient_mode = patch.ambientMode;
+  }
+  if (patch.ambientVideo !== undefined) {
+    row.ambient_video = patch.ambientVideo;
+  }
+  if (patch.ambientImages !== undefined) {
+    row.ambient_images = patch.ambientImages.slice(0, 3);
+  }
 
   const { data, error } = await sb()
     .from("platform_settings")
     .upsert({ key: "default", ...row }, { onConflict: "key" })
     .select("*")
     .single();
-  if (error) throwDbError(error, "updatePlatformSettings");
+  if (error) {
+    // Graceful if migration 002 not applied yet
+    if (String(error.message || "").includes("ambient_")) {
+      console.warn(
+        "[settings] ambient_* columns missing — run supabase/migrations/002_ambient_background.sql",
+      );
+      const cleaned = { ...row };
+      delete cleaned.ambient_mode;
+      delete cleaned.ambient_video;
+      delete cleaned.ambient_images;
+      const retry = await sb()
+        .from("platform_settings")
+        .upsert({ key: "default", ...cleaned }, { onConflict: "key" })
+        .select("*")
+        .single();
+      if (retry.error) throwDbError(retry.error, "updatePlatformSettings");
+      return mapPlatformSettings(retry.data as PlatformSettingsRow);
+    }
+    throwDbError(error, "updatePlatformSettings");
+  }
   return mapPlatformSettings(data as PlatformSettingsRow);
 }

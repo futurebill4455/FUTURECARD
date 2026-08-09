@@ -145,6 +145,10 @@ export interface IPlatformSettings {
   footerTagline: string;
   /** Hostname clients point CNAME records to */
   platformCnameTarget: string;
+  /** Shell ambient background for dashboards / landing */
+  ambientMode?: "gradient" | "video" | "slideshow";
+  ambientVideo?: string;
+  ambientImages?: string[];
   updatedAt?: string;
 }
 
@@ -154,4 +158,7 @@ export const DEFAULT_PLATFORM_SETTINGS: IPlatformSettings = {
   companyName: "Future Shield",
   footerTagline: "Verified digital visiting cards by Future Shield",
   platformCnameTarget: "app.futurecard.pro",
+  ambientMode: "gradient",
+  ambientVideo: "",
+  ambientImages: [],
 };

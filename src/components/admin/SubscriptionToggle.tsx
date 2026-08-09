@@ -108,19 +108,20 @@ export function SubscriptionToggle({
           "relative inline-flex shrink-0 rounded-full border transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400/50 disabled:opacity-60",
           size === "sm" ? "h-7 w-12" : "h-8 w-14",
           subscribed
-            ? "border-teal-400/40 bg-teal-400/30"
+            ? "border-teal-400/50 bg-teal-400/35 shadow-glow"
             : "border-white/15 bg-white/10",
         )}
       >
         <span
           className={cn(
-            "absolute top-0.5 rounded-full bg-white shadow transition",
+            "absolute top-0.5 rounded-full bg-white shadow transition duration-300",
             size === "sm" ? "h-5 w-5" : "h-6 w-6",
             subscribed
               ? size === "sm"
                 ? "left-[1.35rem]"
                 : "left-7"
               : "left-0.5",
+            subscribed && "shadow-[0_0_12px_rgba(45,212,191,0.8)]",
           )}
         />
       </button>

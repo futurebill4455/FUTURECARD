@@ -96,6 +96,9 @@ export type PlatformSettingsRow = {
   company_name: string | null;
   footer_tagline: string | null;
   platform_cname_target: string | null;
+  ambient_mode?: string | null;
+  ambient_video?: string | null;
+  ambient_images?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -200,6 +203,10 @@ export function mapCard(row: CardRow): ICard {
 }
 
 export function mapPlatformSettings(row: PlatformSettingsRow): IPlatformSettings {
+  const images = Array.isArray(row.ambient_images)
+    ? row.ambient_images.filter(Boolean).slice(0, 3)
+    : [];
+  const mode = row.ambient_mode;
   return {
     _id: row.id,
     adminWhatsappNumber:
@@ -214,6 +221,12 @@ export function mapPlatformSettings(row: PlatformSettingsRow): IPlatformSettings
       row.platform_cname_target ||
       getDefaultCnameTarget() ||
       DEFAULT_PLATFORM_SETTINGS.platformCnameTarget,
+    ambientMode:
+      mode === "video" || mode === "slideshow" || mode === "gradient"
+        ? mode
+        : "gradient",
+    ambientVideo: row.ambient_video || "",
+    ambientImages: images,
     updatedAt: row.updated_at,
   };
 }

@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { getPlatformSettings } from "@/lib/platform-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -14,5 +15,15 @@ export default async function AdminLayout({
   if (!session) redirect("/login");
   if (session.user.role !== "admin") redirect("/dashboard");
 
-  return <AdminSidebar>{children}</AdminSidebar>;
+  const settings = await getPlatformSettings().catch(() => null);
+
+  return (
+    <AdminSidebar
+      ambientMode={settings?.ambientMode || "gradient"}
+      ambientVideo={settings?.ambientVideo}
+      ambientImages={settings?.ambientImages}
+    >
+      {children}
+    </AdminSidebar>
+  );
 }

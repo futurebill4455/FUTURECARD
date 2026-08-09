@@ -151,9 +151,9 @@ export function MediaUpload({
 export function BackgroundImagesUpload({
   images,
   onChange,
-  max = 4,
+  max = 3,
   title = "Background photos",
-  hint = "Upload 3–4 photos. They rotate as a smooth slideshow.",
+  hint = "Upload exactly 3 cinematic photos for a smooth cross-fade slideshow.",
   minHint = 3,
 }: {
   images: string[];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { BackgroundMediaType } from "@/types/card.types";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +18,10 @@ export function CardBackground({
   fallbackCover?: string;
   className?: string;
 }) {
-  const slides =
-    images?.filter(Boolean) ??
-    (fallbackCover ? [fallbackCover] : []);
+  const slides = (images?.filter(Boolean) ?? (fallbackCover ? [fallbackCover] : [])).slice(
+    0,
+    3,
+  );
   const [index, setIndex] = useState(0);
 
   const mode =
@@ -37,14 +39,14 @@ export function CardBackground({
     if (mode !== "slideshow" || slides.length < 2) return;
     const id = window.setInterval(() => {
       setIndex((i) => (i + 1) % slides.length);
-    }, 4200);
+    }, 4800);
     return () => window.clearInterval(id);
   }, [mode, slides.length]);
 
   return (
     <div
       className={cn(
-        "relative h-44 overflow-hidden bg-gradient-to-br from-teal-700 to-teal-900",
+        "relative h-48 overflow-hidden bg-gradient-to-br from-slate-950 via-teal-950 to-slate-900 sm:h-52",
         className,
       )}
     >
@@ -52,7 +54,7 @@ export function CardBackground({
         <video
           key={video}
           src={video}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full scale-105 object-cover"
           autoPlay
           muted
           loop
@@ -60,26 +62,31 @@ export function CardBackground({
         />
       ) : null}
 
-      {mode === "slideshow"
-        ? slides.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={`${src}-${i}`}
-              src={src}
-              alt=""
-              className={cn(
-                "absolute inset-0 h-full w-full object-cover transition-opacity duration-[1400ms] ease-in-out",
-                i === index ? "opacity-100" : "opacity-0",
-              )}
-            />
-          ))
-        : null}
-
-      {mode === "none" ? (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_45%),linear-gradient(135deg,#0f766e,#134e4a)]" />
+      {mode === "slideshow" ? (
+        <AnimatePresence mode="sync">
+          {slides.map((src, i) =>
+            i === index ? (
+              <motion.img
+                key={`${src}-${index}`}
+                src={src}
+                alt=""
+                initial={{ opacity: 0, scale: 1.08 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1.35, ease: [0.22, 1, 0.36, 1] }}
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            ) : null,
+          )}
+        </AnimatePresence>
       ) : null}
 
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/15 to-transparent" />
+      {mode === "none" ? (
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(45,212,191,0.35),transparent_45%),linear-gradient(135deg,#042f2e,#020617)]" />
+      ) : null}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-teal-950/20" />
+      <div className="absolute inset-0 ambient-grid opacity-30" />
 
       {mode === "slideshow" && slides.length > 1 ? (
         <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
@@ -88,7 +95,9 @@ export function CardBackground({
               key={i}
               className={cn(
                 "h-1.5 rounded-full transition-all",
-                i === index ? "w-4 bg-white" : "w-1.5 bg-white/50",
+                i === index
+                  ? "w-5 bg-teal-300 shadow-[0_0_10px_rgba(45,212,191,0.8)]"
+                  : "w-1.5 bg-white/40",
               )}
             />
           ))}

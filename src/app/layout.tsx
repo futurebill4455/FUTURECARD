@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Outfit, Space_Grotesk } from "next/font/google";
+import { JetBrains_Mono, Outfit, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/providers/Providers";
 import "./globals.css";
 
@@ -15,6 +15,12 @@ const sans = Outfit({
   weight: ["400", "500", "600", "700"],
 });
 
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500", "600"],
+});
+
 export const metadata: Metadata = {
   title: "FutureCard — Digital Visiting Cards",
   description:
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${display.variable} ${sans.variable} font-sans selection:bg-teal-400/30`}
+        className={`${display.variable} ${sans.variable} ${mono.variable} font-sans selection:bg-teal-400/30`}
       >
         <Providers>{children}</Providers>
       </body>

@@ -17,6 +17,7 @@ import {
 import { hasPaymentDetails, PayNowModal } from "./PayNowModal";
 import { CardHeaderIdentity } from "./CompanyDetails";
 import { CardPromoFooter } from "./CardPromoFooter";
+import { HolographicAvatar } from "./HolographicAvatar";
 import { resolveTheme, themeStyleVars, tintColor } from "@/lib/theme";
 import { DEFAULT_PRIMARY_CTAS } from "@/types/card.types";
 import {
@@ -165,31 +166,16 @@ export function CardPreview({
         className="relative z-10 px-4 pb-7 pt-0"
         style={{ backgroundColor: theme.backgroundColor }}
       >
-        {/* Profile logo overlapping cover */}
-        <div className="relative z-20 -mt-14 flex justify-center">
-          <motion.div
-            initial={{ scale: 0.85, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.15, type: "spring", stiffness: 260, damping: 18 }}
-            className="h-[7.25rem] w-[7.25rem] overflow-hidden rounded-full border-[5px] border-white/95 bg-white shadow-[0_12px_40px_rgba(0,0,0,0.35)] ring-2 ring-black/5"
-            style={{ backgroundColor: soft }}
-          >
-            {card.profileImage ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={card.profileImage}
-                alt={card.companyName}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div
-                className="flex h-full w-full items-center justify-center font-display text-3xl font-bold text-white"
-                style={{ backgroundColor: theme.buttonColor }}
-              >
-                {card.companyName.slice(0, 1)}
-              </div>
-            )}
-          </motion.div>
+        {/* Holographic profile core */}
+        <div className="relative z-20 -mt-16 flex justify-center">
+          <HolographicAvatar
+            src={card.profileImage}
+            alt={card.companyName}
+            fallbackLetter={card.companyName.slice(0, 1)}
+            accent={theme.buttonColor}
+            soft={soft}
+            size={116}
+          />
         </div>
 
         <CardHeaderIdentity

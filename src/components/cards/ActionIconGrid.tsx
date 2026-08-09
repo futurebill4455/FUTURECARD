@@ -15,30 +15,11 @@ import { isActionAllowed } from "@/lib/feature-permissions";
 import { absoluteUrl } from "@/lib/utils";
 import { BankDetailsModal } from "./BankDetailsModal";
 import { InquiryFormModal } from "./InquiryFormModal";
+import { NeonActionIcon } from "./NeonActionIcon";
 import type { IUserFeatures } from "@/types/platform.types";
 
 function IconGlyph({ name }: { name: string }) {
-  const map: Record<string, string> = {
-    call: "☎",
-    whatsapp: "💬",
-    email: "✉",
-    website: "🌐",
-    bank: "🏦",
-    address: "📍",
-    videos: "▶",
-    brochures: "📄",
-    bookNow: "📅",
-    form: "📝",
-    facebook: "f",
-    instagram: "IG",
-    youtube: "▶",
-    linkedin: "in",
-    twitter: "𝕏",
-    review: "★",
-    qr: "▦",
-    install: "＋",
-  };
-  return <span className="text-base leading-none">{map[name] || "•"}</span>;
+  return <NeonActionIcon name={name} />;
 }
 
 export function ActionIconGrid({
@@ -125,15 +106,21 @@ export function ActionIconGrid({
           const inner = (
             <>
               <motion.span
-                whileHover={{ scale: 1.08, y: -2 }}
+                whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.94 }}
-                className="flex h-14 w-14 items-center justify-center rounded-[1.35rem] shadow-md ring-1 ring-black/[0.06] transition"
+                className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.35rem] border border-white/20 shadow-lg backdrop-blur-md transition"
                 style={{
-                  backgroundColor: meta.softBg,
+                  background: `linear-gradient(145deg, ${meta.softFg}33, rgba(2,6,23,0.55) 55%, ${meta.softFg}22)`,
                   color: meta.softFg,
-                  boxShadow: `0 8px 20px ${meta.softFg}22`,
+                  boxShadow: `0 0 0 1px ${meta.softFg}44, 0 10px 28px ${meta.softFg}33, inset 0 1px 0 rgba(255,255,255,0.25)`,
                 }}
               >
+                <span
+                  className="pointer-events-none absolute inset-0 opacity-40"
+                  style={{
+                    background: `radial-gradient(circle at 30% 25%, ${meta.softFg}55, transparent 55%)`,
+                  }}
+                />
                 <IconGlyph name={btn.key} />
               </motion.span>
               <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-foreground">

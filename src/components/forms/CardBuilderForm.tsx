@@ -180,7 +180,7 @@ export function CardBuilderForm({
     setError("");
 
     if (mediaType === "slideshow" && bgImages.length > 0 && bgImages.length < 3) {
-      setError("Please upload 3–4 background photos for the slideshow.");
+      setError("Please upload 3 background photos for the cinematic slideshow.");
       setSaving(false);
       return;
     }
@@ -412,8 +412,8 @@ export function CardBuilderForm({
                   onClick={() => setMediaType(value)}
                   className={`rounded-xl border px-3 py-3 text-left text-sm font-semibold transition ${
                     mediaType === value
-                      ? "border-rose-600 bg-rose-50 text-rose-900"
-                      : "hover:bg-muted/50"
+                      ? "border-teal-400/50 bg-teal-400/15 text-teal-100 shadow-glow"
+                      : "border-white/10 text-muted-foreground hover:bg-white/5"
                   }`}
                 >
                   {label}

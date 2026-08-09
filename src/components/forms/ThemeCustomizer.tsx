@@ -7,35 +7,35 @@ import { Input } from "@/components/ui/input";
 
 const PRESETS: Array<{ name: string; theme: IThemeColors }> = [
   {
-    name: "Rose",
+    name: "Neon Void",
+    theme: {
+      backgroundColor: "#07131a",
+      headerColor: "#042f2e",
+      buttonColor: "#2dd4bf",
+    },
+  },
+  {
+    name: "Cyan Pulse",
+    theme: {
+      backgroundColor: "#061525",
+      headerColor: "#0c4a6e",
+      buttonColor: "#38bdf8",
+    },
+  },
+  {
+    name: "Emerald Grid",
+    theme: {
+      backgroundColor: "#04140f",
+      headerColor: "#064e3b",
+      buttonColor: "#34d399",
+    },
+  },
+  {
+    name: "Classic Rose",
     theme: {
       backgroundColor: "#FFF1F2",
       headerColor: "#BE123C",
       buttonColor: "#E11D48",
-    },
-  },
-  {
-    name: "Teal",
-    theme: {
-      backgroundColor: "#F0FDFA",
-      headerColor: "#0F766E",
-      buttonColor: "#0D9488",
-    },
-  },
-  {
-    name: "Indigo",
-    theme: {
-      backgroundColor: "#EEF2FF",
-      headerColor: "#3730A3",
-      buttonColor: "#4F46E5",
-    },
-  },
-  {
-    name: "Amber",
-    theme: {
-      backgroundColor: "#FFFBEB",
-      headerColor: "#B45309",
-      buttonColor: "#D97706",
     },
   },
 ];
@@ -57,10 +57,10 @@ export function ThemeCustomizer({
             key={p.name}
             type="button"
             onClick={() => onChange(p.theme)}
-            className="rounded-full border px-3 py-1.5 text-xs font-semibold hover:bg-muted"
+            className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold transition hover:border-teal-400/40 hover:bg-teal-400/10"
           >
             <span
-              className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full"
+              className="mr-1.5 inline-block h-2.5 w-2.5 rounded-full shadow-[0_0_8px_currentColor]"
               style={{ backgroundColor: p.theme.buttonColor }}
             />
             {p.name}
@@ -80,27 +80,10 @@ export function ThemeCustomizer({
           onChange={(headerColor) => onChange({ ...value, headerColor })}
         />
         <ColorField
-          label="Buttons"
+          label="Accent"
           value={value.buttonColor}
           onChange={(buttonColor) => onChange({ ...value, buttonColor })}
         />
-      </div>
-
-      <div
-        className="flex items-center gap-2 rounded-xl border p-3"
-        style={{ backgroundColor: value.backgroundColor }}
-      >
-        <div
-          className="h-10 flex-1 rounded-lg"
-          style={{ backgroundColor: value.headerColor }}
-        />
-        <button
-          type="button"
-          className="rounded-lg px-3 py-2 text-xs font-bold text-white"
-          style={{ backgroundColor: value.buttonColor }}
-        >
-          Sample CTA
-        </button>
       </div>
     </div>
   );
@@ -123,12 +106,12 @@ function ColorField({
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="h-10 w-12 cursor-pointer rounded-lg border bg-transparent p-1"
+          className="h-10 w-12 cursor-pointer rounded-lg border border-white/10 bg-transparent"
         />
         <Input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="#E11D48"
+          className="font-mono text-xs"
         />
       </div>
     </div>
