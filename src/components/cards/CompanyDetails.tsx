@@ -109,10 +109,10 @@ export function CardHeaderIdentity({
 
   return (
     <div className={cn("text-center animate-fade-up", className)}>
-      <h1 className="inline-flex max-w-[95%] flex-wrap items-center justify-center gap-1.5 font-display text-[1.65rem] font-extrabold leading-tight tracking-tight text-foreground">
+      <h1 className="inline-flex max-w-[95%] flex-wrap items-center justify-center gap-1 font-display text-[1.65rem] font-extrabold leading-tight tracking-tight text-foreground">
         <span className="text-balance">{card.companyName}</span>
         {card.isVerified ? (
-          <VerifiedBadge className="translate-y-[1px]" />
+          <VerifiedBadge size="md" className="relative top-px" />
         ) : null}
       </h1>
 

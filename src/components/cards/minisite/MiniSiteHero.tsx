@@ -78,7 +78,7 @@ export function MiniSiteHero({
           <span className="h-1 w-1 rounded-full bg-cyan-400/50" />
           <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-200/70">
             Verified Profile
-            <VerifiedBadge className="scale-75" />
+            <VerifiedBadge size="sm" />
           </span>
         </motion.div>
 
@@ -107,11 +107,11 @@ export function MiniSiteHero({
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.55 }}
-          className="mt-6 font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl md:text-[2.75rem]"
+          className="mt-6 inline-flex max-w-full flex-wrap items-center justify-center gap-1.5 font-display text-3xl font-bold tracking-tight text-slate-50 sm:text-4xl md:text-[2.75rem]"
         >
-          {card.companyName || "Your Name"}
+          <span className="text-balance">{card.companyName || "Your Name"}</span>
           {card.isVerified ? (
-            <VerifiedBadge className="ml-2 inline translate-y-[-2px] align-middle" />
+            <VerifiedBadge size="md" className="relative top-px" />
           ) : null}
         </motion.h1>
 

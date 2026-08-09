@@ -11,6 +11,7 @@ import {
 import { PLATFORM_BRAND } from "@/lib/service-categories";
 import type { ICard } from "@/types/card.types";
 import { absoluteUrl, cn } from "@/lib/utils";
+import { VerifiedBadge } from "@/components/cards/VerifiedBadge";
 
 export function MiniSiteIdentityCard({
   card,
@@ -102,8 +103,11 @@ export function MiniSiteIdentityCard({
                     <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300/60">
                       {PLATFORM_BRAND}
                     </p>
-                    <h3 className="mt-1 font-display text-xl font-bold text-slate-50">
-                      {card.companyName}
+                    <h3 className="mt-1 inline-flex max-w-full flex-wrap items-center gap-1 font-display text-xl font-bold text-slate-50">
+                      <span className="truncate">{card.companyName}</span>
+                      {card.isVerified ? (
+                        <VerifiedBadge size="sm" className="relative top-px" />
+                      ) : null}
                     </h3>
                     <p className="mt-0.5 text-sm text-cyan-100/65">
                       {card.jobTitle || card.businessCategory || "Professional"}

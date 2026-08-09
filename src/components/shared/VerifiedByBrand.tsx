@@ -17,9 +17,9 @@ export function VerifiedByBrand({
   dark?: boolean;
 }) {
   const sizes = {
-    sm: "text-[11px] gap-1",
-    md: "text-sm gap-1.5",
-    lg: "text-base gap-2 sm:text-lg",
+    sm: "text-[10px] gap-1",
+    md: "text-xs gap-1",
+    lg: "text-sm gap-1.5 sm:text-base",
   };
 
   return (
@@ -48,11 +48,10 @@ export function VerifiedByBrand({
       >
         {PLATFORM_VERIFY_BRAND}
       </span>
+      {/* Tick always immediately to the right of the brand name */}
       <VerifiedBadge
+        size={size === "lg" ? "md" : "sm"}
         title={`Verified by ${PLATFORM_VERIFY_BRAND}`}
-        className={
-          size === "lg" ? "scale-110" : size === "sm" ? "scale-90" : undefined
-        }
       />
     </div>
   );

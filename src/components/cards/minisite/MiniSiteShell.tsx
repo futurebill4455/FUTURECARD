@@ -242,7 +242,7 @@ function MiniSiteShellInner({
   return (
     <div
       className={cn(
-        "relative min-h-screen overflow-x-hidden pb-24 md:pb-10",
+        "relative flex min-h-screen flex-col overflow-x-hidden pb-24 md:pb-10",
         isLight ? "minisite-light text-slate-900" : "bg-[#020617] text-slate-50",
       )}
       style={cssVars}
@@ -274,7 +274,7 @@ function MiniSiteShellInner({
 
       <MiniSiteNav visibleIds={navIds} />
 
-      <div className="relative z-[1]">
+      <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
         <MiniSiteHero
           card={card}
           accent={accent}
@@ -490,7 +490,7 @@ function MiniSiteShellInner({
           />
         ) : null}
 
-        <footer className="border-t border-white/5 px-4 py-8 text-center">
+        <footer className="mt-auto border-t border-white/5 px-3 pb-3 pt-4 md:px-4 md:pb-2 md:pt-6">
           {platformSettings ? (
             <CardPromoFooter
               settings={platformSettings}
