@@ -505,7 +505,7 @@ function MiniSiteShellInner({
           />
         ) : null}
 
-        <footer className="mt-auto border-t border-white/5 px-3 pb-3 pt-4 md:px-4 md:pb-2 md:pt-6">
+        <footer className="mt-auto border-t border-white/5 px-3 pb-2 pt-2 md:px-4 md:pb-2 md:pt-3">
           {platformSettings ? (
             <CardPromoFooter
               settings={platformSettings}

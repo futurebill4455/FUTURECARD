@@ -22,7 +22,7 @@ function IconGlyph({ name }: { name: string }) {
   return (
     <NeonActionIcon
       name={name}
-      className="relative z-[1] h-[1.4rem] w-[1.4rem] [filter:drop-shadow(0_0_6px_currentColor)_drop-shadow(0_0_14px_currentColor)_drop-shadow(0_0_22px_currentColor)]"
+      className="relative z-[1] h-[1.35rem] w-[1.35rem] [filter:drop-shadow(0_0_5px_currentColor)_drop-shadow(0_0_10px_currentColor)]"
     />
   );
 }
@@ -113,13 +113,13 @@ export function ActionIconGrid({
             <>
               <motion.span
                 whileHover={{
-                  scale: 1.14,
-                  y: -10,
-                  rotateX: 10,
-                  rotateY: -8,
-                  z: 50,
+                  scale: 1.08,
+                  y: -6,
+                  rotateX: 6,
+                  rotateY: -4,
+                  z: 28,
                 }}
-                whileTap={{ scale: 0.95, y: -3 }}
+                whileTap={{ scale: 0.97, y: -2 }}
                 transition={{ type: "spring", stiffness: 380, damping: 22 }}
                 title={meta.label}
                 className="ms-holo-icon"

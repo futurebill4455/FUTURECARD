@@ -23,30 +23,30 @@ export function CardPromoFooter({
   const website = settings.companyWebsiteUrl?.trim();
 
   return (
-    <footer className="mx-auto w-full max-w-lg rounded-xl bg-white/95 px-3 py-2.5 text-center shadow-sm ring-1 ring-black/5">
-      <div className="flex justify-center">
+    <footer className="mx-auto w-full max-w-md rounded-lg bg-white/95 px-2.5 py-1.5 text-center shadow-sm ring-1 ring-black/5">
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
         <VerifiedByBrand size="sm" dark={false} />
+        {settings.footerTagline ? (
+          <span className="hidden text-[9px] leading-none text-zinc-500 sm:inline">
+            · {settings.footerTagline}
+          </span>
+        ) : null}
       </div>
-      {settings.footerTagline ? (
-        <p className="mt-1 line-clamp-1 text-[10px] leading-tight text-zinc-500">
-          {settings.footerTagline}
-        </p>
-      ) : null}
 
-      <div className="mt-2 flex flex-col gap-1.5 sm:flex-row sm:justify-center">
+      <div className="mt-1.5 flex gap-1.5">
         {waUrl ? (
           <a
             href={waUrl}
             target="_blank"
             rel="noreferrer"
             onClick={onTrack}
-            className="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-[11px] font-bold text-white shadow-sm transition active:scale-[0.98]"
+            className="inline-flex min-h-0 flex-1 items-center justify-center rounded-md px-2 py-1 text-[10px] font-bold leading-tight text-white shadow-sm transition active:scale-[0.98]"
             style={{ backgroundColor: accent || "#0F766E" }}
           >
-            Need This Digital Card? Contact Us
+            Need This Digital Card?
           </a>
         ) : (
-          <span className="text-[10px] text-zinc-500">
+          <span className="flex-1 text-[9px] text-zinc-500">
             Contact link not configured
           </span>
         )}
@@ -55,9 +55,9 @@ export function CardPromoFooter({
             href={website}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] font-semibold text-zinc-600 transition hover:bg-zinc-50"
+            className="inline-flex min-h-0 items-center justify-center rounded-md border border-zinc-200 px-2 py-1 text-[10px] font-semibold leading-tight text-zinc-600 transition hover:bg-zinc-50"
           >
-            Visit our website
+            Website
           </a>
         ) : null}
       </div>

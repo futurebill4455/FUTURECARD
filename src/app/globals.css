@@ -343,30 +343,27 @@ body {
     color: var(--ms-holo-neon);
     background: linear-gradient(
       155deg,
-      color-mix(in srgb, var(--ms-holo-neon) 38%, rgba(255, 255, 255, 0.22)) 0%,
-      color-mix(in srgb, var(--ms-holo-neon) 22%, rgba(15, 23, 42, 0.42)) 45%,
-      rgba(2, 6, 23, 0.5) 100%
+      color-mix(in srgb, var(--ms-holo-neon) 18%, rgba(255, 255, 255, 0.14)) 0%,
+      color-mix(in srgb, var(--ms-holo-neon) 10%, rgba(15, 23, 42, 0.38)) 48%,
+      rgba(2, 6, 23, 0.48) 100%
     );
-    backdrop-filter: blur(18px) saturate(1.7);
-    -webkit-backdrop-filter: blur(18px) saturate(1.7);
-    border: 1.5px solid color-mix(in srgb, var(--ms-holo-neon) 88%, white 25%);
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    border: 1px solid color-mix(in srgb, var(--ms-holo-neon) 55%, white 18%);
     box-shadow:
-      0 0 0 1px color-mix(in srgb, var(--ms-holo-neon) 55%, transparent),
-      0 0 14px color-mix(in srgb, var(--ms-holo-neon) 70%, transparent),
-      0 0 32px color-mix(in srgb, var(--ms-holo-neon) 55%, transparent),
-      0 0 52px color-mix(in srgb, var(--ms-holo-neon) 32%, transparent),
-      0 10px 28px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(255, 255, 255, 0.55),
-      inset 0 0 22px color-mix(in srgb, var(--ms-holo-neon) 28%, transparent),
-      inset 0 -12px 22px color-mix(in srgb, var(--ms-holo-neon) 26%, transparent),
-      inset 3px 3px 10px rgba(0, 0, 0, 0.22),
-      inset -2px -2px 8px rgba(255, 255, 255, 0.1);
-    filter: brightness(1.12) saturate(1.2);
+      0 0 0 1px color-mix(in srgb, var(--ms-holo-neon) 28%, transparent),
+      0 0 12px color-mix(in srgb, var(--ms-holo-neon) 28%, transparent),
+      0 0 22px color-mix(in srgb, var(--ms-holo-neon) 16%, transparent),
+      0 8px 20px rgba(0, 0, 0, 0.32),
+      inset 0 1px 0 rgba(255, 255, 255, 0.36),
+      inset 0 -8px 14px color-mix(in srgb, var(--ms-holo-neon) 12%, transparent),
+      inset 3px 3px 8px rgba(0, 0, 0, 0.18);
+    filter: brightness(1.02) saturate(1.05);
     transition:
-      box-shadow 220ms ease,
-      border-color 220ms ease,
-      filter 220ms ease,
-      background 220ms ease;
+      box-shadow 240ms ease,
+      border-color 240ms ease,
+      filter 240ms ease,
+      background 240ms ease;
     transform-style: preserve-3d;
   }
 
@@ -378,63 +375,59 @@ body {
     border-radius: inherit;
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.42) 0%,
-      rgba(255, 255, 255, 0.08) 32%,
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.05) 34%,
       transparent 58%
     );
-    opacity: 0.95;
+    opacity: 0.8;
   }
 
   .ms-holo-icon::after {
     content: "";
     pointer-events: none;
     position: absolute;
-    inset: -30%;
+    inset: -18%;
     border-radius: 50%;
     background: radial-gradient(
       circle,
-      color-mix(in srgb, var(--ms-holo-neon) 45%, transparent) 0%,
-      transparent 68%
+      color-mix(in srgb, var(--ms-holo-neon) 22%, transparent) 0%,
+      transparent 70%
     );
-    opacity: 0.55;
+    opacity: 0.35;
     z-index: 0;
   }
 
   .group\/holo:hover .ms-holo-icon,
   .ms-holo-icon:hover {
-    border-color: color-mix(in srgb, var(--ms-holo-neon) 100%, white 40%);
-    filter: brightness(1.28) saturate(1.4);
+    border-color: color-mix(in srgb, var(--ms-holo-neon) 72%, white 18%);
+    filter: brightness(1.08) saturate(1.12);
     background: linear-gradient(
       155deg,
-      color-mix(in srgb, var(--ms-holo-neon) 55%, rgba(255, 255, 255, 0.3)) 0%,
-      color-mix(in srgb, var(--ms-holo-neon) 32%, rgba(15, 23, 42, 0.35)) 48%,
-      rgba(2, 6, 23, 0.45) 100%
+      color-mix(in srgb, var(--ms-holo-neon) 28%, rgba(255, 255, 255, 0.18)) 0%,
+      color-mix(in srgb, var(--ms-holo-neon) 14%, rgba(15, 23, 42, 0.4)) 50%,
+      rgba(2, 6, 23, 0.5) 100%
     );
     box-shadow:
-      0 0 0 1.5px color-mix(in srgb, var(--ms-holo-neon) 75%, white 25%),
-      0 0 18px color-mix(in srgb, var(--ms-holo-neon) 90%, transparent),
-      0 0 40px color-mix(in srgb, var(--ms-holo-neon) 75%, transparent),
-      0 0 70px color-mix(in srgb, var(--ms-holo-neon) 50%, transparent),
-      0 0 100px color-mix(in srgb, var(--ms-holo-neon) 28%, transparent),
-      0 18px 40px rgba(0, 0, 0, 0.45),
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
-      inset 0 0 28px color-mix(in srgb, var(--ms-holo-neon) 40%, transparent),
-      inset 0 -14px 26px color-mix(in srgb, var(--ms-holo-neon) 35%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--ms-holo-neon) 40%, transparent),
+      0 0 16px color-mix(in srgb, var(--ms-holo-neon) 42%, transparent),
+      0 0 32px color-mix(in srgb, var(--ms-holo-neon) 24%, transparent),
+      0 12px 28px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48),
+      inset 0 -10px 16px color-mix(in srgb, var(--ms-holo-neon) 16%, transparent);
   }
 
   .group\/holo:hover .ms-holo-icon::after,
   .ms-holo-icon:hover::after {
-    opacity: 0.9;
+    opacity: 0.55;
   }
 
   .group\/holo:active .ms-holo-icon,
   .ms-holo-icon:active {
-    filter: brightness(1.35) saturate(1.35);
+    filter: brightness(1.1) saturate(1.1);
     box-shadow:
-      0 0 0 2px color-mix(in srgb, var(--ms-holo-neon) 85%, white 20%),
-      0 0 24px color-mix(in srgb, var(--ms-holo-neon) 95%, transparent),
-      0 0 50px color-mix(in srgb, var(--ms-holo-neon) 70%, transparent),
-      inset 0 0 32px color-mix(in srgb, var(--ms-holo-neon) 45%, transparent);
+      0 0 0 1px color-mix(in srgb, var(--ms-holo-neon) 50%, transparent),
+      0 0 18px color-mix(in srgb, var(--ms-holo-neon) 45%, transparent),
+      inset 0 0 18px color-mix(in srgb, var(--ms-holo-neon) 18%, transparent);
   }
 
   .ms-holo-label {
@@ -445,19 +438,17 @@ body {
     font-weight: 500;
     letter-spacing: 0.04em;
     line-height: 1.25;
-    color: color-mix(in srgb, var(--ms-holo-neon, #7dd3fc) 85%, white 40%);
+    color: color-mix(in srgb, var(--ms-holo-neon, #7dd3fc) 55%, white 35%);
     text-shadow:
-      0 0 6px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 80%, transparent),
-      0 0 14px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 55%, transparent),
-      0 0 24px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 30%, transparent);
+      0 0 8px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 35%, transparent),
+      0 0 14px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 18%, transparent);
   }
 
   .group\/holo:hover .ms-holo-label {
-    color: color-mix(in srgb, var(--ms-holo-neon, #7dd3fc) 70%, white 55%);
+    color: color-mix(in srgb, var(--ms-holo-neon, #7dd3fc) 65%, white 40%);
     text-shadow:
-      0 0 8px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 95%, transparent),
-      0 0 18px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 70%, transparent),
-      0 0 32px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 45%, transparent);
+      0 0 10px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 45%, transparent),
+      0 0 18px color-mix(in srgb, var(--ms-holo-neon, #38bdf8) 25%, transparent);
   }
 
   .ms-holo-metric {
