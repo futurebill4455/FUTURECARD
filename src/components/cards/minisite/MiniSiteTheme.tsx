@@ -81,7 +81,7 @@ export function MiniSiteThemeToggle({ className }: { className?: string }) {
       aria-label={mode === "dark" ? "Switch to light mode" : "Switch to dark mode"}
       className={
         className ||
-        "inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/15 bg-white/5 text-xs font-bold text-cyan-100 shadow-[0_0_0_0_rgba(34,211,238,0)] backdrop-blur-md transition duration-300 hover:scale-110 hover:border-cyan-300/40 hover:bg-white/10 hover:shadow-[0_0_24px_rgba(34,211,238,0.35)] active:scale-95"
+        "ms-luminous-btn ms-luminous-btn--ghost inline-flex h-9 w-9 items-center justify-center rounded-full px-0 py-0 text-xs font-bold"
       }
     >
       {mode === "dark" ? "◐" : "☀"}

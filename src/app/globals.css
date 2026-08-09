@@ -124,6 +124,155 @@ body {
   .fx-pulse-glow {
     animation: fx-pulse-glow 3.5s ease-in-out infinite;
   }
+
+  /**
+   * Mini-site luminous glass buttons
+   * Visual-only treatment — do not use to alter layout/sizing.
+   */
+  .ms-luminous-btn {
+    --ms-btn-accent: #22d3ee;
+    --ms-btn-mid: #38bdf8;
+    --ms-btn-violet: #8b5cf6;
+    --ms-btn-magenta: #c026d3;
+    position: relative;
+    isolation: isolate;
+    color: #ecfeff;
+    background:
+      linear-gradient(
+        155deg,
+        color-mix(in srgb, var(--ms-btn-accent) 55%, rgba(15, 23, 42, 0.55)) 0%,
+        color-mix(in srgb, var(--ms-btn-mid) 45%, rgba(2, 6, 23, 0.72)) 42%,
+        color-mix(in srgb, var(--ms-btn-violet) 48%, rgba(2, 6, 23, 0.78)) 100%
+      );
+    backdrop-filter: blur(16px) saturate(1.45);
+    -webkit-backdrop-filter: blur(16px) saturate(1.45);
+    border: 1px solid color-mix(in srgb, var(--ms-btn-mid) 72%, white 18%);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ms-btn-violet) 45%, transparent),
+      0 0 14px color-mix(in srgb, var(--ms-btn-accent) 45%, transparent),
+      0 0 32px color-mix(in srgb, var(--ms-btn-violet) 28%, transparent),
+      0 8px 22px rgba(2, 6, 23, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -10px 22px color-mix(in srgb, var(--ms-btn-accent) 18%, transparent),
+      inset 0 0 24px color-mix(in srgb, var(--ms-btn-violet) 12%, transparent);
+    transition:
+      box-shadow 220ms ease,
+      border-color 220ms ease,
+      filter 220ms ease,
+      background 220ms ease;
+  }
+
+  .ms-luminous-btn::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.06) 28%,
+      transparent 55%
+    );
+    opacity: 0.85;
+    mix-blend-mode: soft-light;
+  }
+
+  .ms-luminous-btn::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+    opacity: 0.9;
+  }
+
+  .ms-luminous-btn:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--ms-btn-mid) 88%, white 30%);
+    filter: brightness(1.08) saturate(1.08);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ms-btn-violet) 55%, white 10%),
+      0 0 18px color-mix(in srgb, var(--ms-btn-accent) 58%, transparent),
+      0 0 42px color-mix(in srgb, var(--ms-btn-violet) 38%, transparent),
+      0 0 58px color-mix(in srgb, var(--ms-btn-magenta) 18%, transparent),
+      0 10px 26px rgba(2, 6, 23, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -10px 24px color-mix(in srgb, var(--ms-btn-accent) 24%, transparent),
+      inset 0 0 28px color-mix(in srgb, var(--ms-btn-violet) 16%, transparent);
+  }
+
+  .ms-luminous-btn:active:not(:disabled) {
+    filter: brightness(1.12) saturate(1.05);
+    transform: scale(0.985);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--ms-btn-mid) 70%, white 20%),
+      0 0 22px color-mix(in srgb, var(--ms-btn-accent) 65%, transparent),
+      0 0 36px color-mix(in srgb, var(--ms-btn-violet) 40%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45),
+      inset 0 8px 18px rgba(2, 6, 23, 0.25);
+  }
+
+  .ms-luminous-btn--ghost {
+    --ms-btn-accent: #67e8f9;
+    --ms-btn-mid: #38bdf8;
+    --ms-btn-violet: #818cf8;
+    color: #e0f2fe;
+    background: linear-gradient(
+      155deg,
+      rgba(15, 23, 42, 0.72) 0%,
+      rgba(8, 47, 73, 0.55) 50%,
+      rgba(49, 46, 129, 0.42) 100%
+    );
+  }
+
+  .ms-luminous-btn--outline {
+    --ms-btn-accent: #22d3ee;
+    --ms-btn-mid: #38bdf8;
+    --ms-btn-violet: #a78bfa;
+    color: #ecfeff;
+    background: linear-gradient(
+      155deg,
+      rgba(2, 6, 23, 0.55) 0%,
+      rgba(8, 47, 73, 0.48) 55%,
+      rgba(76, 29, 149, 0.35) 100%
+    );
+  }
+
+  .ms-luminous-btn--success {
+    --ms-btn-accent: #34d399;
+    --ms-btn-mid: #2dd4bf;
+    --ms-btn-violet: #22d3ee;
+    --ms-btn-magenta: #a7f3d0;
+    color: #ecfdf5;
+  }
+
+  .ms-luminous-icon {
+    backdrop-filter: blur(14px) saturate(1.4);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    border: 1px solid color-mix(in srgb, currentColor 55%, white 20%) !important;
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 35%, transparent),
+      0 0 16px color-mix(in srgb, currentColor 40%, transparent),
+      0 0 28px color-mix(in srgb, currentColor 22%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      inset 0 -8px 16px color-mix(in srgb, currentColor 16%, transparent) !important;
+    transition:
+      box-shadow 220ms ease,
+      border-color 220ms ease,
+      filter 220ms ease;
+  }
+
+  .ms-luminous-icon:hover,
+  .group:hover .ms-luminous-icon {
+    filter: brightness(1.1) saturate(1.08);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, currentColor 55%, white 15%),
+      0 0 20px color-mix(in srgb, currentColor 55%, transparent),
+      0 0 36px color-mix(in srgb, currentColor 30%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -8px 18px color-mix(in srgb, currentColor 22%, transparent) !important;
+  }
 }
 
 @keyframes fx-float {

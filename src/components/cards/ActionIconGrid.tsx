@@ -106,23 +106,24 @@ export function ActionIconGrid({
           const inner = (
             <>
               <motion.span
-                whileHover={{ scale: 1.1, y: -3 }}
-                whileTap={{ scale: 0.94 }}
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.97 }}
                 title={meta.label}
-                className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.35rem] border border-white/20 shadow-lg backdrop-blur-md transition"
+                className="ms-luminous-icon relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.35rem] backdrop-blur-md transition"
                 style={{
-                  background: `linear-gradient(145deg, ${meta.softFg}33, rgba(2,6,23,0.55) 55%, ${meta.softFg}22)`,
+                  background: `linear-gradient(155deg, ${meta.softFg}55, rgba(2,6,23,0.72) 48%, ${meta.softFg}33)`,
                   color: meta.softFg,
-                  boxShadow: `0 0 0 1px ${meta.softFg}44, 0 10px 28px ${meta.softFg}33, inset 0 1px 0 rgba(255,255,255,0.25)`,
                 }}
               >
                 <span
-                  className="pointer-events-none absolute inset-0 opacity-40"
+                  className="pointer-events-none absolute inset-0 opacity-55"
                   style={{
-                    background: `radial-gradient(circle at 30% 25%, ${meta.softFg}55, transparent 55%)`,
+                    background: `radial-gradient(circle at 30% 20%, ${meta.softFg}66, transparent 55%), linear-gradient(180deg, rgba(255,255,255,0.28), transparent 42%)`,
                   }}
                 />
-                <IconGlyph name={btn.key} />
+                <span className="relative z-[1] drop-shadow-[0_0_8px_rgba(255,255,255,0.35)]">
+                  <IconGlyph name={btn.key} />
+                </span>
               </motion.span>
               <span className="mt-1.5 max-w-[76px] text-center text-[10px] font-semibold leading-tight text-slate-200/85">
                 {meta.label}
