@@ -3,19 +3,62 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
 import { requireSession } from "@/lib/session";
+import {
+  formatUnknownError,
+  isSupabaseUploadEnabled,
+  uploadToSupabaseStorage,
+  type StorageUploadError,
+} from "@/lib/storage";
+import { DatabaseError } from "@/lib/db-errors";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5MB
-const MAX_VIDEO_BYTES = 40 * 1024 * 1024; // 40MB (gallery shorts)
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const MAX_IMAGE_BYTES = 4 * 1024 * 1024; // 4MB
+const MAX_VIDEO_BYTES = 40 * 1024 * 1024;
 const DEFAULT_MAX_VIDEO_SECONDS = 15;
 const ABSOLUTE_MAX_VIDEO_SECONDS = 60;
 
 const IMAGE_TYPES = new Set([
   "image/jpeg",
+  "image/jpg",
   "image/png",
   "image/webp",
   "image/gif",
 ]);
 const VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+
+const EXT_MIME: Record<string, string> = {
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+  gif: "image/gif",
+  mp4: "video/mp4",
+  webm: "video/webm",
+  mov: "video/quicktime",
+};
+
+type UploadBlob = Blob & { name?: string; type: string; size: number };
+
+function asUploadBlob(value: FormDataEntryValue | null): UploadBlob | null {
+  if (!value || typeof value === "string") return null;
+  const blob = value as Blob;
+  if (typeof blob.arrayBuffer !== "function" || typeof blob.size !== "number") {
+    return null;
+  }
+  return blob as UploadBlob;
+}
+
+function inferMime(blob: UploadBlob, kind: string): string {
+  const named =
+    typeof blob.name === "string" && blob.name.includes(".")
+      ? blob.name.split(".").pop()?.toLowerCase()
+      : "";
+  if (blob.type && blob.type !== "application/octet-stream") return blob.type;
+  if (named && EXT_MIME[named]) return EXT_MIME[named];
+  return kind === "video" ? "video/mp4" : "image/jpeg";
+}
 
 export async function POST(req: NextRequest) {
   const { session, error } = await requireSession();
@@ -23,21 +66,24 @@ export async function POST(req: NextRequest) {
 
   const contentType = req.headers.get("content-type") || "";
 
-  // Allow URL-only registration (external CDN / Unsplash)
   if (contentType.includes("application/json")) {
-    const body = await req.json();
-    if (!body.url || typeof body.url !== "string") {
-      return NextResponse.json({ error: "url required" }, { status: 400 });
+    try {
+      const body = await req.json();
+      if (!body.url || typeof body.url !== "string") {
+        return NextResponse.json({ error: "url required" }, { status: 400 });
+      }
+      return NextResponse.json({
+        data: { url: body.url },
+        message: "URL accepted",
+      });
+    } catch {
+      return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
     }
-    return NextResponse.json({
-      data: { url: body.url },
-      message: "URL accepted",
-    });
   }
 
   try {
     const form = await req.formData();
-    const file = form.get("file");
+    const file = asUploadBlob(form.get("file"));
     const kind = String(form.get("kind") || "image");
     const durationRaw = form.get("duration");
     const duration =
@@ -45,20 +91,25 @@ export async function POST(req: NextRequest) {
     const maxSecondsRaw = form.get("maxSeconds");
     const maxSeconds = Math.min(
       ABSOLUTE_MAX_VIDEO_SECONDS,
-      Math.max(
-        1,
-        Number(maxSecondsRaw) || DEFAULT_MAX_VIDEO_SECONDS,
-      ),
+      Math.max(1, Number(maxSecondsRaw) || DEFAULT_MAX_VIDEO_SECONDS),
     );
 
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "file required" }, { status: 400 });
+    if (!file || file.size <= 0) {
+      return NextResponse.json(
+        {
+          error:
+            'No file received. Ensure the form field is named "file" and the request is multipart/form-data.',
+        },
+        { status: 400 },
+      );
     }
 
+    const mime = inferMime(file, kind);
+
     if (kind === "video") {
-      if (!VIDEO_TYPES.has(file.type)) {
+      if (!VIDEO_TYPES.has(mime)) {
         return NextResponse.json(
-          { error: "Video must be MP4, WebM, or MOV" },
+          { error: `Video must be MP4, WebM, or MOV (got ${mime || "unknown"})` },
           { status: 400 },
         );
       }
@@ -75,46 +126,100 @@ export async function POST(req: NextRequest) {
         );
       }
     } else {
-      if (!IMAGE_TYPES.has(file.type)) {
+      if (!IMAGE_TYPES.has(mime) && mime !== "image/jpg") {
         return NextResponse.json(
-          { error: "Image must be JPEG, PNG, WebP, or GIF" },
+          {
+            error: `Image must be JPEG, PNG, WebP, or GIF (got ${mime || "unknown type"})`,
+          },
           { status: 400 },
         );
       }
       if (file.size > MAX_IMAGE_BYTES) {
         return NextResponse.json(
-          { error: "Image must be 5MB or smaller" },
+          { error: "Image must be 4MB or smaller" },
           { status: 400 },
         );
       }
     }
 
+    const originalName =
+      file.name || `upload.${kind === "video" ? "mp4" : "jpg"}`;
     const ext =
-      file.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
+      originalName.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ||
       (kind === "video" ? "mp4" : "jpg");
 
-    const dir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      session!.user.id,
-    );
-    await mkdir(dir, { recursive: true });
-
     const filename = `${kind}-${randomUUID()}.${ext}`;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(dir, filename), buffer);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const userId = session!.user.id;
 
-    const url = `/uploads/${session!.user.id}/${filename}`;
+    console.info("[upload] received", {
+      kind,
+      mime,
+      size: file.size,
+      filename,
+      userId,
+      supabase: isSupabaseUploadEnabled(),
+    });
+
+    let url: string;
+    let keySource: string | undefined;
+
+    if (isSupabaseUploadEnabled()) {
+      const uploaded = await uploadToSupabaseStorage({
+        userId,
+        filename,
+        bytes,
+        contentType: mime,
+      });
+      url = uploaded.url;
+      keySource = uploaded.keySource;
+    } else {
+      const dir = path.join(process.cwd(), "public", "uploads", userId);
+      await mkdir(dir, { recursive: true });
+      await writeFile(path.join(dir, filename), Buffer.from(bytes));
+      url = `/uploads/${userId}/${filename}`;
+      keySource = "local";
+    }
+
     return NextResponse.json({
-      data: { url, kind, size: file.size },
+      data: { url, kind, size: file.size, contentType: mime, keySource },
       message: "Uploaded",
     });
   } catch (err) {
-    console.error("[upload]", err);
+    const formatted = formatUnknownError(err);
+    const storageErr = err as StorageUploadError;
+
+    console.error("[upload] failed", {
+      message: formatted.message,
+      statusCode: formatted.statusCode ?? storageErr.statusCode,
+      supabaseError: formatted.supabaseError ?? storageErr.supabaseError,
+      raw: formatted.raw ?? storageErr.raw ?? err,
+    });
+
+    const message =
+      err instanceof DatabaseError
+        ? err.message
+        : formatted.message || "Upload failed";
+
+    const isConfig =
+      /not configured|SUPABASE|bucket|Storage|service_role|permission|RLS|ANON_KEY|missing/i.test(
+        message,
+      );
+
     return NextResponse.json(
-      { error: "Upload failed" },
-      { status: 500 },
+      {
+        error: message,
+        details: {
+          statusCode: formatted.statusCode ?? storageErr.statusCode ?? null,
+          supabaseError:
+            formatted.supabaseError ?? storageErr.supabaseError ?? null,
+          // Helps diagnose without opening Vercel logs
+          hint: isConfig
+            ? "Check Vercel env vars and Supabase Storage bucket/policies for \"media\"."
+            : "See Vercel function logs for [upload] / [storage.upload] entries.",
+        },
+      },
+      { status: isConfig ? 503 : 500 },
     );
   }
 }

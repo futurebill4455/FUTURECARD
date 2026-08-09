@@ -13,15 +13,47 @@ async function uploadFile(
   maxSeconds?: number,
 ) {
   const body = new FormData();
-  body.append("file", file);
+  // Explicit filename helps some browsers/edge proxies retain File metadata
+  body.append("file", file, file.name || `upload.${kind === "video" ? "mp4" : "jpg"}`);
   body.append("kind", kind);
   if (duration !== undefined) body.append("duration", String(duration));
   if (maxSeconds !== undefined) body.append("maxSeconds", String(maxSeconds));
 
-  const res = await fetch("/api/upload", { method: "POST", body });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || "Upload failed");
-  return data.data.url as string;
+  const res = await fetch("/api/upload", {
+    method: "POST",
+    body,
+    credentials: "include",
+  });
+
+  let data: {
+    error?: string;
+    details?: { statusCode?: string | number | null; supabaseError?: string | null; hint?: string };
+    data?: { url?: string };
+    message?: string;
+  } = {};
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error(
+      res.status === 413
+        ? "File too large for the server limit"
+        : res.status === 401
+          ? "Please sign in again, then retry upload"
+          : `Upload failed (HTTP ${res.status})`,
+    );
+  }
+
+  if (!res.ok) {
+    const detail =
+      data.details?.supabaseError || data.details?.hint
+        ? ` (${[data.details?.supabaseError, data.details?.hint].filter(Boolean).join(" — ")})`
+        : "";
+    throw new Error((data.error || `Upload failed (HTTP ${res.status})`) + detail);
+  }
+  if (!data.data?.url) {
+    throw new Error("Upload succeeded but no URL returned");
+  }
+  return data.data.url;
 }
 
 function readVideoDuration(file: File): Promise<number> {
