@@ -19,7 +19,7 @@ import {
 } from "@/types/platform.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
-import { assertActiveBackgroundAnimationSlug } from "@/lib/background-animation-access";
+import { assertActiveBackgroundAnimationSlug, assertSlideshowImagesForAnimation } from "@/lib/background-animation-access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -100,6 +100,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: bg.error }, { status: 400 });
       }
       payload.backgroundAnimationSlug = bg.slug;
+
+      const slides = assertSlideshowImagesForAnimation({
+        animationType: bg.animationType,
+        slug: bg.slug,
+        images: validated.backgroundSlideshowImages,
+      });
+      if (!slides.ok) {
+        return NextResponse.json({ error: slides.error }, { status: 400 });
+      }
+      payload.backgroundSlideshowImages = slides.images;
 
       const card = await createCard(session!.user.id, payload);
 

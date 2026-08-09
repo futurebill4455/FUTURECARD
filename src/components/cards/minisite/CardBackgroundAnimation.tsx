@@ -1,26 +1,27 @@
 "use client";
 
-import { useMemo } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import {
+  AnimatePresence,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
   FALLBACK_BACKGROUND_ANIMATION_SLUG,
+  isSlideshowAnimation,
   type BackgroundAnimationSlug,
 } from "@/types/background-animation.types";
 
 function Particles({ accent }: { accent: string }) {
-  const dots = useMemo(
-    () =>
-      Array.from({ length: 28 }, (_, i) => ({
-        id: i,
-        left: `${(i * 37) % 100}%`,
-        top: `${(i * 53) % 100}%`,
-        size: 2 + (i % 4),
-        delay: (i % 8) * 0.35,
-        duration: 5 + (i % 6),
-      })),
-    [],
-  );
+  const dots = Array.from({ length: 28 }, (_, i) => ({
+    id: i,
+    left: `${(i * 37) % 100}%`,
+    top: `${(i * 53) % 100}%`,
+    size: 2 + (i % 4),
+    delay: (i % 8) * 0.35,
+    duration: 5 + (i % 6),
+  }));
 
   return (
     <>
@@ -118,22 +119,114 @@ function Geometric({ accent }: { accent: string }) {
   );
 }
 
+function PhotoSlideshow({
+  images,
+  accent,
+  reduceMotion,
+}: {
+  images: string[];
+  accent: string;
+  reduceMotion: boolean | null;
+}) {
+  const slides = images.filter(Boolean).slice(0, 5);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion || slides.length < 2) return;
+    const id = window.setInterval(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, 5600);
+    return () => window.clearInterval(id);
+  }, [reduceMotion, slides.length]);
+
+  if (!slides.length) {
+    return (
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse 70% 45% at 50% -5%, ${accent}22, transparent 55%), #020617`,
+        }}
+      />
+    );
+  }
+
+  return (
+    <>
+      <AnimatePresence mode="sync">
+        {slides.map((src, i) =>
+          i === index ? (
+            <motion.img
+              key={`${src}-${i}-${index}`}
+              src={src}
+              alt=""
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={
+                reduceMotion
+                  ? { opacity: 1, scale: 1 }
+                  : { opacity: 1, scale: 1.18 }
+              }
+              exit={{ opacity: 0 }}
+              transition={{
+                opacity: { duration: 1.35, ease: [0.22, 1, 0.36, 1] },
+                scale: {
+                  duration: reduceMotion ? 0.6 : 7.2,
+                  ease: "linear",
+                },
+              }}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : null,
+        )}
+      </AnimatePresence>
+      {/* Cinematic grade so content stays readable */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            linear-gradient(180deg, rgba(2,6,23,0.45) 0%, rgba(2,6,23,0.62) 50%, rgba(2,6,23,0.82) 100%),
+            radial-gradient(ellipse 80% 50% at 50% -10%, ${accent}33, transparent 55%)
+          `,
+        }}
+      />
+    </>
+  );
+}
+
 /**
  * Card-level background animation layer for the public mini-site.
- * Renders on top of the dark base / platform ambient.
  */
 export function CardBackgroundAnimation({
   slug,
   accent = "#22d3ee",
+  slideshowImages = [],
   className,
 }: {
   slug?: string | null;
   accent?: string;
+  slideshowImages?: string[];
   className?: string;
 }) {
   const reduceMotion = useReducedMotion();
   const design = (slug ||
     FALLBACK_BACKGROUND_ANIMATION_SLUG) as BackgroundAnimationSlug | string;
+
+  if (isSlideshowAnimation(design)) {
+    return (
+      <div
+        className={cn(
+          "pointer-events-none absolute inset-0 overflow-hidden",
+          className,
+        )}
+        aria-hidden
+      >
+        <PhotoSlideshow
+          images={slideshowImages}
+          accent={accent}
+          reduceMotion={reduceMotion}
+        />
+      </div>
+    );
+  }
 
   if (design === "design_d_none" || reduceMotion) {
     return (

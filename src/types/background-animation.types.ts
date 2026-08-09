@@ -5,10 +5,13 @@ export const BACKGROUND_ANIMATION_SLUGS = [
   "design_b_waves",
   "design_c_geometric",
   "design_d_none",
+  "design_e_slideshow",
 ] as const;
 
 export type BackgroundAnimationSlug =
   (typeof BACKGROUND_ANIMATION_SLUGS)[number];
+
+export type BackgroundAnimationType = "effect" | "slideshow";
 
 export interface IBackgroundAnimation {
   _id: string;
@@ -16,6 +19,7 @@ export interface IBackgroundAnimation {
   name: string;
   description: string;
   thumbnailUrl: string;
+  animationType: BackgroundAnimationType;
   isActive: boolean;
   isDefault: boolean;
   sortOrder: number;
@@ -26,6 +30,11 @@ export interface IBackgroundAnimation {
 export const FALLBACK_BACKGROUND_ANIMATION_SLUG: BackgroundAnimationSlug =
   "design_a_particles";
 
+export const SLIDESHOW_ANIMATION_SLUG = "design_e_slideshow";
+
+export const SLIDESHOW_IMAGES_MIN = 2;
+export const SLIDESHOW_IMAGES_MAX = 5;
+
 export function isKnownAnimationSlug(
   slug?: string | null,
 ): slug is BackgroundAnimationSlug {
@@ -33,6 +42,18 @@ export function isKnownAnimationSlug(
     slug &&
       (BACKGROUND_ANIMATION_SLUGS as readonly string[]).includes(slug),
   );
+}
+
+export function isSlideshowAnimation(
+  slug?: string | null,
+  catalog?: IBackgroundAnimation[],
+): boolean {
+  if (!slug) return false;
+  if (catalog?.length) {
+    const match = catalog.find((d) => d.slug === slug);
+    if (match) return match.animationType === "slideshow";
+  }
+  return slug === SLIDESHOW_ANIMATION_SLUG;
 }
 
 /**

@@ -89,11 +89,18 @@ export function BackgroundAnimationPicker({
             <div className="px-3 py-2">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-sm font-semibold">{opt.name}</span>
-                {opt.isDefault ? (
-                  <span className="text-[9px] font-bold uppercase tracking-wide text-teal-300/80">
-                    Default
-                  </span>
-                ) : null}
+                <span className="flex items-center gap-1.5">
+                  {opt.animationType === "slideshow" ? (
+                    <span className="text-[9px] font-bold uppercase tracking-wide text-violet-300/90">
+                      Photos
+                    </span>
+                  ) : null}
+                  {opt.isDefault ? (
+                    <span className="text-[9px] font-bold uppercase tracking-wide text-teal-300/80">
+                      Default
+                    </span>
+                  ) : null}
+                </span>
               </div>
               <p className="mt-0.5 line-clamp-2 text-[11px] text-muted-foreground">
                 {opt.description}

@@ -11,7 +11,7 @@ import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
 import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
-import { assertActiveBackgroundAnimationSlug } from "@/lib/background-animation-access";
+import { assertActiveBackgroundAnimationSlug, assertSlideshowImagesForAnimation } from "@/lib/background-animation-access";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -62,6 +62,13 @@ export async function PUT(req: NextRequest, { params }: Params) {
         );
       }
 
+      let resolvedAnimationType:
+        | "effect"
+        | "slideshow"
+        | null
+        | undefined = undefined;
+      let resolvedSlug = existing.backgroundAnimationSlug || null;
+
       if (validated.backgroundAnimationSlug !== undefined) {
         const bg = await assertActiveBackgroundAnimationSlug(
           validated.backgroundAnimationSlug,
@@ -70,6 +77,29 @@ export async function PUT(req: NextRequest, { params }: Params) {
           return NextResponse.json({ error: bg.error }, { status: 400 });
         }
         payload.backgroundAnimationSlug = bg.slug;
+        resolvedSlug = bg.slug;
+        resolvedAnimationType = bg.animationType;
+      }
+
+      if (
+        validated.backgroundSlideshowImages !== undefined ||
+        validated.backgroundAnimationSlug !== undefined
+      ) {
+        if (resolvedAnimationType === undefined && resolvedSlug) {
+          const bg = await assertActiveBackgroundAnimationSlug(resolvedSlug);
+          if (bg.ok) resolvedAnimationType = bg.animationType;
+        }
+        const slides = assertSlideshowImagesForAnimation({
+          animationType: resolvedAnimationType ?? null,
+          slug: resolvedSlug,
+          images:
+            validated.backgroundSlideshowImages ??
+            existing.backgroundSlideshowImages,
+        });
+        if (!slides.ok) {
+          return NextResponse.json({ error: slides.error }, { status: 400 });
+        }
+        payload.backgroundSlideshowImages = slides.images;
       }
 
       const card = await updateCard(cardId, payload, {

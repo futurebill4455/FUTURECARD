@@ -81,6 +81,7 @@ export type CardRow = {
   profile_type?: string | null;
   features_enabled?: Record<string, boolean> | null;
   background_animation_slug?: string | null;
+  background_slideshow_images?: string[] | null;
   created_at: string;
   updated_at: string;
 };
@@ -221,6 +222,11 @@ export function mapCard(row: CardRow): ICard {
     profileType: resolveCardProfileType(row.profile_type),
     featuresEnabled: resolveCardSections(row.features_enabled),
     backgroundAnimationSlug: row.background_animation_slug || undefined,
+    backgroundSlideshowImages: Array.isArray(row.background_slideshow_images)
+      ? row.background_slideshow_images.filter(
+          (v): v is string => typeof v === "string" && Boolean(v),
+        )
+      : [],
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -318,6 +324,7 @@ export function cardPayloadToRow(
     profileType: "profile_type",
     featuresEnabled: "features_enabled",
     backgroundAnimationSlug: "background_animation_slug",
+    backgroundSlideshowImages: "background_slideshow_images",
   };
 
   for (const [camel, snake] of Object.entries(map)) {

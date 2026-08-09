@@ -263,6 +263,7 @@ function MiniSiteShellInner({
           <CardBackgroundAnimation
             slug={card.backgroundAnimationSlug}
             accent={accent}
+            slideshowImages={card.backgroundSlideshowImages}
           />
         </>
       ) : (

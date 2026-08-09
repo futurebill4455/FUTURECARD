@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="180" viewBox="0 0 320 180" fill="none">
+  <rect width="320" height="180" rx="16" fill="#020617"/>
+  <rect x="28" y="28" width="120" height="80" rx="8" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+  <rect x="100" y="40" width="120" height="80" rx="8" fill="#0f172a" stroke="#8b5cf6" stroke-width="1.5" opacity="0.75"/>
+  <rect x="172" y="52" width="120" height="80" rx="8" fill="#0f172a" stroke="#67e8f9" stroke-width="1.5" opacity="0.55"/>
+  <circle cx="58" cy="52" r="8" fill="#38bdf8" opacity="0.5"/>
+  <path d="M40 92 L70 68 L90 84 L110 60 L140 92 Z" fill="#22d3ee" opacity="0.35"/>
+  <text x="24" y="160" fill="#94a3b8" font-family="system-ui,sans-serif" font-size="14" font-weight="600">Slideshow</text>
+</svg>

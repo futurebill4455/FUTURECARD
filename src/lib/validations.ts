@@ -379,6 +379,10 @@ export const cardSchema = z.object({
     .max(64)
     .optional()
     .or(z.literal("")),
+  backgroundSlideshowImages: z
+    .array(z.string().min(1).max(800))
+    .max(5)
+    .optional(),
 });
 
 export const subscriptionUpdateSchema = z.object({

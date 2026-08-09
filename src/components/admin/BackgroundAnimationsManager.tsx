@@ -76,9 +76,14 @@ export function BackgroundAnimationsManager({
                 alt=""
                 className="h-full w-full object-cover"
               />
-              {item.isDefault ? (
+                {item.isDefault ? (
                 <span className="absolute left-2 top-2 rounded-full border border-teal-400/40 bg-teal-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal-100">
                   Default
+                </span>
+              ) : null}
+              {item.animationType === "slideshow" ? (
+                <span className="absolute right-2 top-2 rounded-full border border-violet-400/40 bg-violet-400/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-violet-100">
+                  Slideshow
                 </span>
               ) : null}
             </div>

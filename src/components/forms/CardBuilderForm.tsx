@@ -49,6 +49,12 @@ import {
   type IUserFeatures,
 } from "@/types/platform.types";
 import {
+  SLIDESHOW_ANIMATION_SLUG,
+  SLIDESHOW_IMAGES_MAX,
+  SLIDESHOW_IMAGES_MIN,
+  isSlideshowAnimation,
+} from "@/types/background-animation.types";
+import {
   DEFAULT_CARD_SECTIONS,
   resolveCardSections,
   type ICardSections,
@@ -78,6 +84,9 @@ export function CardBuilderForm({
   );
   const [backgroundAnimationSlug, setBackgroundAnimationSlug] = useState(
     initial?.backgroundAnimationSlug || "",
+  );
+  const [slideshowImages, setSlideshowImages] = useState<string[]>(
+    () => initial?.backgroundSlideshowImages?.filter(Boolean) ?? [],
   );
   const [form, setForm] = useState({
     username: initial?.username ?? "",
@@ -189,6 +198,7 @@ export function CardBuilderForm({
     template: "classic",
     featuresEnabled,
     backgroundAnimationSlug: backgroundAnimationSlug || undefined,
+    backgroundSlideshowImages: slideshowImages,
     createdAt: initial?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -205,6 +215,16 @@ export function CardBuilderForm({
     }
     if (mediaType === "video" && !bgVideo) {
       setError("Please upload a background video (max 15 seconds).");
+      setSaving(false);
+      return;
+    }
+    if (
+      isSlideshowAnimation(backgroundAnimationSlug) &&
+      slideshowImages.filter(Boolean).length < SLIDESHOW_IMAGES_MIN
+    ) {
+      setError(
+        `Photo Slideshow requires at least ${SLIDESHOW_IMAGES_MIN} images.`,
+      );
       setSaving(false);
       return;
     }
@@ -270,6 +290,7 @@ export function CardBuilderForm({
         isActive: form.isActive,
         featuresEnabled,
         backgroundAnimationSlug: backgroundAnimationSlug || undefined,
+        backgroundSlideshowImages: slideshowImages,
       };
 
       if (mode === "create") {
@@ -322,6 +343,26 @@ export function CardBuilderForm({
             value={backgroundAnimationSlug}
             onChange={setBackgroundAnimationSlug}
           />
+          {isSlideshowAnimation(backgroundAnimationSlug) ||
+          backgroundAnimationSlug === SLIDESHOW_ANIMATION_SLUG ? (
+            <div className="mt-4 rounded-xl border border-white/10 bg-muted/20 p-3">
+              <BackgroundImagesUpload
+                images={slideshowImages}
+                onChange={setSlideshowImages}
+                max={SLIDESHOW_IMAGES_MAX}
+                minHint={SLIDESHOW_IMAGES_MIN}
+                title="Slideshow photos"
+                hint={`Upload ${SLIDESHOW_IMAGES_MIN}–${SLIDESHOW_IMAGES_MAX} photos. They cross-fade with a soft Ken Burns zoom on your public mini-site.`}
+              />
+              {slideshowImages.length > 0 &&
+              slideshowImages.length < SLIDESHOW_IMAGES_MIN ? (
+                <p className="mt-2 text-xs text-amber-300">
+                  Add at least {SLIDESHOW_IMAGES_MIN} photos to use Photo
+                  Slideshow.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
         </Section>
 
         <Section title="Theme colors">

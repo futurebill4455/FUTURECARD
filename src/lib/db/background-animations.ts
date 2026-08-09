@@ -8,6 +8,7 @@ type Row = {
   name: string;
   description: string | null;
   thumbnail_url: string | null;
+  animation_type?: string | null;
   is_active: boolean;
   is_default: boolean;
   sort_order: number;
@@ -26,6 +27,8 @@ function mapRow(row: Row): IBackgroundAnimation {
     name: row.name,
     description: row.description || "",
     thumbnailUrl: row.thumbnail_url || "",
+    animationType:
+      row.animation_type === "slideshow" ? "slideshow" : "effect",
     isActive: row.is_active,
     isDefault: row.is_default,
     sortOrder: row.sort_order,

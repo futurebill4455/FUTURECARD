@@ -208,6 +208,8 @@ export interface ICard {
    * (e.g. design_a_particles).
    */
   backgroundAnimationSlug?: string;
+  /** 2–5 images for Photo Slideshow background (mini-site) */
+  backgroundSlideshowImages?: string[];
   createdAt: string;
   updatedAt: string;
 }
