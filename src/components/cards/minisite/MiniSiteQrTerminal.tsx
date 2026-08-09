@@ -1,0 +1,86 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { absoluteUrl } from "@/lib/utils";
+import type { ICard } from "@/types/card.types";
+
+export function MiniSiteQrTerminal({
+  card,
+  accent,
+  onSave,
+  onShare,
+}: {
+  card: ICard;
+  accent: string;
+  onSave: () => void;
+  onShare: () => void;
+}) {
+  const url = absoluteUrl(`/c/${card.username}`);
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}`;
+
+  return (
+    <section className="px-4 py-12 sm:px-6">
+      <div className="relative mx-auto max-w-lg overflow-hidden rounded-[2rem] border border-cyan-400/25 bg-gradient-to-b from-slate-950 via-[#041018] to-slate-950 p-6 shadow-glow-lg sm:p-8">
+        <div className="pointer-events-none absolute inset-0 ambient-grid opacity-50" />
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full blur-3xl"
+          style={{ backgroundColor: `${accent}33` }}
+          animate={{ opacity: [0.35, 0.6, 0.35] }}
+          transition={{ duration: 5, repeat: Infinity }}
+        />
+
+        <p className="relative text-center font-mono text-[10px] font-semibold uppercase tracking-[0.32em] text-cyan-300/70">
+          Digital identity terminal
+        </p>
+        <h2 className="relative mt-2 text-center font-display text-2xl font-bold tracking-tight text-slate-50 sm:text-3xl">
+          Scan to connect
+        </h2>
+
+        <div className="relative mx-auto mt-7 w-fit rounded-[1.35rem] bg-gradient-to-br from-cyan-400/40 via-violet-400/20 to-transparent p-[2px] fx-pulse-glow">
+          <div className="rounded-[1.25rem] bg-white p-3">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qrSrc}
+              alt={`QR code for ${card.companyName || "profile"}`}
+              className="h-44 w-44 rounded-xl sm:h-52 sm:w-52"
+              loading="lazy"
+            />
+          </div>
+        </div>
+
+        <p className="relative mt-4 break-all text-center font-mono text-[10px] text-slate-500">
+          {url}
+        </p>
+
+        <div className="relative mt-5 flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-400/25 bg-cyan-400/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-cyan-200">
+            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-cyan-300" />
+            NFC Enabled
+          </span>
+        </div>
+
+        <div className="relative mt-6 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onSave}
+            className="rounded-2xl px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide text-slate-950"
+            style={{
+              background: `linear-gradient(145deg, ${accent}, ${accent}cc)`,
+              boxShadow: `0 10px 28px ${accent}40`,
+            }}
+          >
+            Save Contact
+          </button>
+          <button
+            type="button"
+            onClick={onShare}
+            className="rounded-2xl border border-white/15 bg-white/[0.05] px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide text-slate-100 transition hover:bg-white/10"
+          >
+            Share Profile
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}

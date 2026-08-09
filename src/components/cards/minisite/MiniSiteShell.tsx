@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import type { ICard, IServiceItem } from "@/types/card.types";
 import type { IAnalyticsSummary } from "@/types/analytics.types";
@@ -12,25 +12,47 @@ import {
 } from "@/lib/action-buttons";
 import { downloadVCard, generateVCard } from "@/lib/vcard-generator";
 import { resolveTheme, tintColor } from "@/lib/theme";
-import { absoluteUrl } from "@/lib/utils";
+import { absoluteUrl, cn } from "@/lib/utils";
 import { MiniSiteNav } from "./MiniSiteNav";
 import { MiniSiteHero } from "./MiniSiteHero";
 import { MiniSiteIdentityCard } from "./MiniSiteIdentityCard";
 import { MiniSiteServices } from "./MiniSiteServices";
+import { MiniSiteStats } from "./MiniSiteStats";
+import { MiniSiteWhyChoose } from "./MiniSiteWhyChoose";
+import { MiniSiteTestimonials } from "./MiniSiteTestimonials";
+import { MiniSiteQrTerminal } from "./MiniSiteQrTerminal";
+import { MiniSiteFeatures } from "./MiniSiteFeatures";
+import { MiniSiteFinalCta } from "./MiniSiteFinalCta";
+import {
+  MiniSiteThemeProvider,
+  MiniSiteThemeToggle,
+  useMiniSiteTheme,
+} from "./MiniSiteTheme";
 import { ActionIconGrid } from "@/components/cards/ActionIconGrid";
 import { BusinessHoursBadge } from "@/components/cards/BusinessHoursBadge";
 import { ImageGallery } from "@/components/cards/ImageGallery";
 import { VideoGallery } from "@/components/cards/VideoGallery";
-import {
-  ServiceDetailModal,
-} from "@/components/cards/ServicesSection";
+import { ServiceDetailModal } from "@/components/cards/ServicesSection";
 import { hasPaymentDetails, PayNowModal } from "@/components/cards/PayNowModal";
 import { CardPromoFooter } from "@/components/cards/CardPromoFooter";
 import { CompactAboutUs } from "@/components/cards/CompanyDetails";
 import { ImmersiveBackground } from "@/components/shared/ImmersiveBackground";
 import { PLATFORM_BRAND } from "@/lib/service-categories";
 
-export function MiniSiteShell({
+export function MiniSiteShell(props: {
+  card: ICard;
+  analytics?: IAnalyticsSummary;
+  platformSettings?: IPlatformSettings;
+  features?: IUserFeatures;
+}) {
+  return (
+    <MiniSiteThemeProvider>
+      <MiniSiteShellInner {...props} />
+    </MiniSiteThemeProvider>
+  );
+}
+
+function MiniSiteShellInner({
   card,
   analytics,
   platformSettings,
@@ -41,19 +63,21 @@ export function MiniSiteShell({
   platformSettings?: IPlatformSettings;
   features?: IUserFeatures;
 }) {
+  const { mode } = useMiniSiteTheme();
   const theme = resolveTheme(card);
   const accent = theme.buttonColor || "#22d3ee";
   const soft = tintColor(accent, 0.88);
-  const servicesRef = useRef<HTMLDivElement>(null);
   const [selectedService, setSelectedService] = useState<IServiceItem | null>(
     null,
   );
   const [payOpen, setPayOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
+  const [toast, setToast] = useState("");
 
   const ambientMode = platformSettings?.ambientMode || "gradient";
   const ambientVideo = platformSettings?.ambientVideo || "";
   const ambientImages = platformSettings?.ambientImages || [];
+  const isLight = mode === "light";
 
   const ctas = useMemo(
     () =>
@@ -84,6 +108,11 @@ export function MiniSiteShell({
     [card, features],
   );
 
+  function showToast(msg: string) {
+    setToast(msg);
+    window.setTimeout(() => setToast(""), 2600);
+  }
+
   async function trackEvent(eventType: string, eventDetail?: string) {
     try {
       await fetch(`/api/analytics/${card._id}`, {
@@ -99,16 +128,21 @@ export function MiniSiteShell({
   async function onShare() {
     const url = absoluteUrl(`/c/${card.username}`);
     void trackEvent("share");
-    if (navigator.share) {
-      await navigator.share({
-        title: card.companyName,
-        text: card.jobTitle,
-        url,
-      });
-      return;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: card.companyName,
+          text: card.jobTitle,
+          url,
+        });
+        showToast("Shared successfully");
+        return;
+      }
+      await navigator.clipboard.writeText(url);
+      showToast("Link copied to clipboard");
+    } catch {
+      showToast("Share cancelled");
     }
-    await navigator.clipboard.writeText(url);
-    window.alert("Link copied");
   }
 
   function handleCta(id: string) {
@@ -116,12 +150,13 @@ export function MiniSiteShell({
     if (id === "save") {
       downloadVCard(card.username, generateVCard(card));
       void trackEvent("save_contact");
+      showToast("Contact saved");
       return;
     }
     if (id === "services") {
       const list = card.services?.filter((s) => s.title.trim()) ?? [];
       if (!list.length) {
-        window.alert("No services have been added yet.");
+        showToast("No services added yet");
         return;
       }
       if (list.length === 1) {
@@ -139,9 +174,7 @@ export function MiniSiteShell({
         card.extraLinks?.bookNow ||
         "";
       if (!url) {
-        window.alert(
-          "Book Appointment link is not set. Add it under Buttons & Links → Book Now.",
-        );
+        showToast("Book link not configured");
         return;
       }
       window.open(url, "_blank", "noopener,noreferrer");
@@ -149,27 +182,71 @@ export function MiniSiteShell({
     }
     if (id === "pay") {
       if (!hasPaymentDetails(card.paymentInfo)) {
-        window.alert(
-          "Payment details have not been set up yet. Please add a QR code or UPI ID in the dashboard.",
-        );
+        showToast("Payment details not set up");
         return;
       }
       setPayOpen(true);
     }
   }
 
+  function openWhatsApp() {
+    const n = (card.whatsappNumber || card.phone || "").replace(/\D/g, "");
+    if (!n) return;
+    void trackEvent("action", "whatsapp");
+    window.open(`https://wa.me/${n}`, "_blank");
+  }
+
+  function openCall() {
+    if (!card.phone) return;
+    void trackEvent("action", "call");
+    window.location.href = `tel:${card.phone}`;
+  }
+
   const publicUrl = absoluteUrl(`/c/${card.username}`);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
 
+  const cssVars = {
+    ["--ms-accent" as string]: accent,
+    ["--ms-bg" as string]: isLight ? "#f4f8fb" : "#020617",
+    ["--ms-surface" as string]: isLight
+      ? "rgba(255,255,255,0.72)"
+      : "rgba(255,255,255,0.03)",
+    ["--ms-text" as string]: isLight ? "#0f172a" : "#f8fafc",
+    ["--ms-muted" as string]: isLight ? "#64748b" : "#94a3b8",
+  };
+
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#020617] pb-24 text-slate-50 md:pb-10">
-      <ImmersiveBackground
-        mode={ambientMode}
-        video={ambientVideo}
-        images={ambientImages}
-        accent={accent}
-        intensity={0.78}
-      />
+    <div
+      className={cn(
+        "relative min-h-screen overflow-x-hidden pb-24 md:pb-10",
+        isLight ? "minisite-light text-slate-900" : "bg-[#020617] text-slate-50",
+      )}
+      style={cssVars}
+    >
+      {!isLight ? (
+        <ImmersiveBackground
+          mode={ambientMode}
+          video={ambientVideo}
+          images={ambientImages}
+          accent={accent}
+          intensity={0.78}
+        />
+      ) : (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(34,211,238,0.18), transparent 50%), linear-gradient(180deg,#eef7fb,#f8fafc 40%,#eef2f7)",
+          }}
+          aria-hidden
+        />
+      )}
+
+      <div className="pointer-events-none fixed right-3 top-3 z-50 md:right-6 md:top-5">
+        <div className="pointer-events-auto">
+          <MiniSiteThemeToggle />
+        </div>
+      </div>
 
       <MiniSiteNav />
 
@@ -187,25 +264,9 @@ export function MiniSiteShell({
           accent={accent}
           onSave={() => handleCta("save")}
           onShare={() => void onShare()}
-          onCall={
-            card.phone
-              ? () => {
-                  void trackEvent("action", "call");
-                  window.location.href = `tel:${card.phone}`;
-                }
-              : undefined
-          }
+          onCall={card.phone ? openCall : undefined}
           onWhatsApp={
-            card.whatsappNumber || card.phone
-              ? () => {
-                  void trackEvent("action", "whatsapp");
-                  const n = (card.whatsappNumber || card.phone || "").replace(
-                    /\D/g,
-                    "",
-                  );
-                  window.open(`https://wa.me/${n}`, "_blank");
-                }
-              : undefined
+            card.whatsappNumber || card.phone ? openWhatsApp : undefined
           }
           onQr={() => {
             void trackEvent("action", "qr_code");
@@ -213,16 +274,16 @@ export function MiniSiteShell({
           }}
         />
 
-        {/* About / profile deep dive */}
         {(card.aboutUs?.trim() || card.gstNumber || card.businessCategory) && (
-          <section className="mx-auto max-w-2xl scroll-mt-24 px-4 py-6 sm:px-6">
+          <section
+            id="profile-about"
+            className="mx-auto max-w-2xl scroll-mt-24 px-4 py-6 sm:px-6"
+          >
             <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-xl sm:p-6">
               <p className="font-mono text-[10px] uppercase tracking-[0.24em] text-cyan-300/55">
                 Profile
               </p>
-              <h2 className="mt-1 font-display text-xl font-bold text-slate-50">
-                About
-              </h2>
+              <h2 className="mt-1 font-display text-xl font-bold">About</h2>
               {card.businessCategory || card.businessType ? (
                 <p className="mt-2 text-sm text-cyan-100/65">
                   {[card.businessCategory, card.businessType]
@@ -232,8 +293,7 @@ export function MiniSiteShell({
               ) : null}
               {card.gstNumber ? (
                 <p className="mt-2 font-mono text-xs text-slate-400">
-                  GST:{" "}
-                  <span className="text-slate-200">{card.gstNumber}</span>
+                  GST: <span className="text-slate-200">{card.gstNumber}</span>
                 </p>
               ) : null}
               <CompactAboutUs
@@ -248,32 +308,30 @@ export function MiniSiteShell({
           </section>
         )}
 
-        <div ref={servicesRef}>
-          <MiniSiteServices
-            card={card}
-            accent={accent}
-            onSelect={(svc) => {
-              setSelectedService(svc);
-              void trackEvent("action", `service_view_${svc.id}`);
-            }}
-          />
-        </div>
+        <MiniSiteStats accent={accent} />
 
-        {/* Portfolio */}
+        <MiniSiteServices
+          card={card}
+          accent={accent}
+          onSelect={(svc) => {
+            setSelectedService(svc);
+            void trackEvent("action", `service_view_${svc.id}`);
+          }}
+        />
+
+        <MiniSiteWhyChoose accent={accent} />
+
         {(card.galleryImages?.length || card.galleryVideos?.length) ? (
           <section id="portfolio" className="scroll-mt-24 px-4 py-10 sm:px-6">
             <div className="mx-auto max-w-4xl">
               <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
                 Portfolio
               </p>
-              <h2 className="mt-2 text-center font-display text-2xl font-bold text-slate-50">
+              <h2 className="mt-2 text-center font-display text-2xl font-bold">
                 Work & media
               </h2>
               <div className="mt-6 space-y-6 rounded-3xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl sm:p-6">
-                <ImageGallery
-                  images={card.galleryImages}
-                  accent={accent}
-                />
+                <ImageGallery images={card.galleryImages} accent={accent} />
                 <VideoGallery videos={card.galleryVideos} accent={accent} />
               </div>
             </div>
@@ -282,65 +340,25 @@ export function MiniSiteShell({
           <div id="portfolio" className="h-0 scroll-mt-24" aria-hidden />
         )}
 
-        {/* Reviews placeholder — deep-links into Connect Review action when present */}
-        <section id="reviews" className="scroll-mt-24 px-4 py-10 sm:px-6">
-          <div className="mx-auto max-w-2xl rounded-3xl border border-white/10 bg-white/[0.03] p-6 text-center backdrop-blur-xl sm:p-8">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
-              Social proof
-            </p>
-            <h2 className="mt-2 font-display text-2xl font-bold text-slate-50">
-              Reviews & trust
-            </h2>
-            <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-slate-400">
-              Trusted professionals build lasting relationships. Leave a review
-              or open public ratings linked to this profile.
-            </p>
-            <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-              {[1, 2, 3, 4, 5].map((n) => (
-                <span
-                  key={n}
-                  className="text-lg text-cyan-300/80"
-                  aria-hidden
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="mt-6 inline-flex rounded-2xl border border-cyan-400/30 bg-cyan-400/10 px-5 py-2.5 text-xs font-bold uppercase tracking-wide text-cyan-100 transition hover:bg-cyan-400/20"
-              onClick={() => {
-                const review = resolveActionButtons(card).find(
-                  (b) => b.key === "review" && b.enabled && b.value?.trim(),
-                );
-                if (review?.value) {
-                  void trackEvent("action", "review");
-                  window.open(review.value, "_blank", "noopener,noreferrer");
-                  return;
-                }
-                document
-                  .getElementById("connect")
-                  ?.scrollIntoView({ behavior: "smooth" });
-              }}
-            >
-              Open reviews
-            </button>
-          </div>
-        </section>
+        <MiniSiteTestimonials accent={accent} />
 
-        {/* Connect */}
+        <MiniSiteQrTerminal
+          card={card}
+          accent={accent}
+          onSave={() => handleCta("save")}
+          onShare={() => void onShare()}
+        />
+
+        <MiniSiteFeatures accent={accent} />
+
         <section id="connect" className="scroll-mt-24 px-4 py-10 sm:px-6">
           <div className="mx-auto max-w-3xl">
             <p className="text-center font-mono text-[10px] font-semibold uppercase tracking-[0.28em] text-cyan-300/55">
               Connect with me
             </p>
-            <h2 className="mt-2 text-center font-display text-2xl font-bold text-slate-50 sm:text-3xl">
+            <h2 className="mt-2 text-center font-display text-2xl font-bold sm:text-3xl">
               One tap to reach out
             </h2>
-            <p className="mx-auto mt-2 max-w-md text-center text-sm text-slate-400">
-              Premium glass actions for call, WhatsApp, social, bank, QR, and more.
-            </p>
-
             <div className="mt-8 rounded-3xl border border-white/10 bg-gradient-to-b from-white/[0.06] to-white/[0.02] p-5 shadow-panel backdrop-blur-xl sm:p-7">
               <ActionIconGrid
                 card={card}
@@ -382,23 +400,46 @@ export function MiniSiteShell({
                 ))}
               </div>
             ) : null}
-
-            <div className="mt-8">
-              {platformSettings ? (
-                <CardPromoFooter
-                  settings={platformSettings}
-                  accent={accent}
-                  onTrack={() => void trackEvent("click", "referral_whatsapp")}
-                />
-              ) : (
-                <p className="text-center text-xs text-slate-500">
-                  Verified by {PLATFORM_BRAND}
-                </p>
-              )}
-            </div>
           </div>
         </section>
+
+        <MiniSiteFinalCta
+          accent={accent}
+          name={card.companyName || ""}
+          onConnect={() =>
+            document
+              .getElementById("connect")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
+          onWhatsApp={
+            card.whatsappNumber || card.phone ? openWhatsApp : undefined
+          }
+          onCall={card.phone ? openCall : undefined}
+          hasWhatsApp={Boolean(card.whatsappNumber || card.phone)}
+          hasCall={Boolean(card.phone)}
+        />
+
+        <footer className="border-t border-white/5 px-4 py-8 text-center">
+          {platformSettings ? (
+            <CardPromoFooter
+              settings={platformSettings}
+              accent={accent}
+              onTrack={() => void trackEvent("click", "referral_whatsapp")}
+            />
+          ) : (
+            <p className="text-xs text-slate-500">Verified by {PLATFORM_BRAND}</p>
+          )}
+        </footer>
       </div>
+
+      {toast ? (
+        <div
+          role="status"
+          className="fixed bottom-20 left-1/2 z-[60] -translate-x-1/2 rounded-full border border-cyan-400/30 bg-slate-950/90 px-4 py-2 text-xs font-semibold text-cyan-50 shadow-glow backdrop-blur-xl md:bottom-6"
+        >
+          {toast}
+        </div>
+      ) : null}
 
       {selectedService ? (
         <ServiceDetailModal

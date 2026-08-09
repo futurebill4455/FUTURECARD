@@ -108,6 +108,7 @@ export function ActionIconGrid({
               <motion.span
                 whileHover={{ scale: 1.1, y: -3 }}
                 whileTap={{ scale: 0.94 }}
+                title={meta.label}
                 className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-[1.35rem] border border-white/20 shadow-lg backdrop-blur-md transition"
                 style={{
                   background: `linear-gradient(145deg, ${meta.softFg}33, rgba(2,6,23,0.55) 55%, ${meta.softFg}22)`,

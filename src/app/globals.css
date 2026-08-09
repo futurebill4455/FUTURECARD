@@ -219,3 +219,34 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(45, 212, 191, 0.45);
 }
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Mini-site light mode surface tweaks */
+.minisite-light .text-slate-50,
+.minisite-light .text-cyan-50 {
+  color: #0f172a;
+}
+.minisite-light .text-slate-400,
+.minisite-light .text-slate-500,
+.minisite-light .text-cyan-300\/55,
+.minisite-light .text-cyan-100\/65 {
+  color: #64748b;
+}
+.minisite-light .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.1);
+}
+.minisite-light .bg-white\/\[0\.03\],
+.minisite-light .bg-white\/\[0\.04\],
+.minisite-light .bg-white\/\[0\.05\] {
+  background-color: rgba(255, 255, 255, 0.85);
+}
