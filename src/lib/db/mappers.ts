@@ -7,6 +7,7 @@ import {
   DEFAULT_USER_FEATURES,
   DEFAULT_USER_LIMITS,
   resolveFeatures,
+  resolveMaxCardsLimit,
 } from "@/types/platform.types";
 import {
   DEFAULT_BANK_DETAILS,
@@ -27,6 +28,7 @@ export type UserRow = {
   is_active: boolean;
   features: Record<string, boolean> | null;
   card_sections?: Record<string, boolean> | null;
+  max_cards_limit?: number | null;
   limits: Record<string, number> | null;
   created_at: string;
   updated_at: string;
@@ -110,6 +112,10 @@ export function mapUser(
   row: UserRow,
   opts?: { includePassword?: boolean },
 ): IUser {
+  const maxCardsLimit = resolveMaxCardsLimit({
+    maxCardsLimit: row.max_cards_limit,
+    limits: row.limits as { maxCards?: number } | null,
+  });
   const user: IUser = {
     _id: row.id,
     name: row.name,
@@ -119,8 +125,9 @@ export function mapUser(
     isActive: row.is_active,
     features: resolveFeatures(row.features),
     cardSections: resolveCardSections(row.card_sections),
+    maxCardsLimit,
     limits: {
-      maxCards: row.limits?.maxCards ?? DEFAULT_USER_LIMITS.maxCards,
+      maxCards: maxCardsLimit,
       maxServices: row.limits?.maxServices ?? DEFAULT_USER_LIMITS.maxServices,
       maxGalleryImages:
         row.limits?.maxGalleryImages ?? DEFAULT_USER_LIMITS.maxGalleryImages,

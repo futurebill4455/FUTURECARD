@@ -3,13 +3,23 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import { listCardsByUser } from "@/lib/db/cards";
+import { findUserById } from "@/lib/db/users";
+import { getPlatformSettings } from "@/lib/platform-settings";
 import { PageHeader, EmptyState } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
+import { CardUsageIndicator } from "@/components/dashboard/CardUsageIndicator";
+import { resolveMaxCardsLimit } from "@/types/platform.types";
 
 export default async function CardsPage() {
   const session = await getServerSession(authOptions);
   await dbConnect();
-  const cards = await listCardsByUser(session!.user.id);
+  const [cards, user, settings] = await Promise.all([
+    listCardsByUser(session!.user.id),
+    findUserById(session!.user.id),
+    getPlatformSettings(),
+  ]);
+  const maxCards = resolveMaxCardsLimit(user);
+  const atLimit = cards.length >= maxCards;
 
   return (
     <div>
@@ -17,10 +27,23 @@ export default async function CardsPage() {
         title="Your cards"
         description="All digital visiting cards on your account."
         actions={
-          <Button asChild>
-            <Link href="/cards/create">Create card</Link>
-          </Button>
+          atLimit ? (
+            <Button asChild variant="outline">
+              <Link href="/dashboard">Upgrade needed</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/cards/create">Create card</Link>
+            </Button>
+          )
         }
+      />
+
+      <CardUsageIndicator
+        className="mb-6"
+        used={cards.length}
+        limit={maxCards}
+        adminWhatsapp={settings.adminWhatsappNumber}
       />
 
       {cards.length === 0 ? (

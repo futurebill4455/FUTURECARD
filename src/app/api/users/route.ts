@@ -67,9 +67,10 @@ export async function POST(req: NextRequest) {
         role: validated.role,
         features: featuresForNewUser(validated.plan, validated.features),
         cardSections: resolveCardSections(validated.cardSections),
+        maxCardsLimit: validated.maxCardsLimit ?? 1,
         limits: {
           ...DEFAULT_USER_LIMITS,
-          maxCards: planLimits.maxCards,
+          maxCards: validated.maxCardsLimit ?? 1,
         },
       });
 

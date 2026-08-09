@@ -9,6 +9,8 @@ import {
   RenewButton,
 } from "@/components/admin/UserActions";
 import { SubscriptionToggle } from "@/components/admin/SubscriptionToggle";
+import { MaxCardsLimitCell } from "@/components/admin/MaxCardsLimitCell";
+import { resolveMaxCardsLimit } from "@/types/platform.types";
 
 function isLiveSub(sub?: {
   isActive?: boolean;
@@ -55,6 +57,7 @@ export default async function AdminUsersPage() {
               <th className="px-4 py-3 font-semibold">Email</th>
               <th className="px-4 py-3 font-semibold">Account</th>
               <th className="px-4 py-3 font-semibold">Plan</th>
+              <th className="px-4 py-3 font-semibold">Max cards</th>
               <th className="px-4 py-3 font-semibold">Expires</th>
               <th className="px-4 py-3 font-semibold">Subscription</th>
               <th className="px-4 py-3 font-semibold">Actions</th>
@@ -77,6 +80,12 @@ export default async function AdminUsersPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 capitalize">{sub?.plan ?? "—"}</td>
+                  <td className="px-4 py-3">
+                    <MaxCardsLimitCell
+                      userId={id}
+                      initial={resolveMaxCardsLimit(u)}
+                    />
+                  </td>
                   <td className="px-4 py-3">
                     {sub?.endDate
                       ? new Date(sub.endDate).toLocaleDateString()
@@ -107,7 +116,7 @@ export default async function AdminUsersPage() {
             {users.length === 0 ? (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="px-4 py-8 text-center text-muted-foreground"
                 >
                   No users yet.

@@ -41,6 +41,7 @@ export function UserManageForm({
     isActive: boolean;
     features?: IUserFeatures;
     cardSections?: ICardSections;
+    maxCardsLimit?: number;
     limits?: IUserLimits;
     subscription?: SubInfo;
   };
@@ -54,9 +55,13 @@ export function UserManageForm({
   const [cardSections, setCardSections] = useState<ICardSections>(() =>
     resolveCardSections(initial.cardSections ?? DEFAULT_CARD_SECTIONS),
   );
+  const [maxCardsLimit, setMaxCardsLimit] = useState(
+    () => initial.maxCardsLimit ?? initial.limits?.maxCards ?? 1,
+  );
   const [limits, setLimits] = useState<IUserLimits>({
     ...DEFAULT_USER_LIMITS,
     ...initial.limits,
+    maxCards: initial.maxCardsLimit ?? initial.limits?.maxCards ?? 1,
   });
   const [plan, setPlan] = useState(initial.subscription?.plan || "basic");
   const [endDate, setEndDate] = useState(() => {
@@ -75,6 +80,7 @@ export function UserManageForm({
     setError("");
     setMessage("");
     try {
+      const nextLimits = { ...limits, maxCards: maxCardsLimit };
       await apiClient(`/api/users/${userId}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -82,7 +88,8 @@ export function UserManageForm({
           isActive,
           features,
           cardSections,
-          limits,
+          maxCardsLimit,
+          limits: nextLimits,
           plan,
           endDate: endDate
             ? new Date(`${endDate}T23:59:59`).toISOString()
@@ -172,6 +179,7 @@ export function UserManageForm({
                 const maxCards =
                   PLAN_LIMITS[next as keyof typeof PLAN_LIMITS]?.maxCards;
                 if (maxCards) {
+                  setMaxCardsLimit(maxCards);
                   setLimits((l) => ({ ...l, maxCards }));
                 }
               }}
@@ -230,11 +238,32 @@ export function UserManageForm({
       </section>
 
       <section className="space-y-3 rounded-2xl border bg-card p-5">
+        <h2 className="font-display text-lg font-bold">Card usage limit</h2>
+        <p className="text-xs text-muted-foreground">
+          Caps how many digital cards this account can create. Synced to{" "}
+          <code className="text-teal-300/90">users.max_cards_limit</code>.
+        </p>
+        <div className="max-w-xs space-y-1.5">
+          <Label>Max cards limit</Label>
+          <Input
+            type="number"
+            min={1}
+            max={50}
+            value={maxCardsLimit}
+            onChange={(e) => {
+              const n = Math.min(50, Math.max(1, Number(e.target.value) || 1));
+              setMaxCardsLimit(n);
+              setLimits((l) => ({ ...l, maxCards: n }));
+            }}
+          />
+        </div>
+      </section>
+
+      <section className="space-y-3 rounded-2xl border bg-card p-5">
         <h2 className="font-display text-lg font-bold">Limits</h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {(
             [
-              ["maxCards", "Max cards"],
               ["maxServices", "Max services"],
               ["maxGalleryImages", "Max gallery images"],
               ["maxGalleryVideos", "Max gallery videos"],

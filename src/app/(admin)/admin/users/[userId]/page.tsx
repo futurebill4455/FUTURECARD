@@ -36,6 +36,7 @@ export default async function AdminUserEditPage({ params }: Props) {
           isActive: Boolean(user.isActive),
           features: user.features,
           cardSections: user.cardSections,
+          maxCardsLimit: user.maxCardsLimit,
           limits: user.limits,
           subscription: sub
             ? {

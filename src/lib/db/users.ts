@@ -59,8 +59,18 @@ export async function createUser(input: {
   role?: "user" | "admin";
   features?: IUserFeatures;
   cardSections?: ICardSections;
+  maxCardsLimit?: number;
   limits?: IUserLimits;
 }): Promise<IUser> {
+  const maxCardsLimit = Math.min(
+    50,
+    Math.max(1, Math.floor(input.maxCardsLimit ?? input.limits?.maxCards ?? 1)),
+  );
+  const limits: IUserLimits = {
+    ...(input.limits ?? DEFAULT_USER_LIMITS),
+    maxCards: maxCardsLimit,
+  };
+
   const { data, error } = await sb()
     .from("users")
     .insert({
@@ -70,7 +80,8 @@ export async function createUser(input: {
       role: input.role ?? "user",
       features: input.features ?? DEFAULT_USER_FEATURES,
       card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
-      limits: input.limits ?? DEFAULT_USER_LIMITS,
+      max_cards_limit: maxCardsLimit,
+      limits,
       is_active: true,
     })
     .select("*")
@@ -88,6 +99,7 @@ export async function updateUser(
     isActive?: boolean;
     features?: IUserFeatures;
     cardSections?: ICardSections;
+    maxCardsLimit?: number;
     limits?: IUserLimits;
     password?: string;
     avatar?: string;
@@ -100,9 +112,35 @@ export async function updateUser(
   if (patch.isActive !== undefined) row.is_active = patch.isActive;
   if (patch.features !== undefined) row.features = patch.features;
   if (patch.cardSections !== undefined) row.card_sections = patch.cardSections;
-  if (patch.limits !== undefined) row.limits = patch.limits;
   if (patch.password !== undefined) row.password = patch.password;
   if (patch.avatar !== undefined) row.avatar = patch.avatar;
+
+  if (patch.maxCardsLimit !== undefined || patch.limits !== undefined) {
+    let baseLimits: IUserLimits = { ...DEFAULT_USER_LIMITS };
+    if (patch.limits) {
+      baseLimits = { ...DEFAULT_USER_LIMITS, ...patch.limits };
+    } else {
+      const { data: cur } = await sb()
+        .from("users")
+        .select("limits, max_cards_limit")
+        .eq("id", id)
+        .maybeSingle();
+      const curLimits = (cur?.limits || {}) as Partial<IUserLimits>;
+      baseLimits = {
+        ...DEFAULT_USER_LIMITS,
+        ...curLimits,
+        maxCards: resolveMaxCardsFromRow(cur),
+      };
+    }
+
+    const maxCardsLimit =
+      patch.maxCardsLimit !== undefined
+        ? Math.min(50, Math.max(1, Math.floor(patch.maxCardsLimit)))
+        : Math.min(50, Math.max(1, Math.floor(baseLimits.maxCards)));
+
+    row.max_cards_limit = maxCardsLimit;
+    row.limits = { ...baseLimits, maxCards: maxCardsLimit };
+  }
 
   const { data, error } = await sb()
     .from("users")
@@ -120,6 +158,24 @@ export async function updateUser(
   }
   if (!data) return null;
   return mapUser(data as UserRow);
+}
+
+function resolveMaxCardsFromRow(cur: {
+  max_cards_limit?: number | null;
+  limits?: Record<string, number> | null;
+} | null): number {
+  if (
+    typeof cur?.max_cards_limit === "number" &&
+    Number.isFinite(cur.max_cards_limit) &&
+    cur.max_cards_limit >= 1
+  ) {
+    return Math.min(50, Math.floor(cur.max_cards_limit));
+  }
+  const fromJson = cur?.limits?.maxCards;
+  if (typeof fromJson === "number" && Number.isFinite(fromJson) && fromJson >= 1) {
+    return Math.min(50, Math.floor(fromJson));
+  }
+  return 1;
 }
 
 export async function countUsers(): Promise<number> {

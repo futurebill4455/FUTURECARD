@@ -57,11 +57,30 @@ export const DEFAULT_USER_FEATURES: IUserFeatures = {
 };
 
 export const DEFAULT_USER_LIMITS: IUserLimits = {
-  maxCards: 3,
+  maxCards: 1,
   maxServices: 10,
   maxGalleryImages: 24,
   maxGalleryVideos: 12,
 };
+
+/** Resolve the authoritative per-user card create cap */
+export function resolveMaxCardsLimit(user?: {
+  maxCardsLimit?: number | null;
+  limits?: Partial<IUserLimits> | null;
+} | null): number {
+  const fromColumn = user?.maxCardsLimit;
+  if (typeof fromColumn === "number" && Number.isFinite(fromColumn) && fromColumn >= 1) {
+    return Math.min(50, Math.floor(fromColumn));
+  }
+  const fromJson = user?.limits?.maxCards;
+  if (typeof fromJson === "number" && Number.isFinite(fromJson) && fromJson >= 1) {
+    return Math.min(50, Math.floor(fromJson));
+  }
+  return 1;
+}
+
+export const CARD_LIMIT_REACHED_MESSAGE =
+  "You have reached your card limit. Please contact support to upgrade.";
 
 /** Primary checklist shown in Super Admin (create/edit client) */
 export const ADMIN_FEATURE_CHECKLIST: {

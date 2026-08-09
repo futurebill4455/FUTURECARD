@@ -29,6 +29,7 @@ export default function CreateUserPage() {
   });
   const [cardSections, setCardSections] =
     useState<ICardSections>(DEFAULT_CARD_SECTIONS);
+  const [maxCardsLimit, setMaxCardsLimit] = useState(1);
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -62,6 +63,7 @@ export default function CreateUserPage() {
           years: Number(form.years),
           features,
           cardSections,
+          maxCardsLimit,
           ...(form.customDays
             ? { customDays: Number(form.customDays) }
             : {}),
@@ -158,6 +160,24 @@ export default function CreateUserPage() {
         <p className="text-xs text-muted-foreground">
           If custom days is set, it overrides years × plan duration.
         </p>
+
+        <div className="max-w-xs space-y-1.5">
+          <Label>Max cards limit</Label>
+          <Input
+            type="number"
+            min={1}
+            max={50}
+            value={maxCardsLimit}
+            onChange={(e) =>
+              setMaxCardsLimit(
+                Math.min(50, Math.max(1, Number(e.target.value) || 1)),
+              )
+            }
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Defaults to 1. Raise this to allow more digital cards.
+          </p>
+        </div>
 
         <div className="rounded-xl border bg-muted/20 p-4">
           <FeaturePermissionChecklist

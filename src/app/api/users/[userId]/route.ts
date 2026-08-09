@@ -73,8 +73,18 @@ export async function PUT(req: NextRequest, { params }: Params) {
           ...validated.cardSections,
         };
       }
+      if (validated.maxCardsLimit !== undefined) {
+        patch.maxCardsLimit = validated.maxCardsLimit;
+      }
       if (validated.limits) {
-        patch.limits = { ...user.limits!, ...validated.limits };
+        const mergedLimits = { ...user.limits!, ...validated.limits };
+        if (validated.maxCardsLimit !== undefined) {
+          mergedLimits.maxCards = validated.maxCardsLimit;
+        }
+        patch.limits = mergedLimits;
+        if (validated.maxCardsLimit === undefined) {
+          patch.maxCardsLimit = mergedLimits.maxCards;
+        }
       }
 
       const updated = await updateUser(userId, patch);

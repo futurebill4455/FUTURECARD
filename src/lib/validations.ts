@@ -72,6 +72,7 @@ export const createUserSchema = z.object({
   customDays: z.number().int().min(1).max(3650).optional(),
   features: userFeaturesSchema.optional(),
   cardSections: cardSectionsSchema.optional(),
+  maxCardsLimit: z.number().int().min(1).max(50).optional(),
 });
 
 export const platformSettingsSchema = z.object({
@@ -109,6 +110,8 @@ export const adminUpdateUserSchema = z.object({
   role: z.enum(["user", "admin"]).optional(),
   features: userFeaturesSchema.optional(),
   cardSections: cardSectionsSchema.optional(),
+  /** Authoritative card create cap (synced to limits.maxCards) */
+  maxCardsLimit: z.number().int().min(1).max(50).optional(),
   limits: userLimitsSchema.optional(),
   plan: z.enum(["free", "basic", "premium"]).optional(),
   /** Set absolute end date (ISO) */

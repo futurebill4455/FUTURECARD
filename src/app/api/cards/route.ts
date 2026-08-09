@@ -10,9 +10,13 @@ import {
 import { findUserById } from "@/lib/db/users";
 import { requireSession } from "@/lib/session";
 import { cardSchema } from "@/lib/validations";
-import { RESERVED_USERNAMES, PLAN_LIMITS } from "@/lib/constants";
+import { RESERVED_USERNAMES } from "@/lib/constants";
 import { getUserAccessStatus } from "@/lib/subscription-access";
-import { DEFAULT_USER_LIMITS } from "@/types/platform.types";
+import {
+  CARD_LIMIT_REACHED_MESSAGE,
+  DEFAULT_USER_LIMITS,
+  resolveMaxCardsLimit,
+} from "@/types/platform.types";
 import { toApiError, withApiHandler } from "@/lib/api-route";
 import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 
@@ -57,16 +61,12 @@ export async function POST(req: NextRequest) {
       }
 
       const user = await findUserById(session!.user.id);
-      const maxCards =
-        user?.limits?.maxCards ??
-        PLAN_LIMITS[(access.plan as keyof typeof PLAN_LIMITS) || "free"]
-          ?.maxCards ??
-        DEFAULT_USER_LIMITS.maxCards;
+      const maxCards = resolveMaxCardsLimit(user) || DEFAULT_USER_LIMITS.maxCards;
 
       const count = await countCardsByUser(session!.user.id);
       if (count >= maxCards) {
         return NextResponse.json(
-          { error: `Plan limit reached (${maxCards} cards)` },
+          { error: CARD_LIMIT_REACHED_MESSAGE },
           { status: 403 },
         );
       }

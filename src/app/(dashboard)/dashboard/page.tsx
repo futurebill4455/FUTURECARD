@@ -20,11 +20,13 @@ import { canRequestCustomDomain } from "@/lib/custom-domain-access";
 import {
   DEFAULT_PLATFORM_SETTINGS,
   resolveFeatures,
+  resolveMaxCardsLimit,
 } from "@/types/platform.types";
 import {
   isCustomDomainLive,
   normalizeDomainStatus,
 } from "@/lib/custom-domain-access";
+import { CardUsageIndicator } from "@/components/dashboard/CardUsageIndicator";
 import type { ICard } from "@/types/card.types";
 import type { ISubscription } from "@/types/subscription.types";
 import type { IUser } from "@/types/user.types";
@@ -64,6 +66,8 @@ export default async function DashboardPage() {
 
   const features = resolveFeatures(userDoc?.features ?? null);
   const privilege = canRequestCustomDomain(features, sub?.plan ?? "free");
+  const maxCards = resolveMaxCardsLimit(userDoc);
+  const atLimit = cards.length >= maxCards;
 
   const recent = (cards || []).slice(0, 5);
   const domainCards = (cards || []).map((c) => ({
@@ -81,9 +85,15 @@ export default async function DashboardPage() {
         title={`Hello, ${session.user.name?.split(" ")[0] || "there"}`}
         description="Manage your digital visiting cards and subscription."
         actions={
-          <Button asChild>
-            <Link href="/cards/create">New card</Link>
-          </Button>
+          atLimit ? (
+            <Button asChild variant="outline">
+              <Link href="/cards">View cards</Link>
+            </Button>
+          ) : (
+            <Button asChild>
+              <Link href="/cards/create">New card</Link>
+            </Button>
+          )
         }
       />
 
@@ -93,8 +103,15 @@ export default async function DashboardPage() {
         </div>
       ) : null}
 
+      <CardUsageIndicator
+        className="mb-6"
+        used={cards.length}
+        limit={maxCards}
+        adminWhatsapp={settings.adminWhatsappNumber}
+      />
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Cards" value={cards.length} />
+        <StatCard label="Cards" value={`${cards.length}/${maxCards}`} />
         <StatCard label="Plan" value={sub?.plan ?? "free"} />
         <StatCard
           label="Status"
