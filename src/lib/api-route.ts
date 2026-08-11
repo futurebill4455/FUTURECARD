@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { isDatabaseError, isSelectionError } from "@/lib/db";
+import {
+  CLIENT_UNAVAILABLE_MESSAGE,
+  DB_OPERATION_FAILED_MESSAGE,
+  isDatabaseError,
+  isDbOperationError,
+  isSelectionError,
+  isTransientDbError,
+} from "@/lib/db";
 
 /**
  * Map thrown errors to stable JSON responses so serverless functions
@@ -14,19 +21,34 @@ export function toApiError(err: unknown, fallback = "Internal server error") {
     );
   }
 
-  if (isDatabaseError(err) || isSelectionError(err)) {
+  if (isDatabaseError(err) || isSelectionError(err) || isTransientDbError(err)) {
     console.error("[api] database unavailable", err);
 
-    // Always a clean client payload — never leak driver / Atlas internals
     return NextResponse.json(
       {
-        error: "Database temporarily unavailable. Please try again shortly.",
+        error: CLIENT_UNAVAILABLE_MESSAGE,
         code: "DATABASE_UNAVAILABLE",
       },
       {
         status: 503,
         headers: {
           "Retry-After": "30",
+          "Cache-Control": "no-store",
+        },
+      },
+    );
+  }
+
+  if (isDbOperationError(err)) {
+    console.error("[api] database operation failed", err);
+    return NextResponse.json(
+      {
+        error: DB_OPERATION_FAILED_MESSAGE,
+        code: "DB_OPERATION_FAILED",
+      },
+      {
+        status: 500,
+        headers: {
           "Cache-Control": "no-store",
         },
       },

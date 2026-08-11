@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { throwDbError } from "@/lib/db";
+import { throwDbError, withDbRetry } from "@/lib/db";
 import {
   mapUser,
   type UserRow,
@@ -19,37 +19,52 @@ export async function findUserByEmail(
   email: string,
   opts?: { includePassword?: boolean },
 ): Promise<IUser | null> {
-  const { data, error } = await sb()
-    .from("users")
-    .select("*")
-    .eq("email", email.toLowerCase())
-    .maybeSingle();
-  if (error) throwDbError(error, "findUserByEmail");
-  if (!data) return null;
-  return mapUser(data as UserRow, opts);
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("users")
+        .select("*")
+        .eq("email", email.toLowerCase())
+        .maybeSingle();
+      if (error) throwDbError(error, "findUserByEmail");
+      if (!data) return null;
+      return mapUser(data as UserRow, opts);
+    },
+    { context: "findUserByEmail" },
+  );
 }
 
 export async function findUserById(
   id: string,
   opts?: { includePassword?: boolean },
 ): Promise<IUser | null> {
-  const { data, error } = await sb()
-    .from("users")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throwDbError(error, "findUserById");
-  if (!data) return null;
-  return mapUser(data as UserRow, opts);
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("users")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throwDbError(error, "findUserById");
+      if (!data) return null;
+      return mapUser(data as UserRow, opts);
+    },
+    { context: "findUserById" },
+  );
 }
 
 export async function listUsers(): Promise<IUser[]> {
-  const { data, error } = await sb()
-    .from("users")
-    .select("*")
-    .order("created_at", { ascending: false });
-  if (error) throwDbError(error, "listUsers");
-  return (data as UserRow[]).map((row) => mapUser(row));
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("users")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throwDbError(error, "listUsers");
+      return (data as UserRow[]).map((row) => mapUser(row));
+    },
+    { context: "listUsers" },
+  );
 }
 
 export async function createUser(input: {
@@ -82,25 +97,30 @@ export async function createUser(input: {
     maxCards: maxCardsLimit,
   };
 
-  const { data, error } = await sb()
-    .from("users")
-    .insert({
-      name: input.name,
-      email: input.email.toLowerCase(),
-      password: input.password,
-      phone: input.phone?.trim() || null,
-      role,
-      features: input.features ?? DEFAULT_USER_FEATURES,
-      card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
-      max_cards_limit: maxCardsLimit,
-      limits,
-      is_active: true,
-      is_approved: isApproved,
-    })
-    .select("*")
-    .single();
-  if (error) throwDbError(error, "createUser");
-  return mapUser(data as UserRow);
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("users")
+        .insert({
+          name: input.name,
+          email: input.email.toLowerCase(),
+          password: input.password,
+          phone: input.phone?.trim() || null,
+          role,
+          features: input.features ?? DEFAULT_USER_FEATURES,
+          card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
+          max_cards_limit: maxCardsLimit,
+          limits,
+          is_active: true,
+          is_approved: isApproved,
+        })
+        .select("*")
+        .single();
+      if (error) throwDbError(error, "createUser");
+      return mapUser(data as UserRow);
+    },
+    { context: "createUser" },
+  );
 }
 
 export async function updateUser(
@@ -120,61 +140,66 @@ export async function updateUser(
     avatar?: string;
   },
 ): Promise<IUser | null> {
-  const row: Record<string, unknown> = {};
-  if (patch.name !== undefined) row.name = patch.name;
-  if (patch.email !== undefined) row.email = patch.email.toLowerCase();
-  if (patch.phone !== undefined) row.phone = patch.phone.trim() || null;
-  if (patch.role !== undefined) row.role = patch.role;
-  if (patch.isActive !== undefined) row.is_active = patch.isActive;
-  if (patch.isApproved !== undefined) row.is_approved = patch.isApproved;
-  if (patch.features !== undefined) row.features = patch.features;
-  if (patch.cardSections !== undefined) row.card_sections = patch.cardSections;
-  if (patch.password !== undefined) row.password = patch.password;
-  if (patch.avatar !== undefined) row.avatar = patch.avatar;
+  return withDbRetry(
+    async () => {
+      const row: Record<string, unknown> = {};
+      if (patch.name !== undefined) row.name = patch.name;
+      if (patch.email !== undefined) row.email = patch.email.toLowerCase();
+      if (patch.phone !== undefined) row.phone = patch.phone.trim() || null;
+      if (patch.role !== undefined) row.role = patch.role;
+      if (patch.isActive !== undefined) row.is_active = patch.isActive;
+      if (patch.isApproved !== undefined) row.is_approved = patch.isApproved;
+      if (patch.features !== undefined) row.features = patch.features;
+      if (patch.cardSections !== undefined) row.card_sections = patch.cardSections;
+      if (patch.password !== undefined) row.password = patch.password;
+      if (patch.avatar !== undefined) row.avatar = patch.avatar;
 
-  if (patch.maxCardsLimit !== undefined || patch.limits !== undefined) {
-    let baseLimits: IUserLimits = { ...DEFAULT_USER_LIMITS };
-    if (patch.limits) {
-      baseLimits = { ...DEFAULT_USER_LIMITS, ...patch.limits };
-    } else {
-      const { data: cur } = await sb()
+      if (patch.maxCardsLimit !== undefined || patch.limits !== undefined) {
+        let baseLimits: IUserLimits = { ...DEFAULT_USER_LIMITS };
+        if (patch.limits) {
+          baseLimits = { ...DEFAULT_USER_LIMITS, ...patch.limits };
+        } else {
+          const { data: cur } = await sb()
+            .from("users")
+            .select("limits, max_cards_limit")
+            .eq("id", id)
+            .maybeSingle();
+          const curLimits = (cur?.limits || {}) as Partial<IUserLimits>;
+          baseLimits = {
+            ...DEFAULT_USER_LIMITS,
+            ...curLimits,
+            maxCards: resolveMaxCardsFromRow(cur),
+          };
+        }
+
+        const maxCardsLimit =
+          patch.maxCardsLimit !== undefined
+            ? Math.min(50, Math.max(1, Math.floor(patch.maxCardsLimit)))
+            : Math.min(50, Math.max(1, Math.floor(baseLimits.maxCards)));
+
+        row.max_cards_limit = maxCardsLimit;
+        row.limits = { ...baseLimits, maxCards: maxCardsLimit };
+      }
+
+      const { data, error } = await sb()
         .from("users")
-        .select("limits, max_cards_limit")
+        .update(row)
         .eq("id", id)
+        .select("*")
         .maybeSingle();
-      const curLimits = (cur?.limits || {}) as Partial<IUserLimits>;
-      baseLimits = {
-        ...DEFAULT_USER_LIMITS,
-        ...curLimits,
-        maxCards: resolveMaxCardsFromRow(cur),
-      };
-    }
-
-    const maxCardsLimit =
-      patch.maxCardsLimit !== undefined
-        ? Math.min(50, Math.max(1, Math.floor(patch.maxCardsLimit)))
-        : Math.min(50, Math.max(1, Math.floor(baseLimits.maxCards)));
-
-    row.max_cards_limit = maxCardsLimit;
-    row.limits = { ...baseLimits, maxCards: maxCardsLimit };
-  }
-
-  const { data, error } = await sb()
-    .from("users")
-    .update(row)
-    .eq("id", id)
-    .select("*")
-    .maybeSingle();
-  if (error) {
-    if ((error as { code?: string }).code === "23505") {
-      throw Object.assign(new Error("Email already in use"), {
-        code: "CONFLICT",
-      });
-    }
-    throwDbError(error, "updateUser");
-  }
-  if (!data) return null;
-  return mapUser(data as UserRow);
+      if (error) {
+        if ((error as { code?: string }).code === "23505") {
+          throw Object.assign(new Error("Email already in use"), {
+            code: "CONFLICT",
+          });
+        }
+        throwDbError(error, "updateUser");
+      }
+      if (!data) return null;
+      return mapUser(data as UserRow);
+    },
+    { context: "updateUser" },
+  );
 }
 
 function resolveMaxCardsFromRow(cur: {
@@ -196,34 +221,49 @@ function resolveMaxCardsFromRow(cur: {
 }
 
 export async function countUsers(): Promise<number> {
-  const { count, error } = await sb()
-    .from("users")
-    .select("*", { count: "exact", head: true });
-  if (error) throwDbError(error, "countUsers");
-  return count ?? 0;
+  return withDbRetry(
+    async () => {
+      const { count, error } = await sb()
+        .from("users")
+        .select("*", { count: "exact", head: true });
+      if (error) throwDbError(error, "countUsers");
+      return count ?? 0;
+    },
+    { context: "countUsers" },
+  );
 }
 
 export async function countUsersByRole(
   role: "user" | "admin",
 ): Promise<number> {
-  const { count, error } = await sb()
-    .from("users")
-    .select("*", { count: "exact", head: true })
-    .eq("role", role);
-  if (error) throwDbError(error, "countUsersByRole");
-  return count ?? 0;
+  return withDbRetry(
+    async () => {
+      const { count, error } = await sb()
+        .from("users")
+        .select("*", { count: "exact", head: true })
+        .eq("role", role);
+      if (error) throwDbError(error, "countUsersByRole");
+      return count ?? 0;
+    },
+    { context: "countUsersByRole" },
+  );
 }
 
 /** Hard-delete user (cascades cards + subscription via FK) */
 export async function deleteUser(id: string): Promise<boolean> {
-  const { data, error } = await sb()
-    .from("users")
-    .delete()
-    .eq("id", id)
-    .select("id")
-    .maybeSingle();
-  if (error) throwDbError(error, "deleteUser");
-  return Boolean(data);
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("users")
+        .delete()
+        .eq("id", id)
+        .select("id")
+        .maybeSingle();
+      if (error) throwDbError(error, "deleteUser");
+      return Boolean(data);
+    },
+    { context: "deleteUser" },
+  );
 }
 
 /**

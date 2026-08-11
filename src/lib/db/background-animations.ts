@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { throwDbError } from "@/lib/db";
+import { throwDbError, withDbRetry } from "@/lib/db";
 import type { IBackgroundAnimation } from "@/types/background-animation.types";
 
 type Row = {
@@ -199,67 +199,77 @@ export async function updateBackgroundAnimation(
     sortOrder?: number;
   },
 ): Promise<IBackgroundAnimation | null> {
-  // Enforce a single default: clear others first when setting default
-  if (patch.isDefault === true) {
-    const { error: clearErr } = await sb()
-      .from("background_animations")
-      .update({ is_default: false, updated_at: new Date().toISOString() })
-      .neq("id", id);
-    if (clearErr) throwDbError(clearErr, "clearDefaultBackgroundAnimation");
-  }
-
-  const row: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  };
-  if (patch.isActive !== undefined) row.is_active = patch.isActive;
-  if (patch.isDefault !== undefined) row.is_default = patch.isDefault;
-  if (patch.name !== undefined) row.name = patch.name;
-  if (patch.description !== undefined) row.description = patch.description;
-  if (patch.thumbnailUrl !== undefined) row.thumbnail_url = patch.thumbnailUrl;
-  if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder;
-
-  // Default design must stay active
-  if (patch.isDefault === true) row.is_active = true;
-
-  const { data, error } = await sb()
-    .from("background_animations")
-    .update(row)
-    .eq("id", id)
-    .select("*")
-    .maybeSingle();
-  if (error) throwDbError(error, "updateBackgroundAnimation");
-  if (!data) return null;
-
-  // If we deactivated the default, promote lowest sort_order active design
-  if (patch.isActive === false) {
-    const current = data as Row;
-    if (current.is_default) {
-      const { data: next } = await sb()
-        .from("background_animations")
-        .select("id")
-        .eq("is_active", true)
-        .order("sort_order", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (next?.id) {
-        await updateBackgroundAnimation(next.id, { isDefault: true });
-        return findBackgroundAnimationById(id);
+  return withDbRetry(
+    async () => {
+      // Enforce a single default: clear others first when setting default
+      if (patch.isDefault === true) {
+        const { error: clearErr } = await sb()
+          .from("background_animations")
+          .update({ is_default: false, updated_at: new Date().toISOString() })
+          .neq("id", id);
+        if (clearErr) throwDbError(clearErr, "clearDefaultBackgroundAnimation");
       }
-    }
-  }
 
-  return mapRow(data as Row);
+      const row: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+      if (patch.isActive !== undefined) row.is_active = patch.isActive;
+      if (patch.isDefault !== undefined) row.is_default = patch.isDefault;
+      if (patch.name !== undefined) row.name = patch.name;
+      if (patch.description !== undefined) row.description = patch.description;
+      if (patch.thumbnailUrl !== undefined) row.thumbnail_url = patch.thumbnailUrl;
+      if (patch.sortOrder !== undefined) row.sort_order = patch.sortOrder;
+
+      // Default design must stay active
+      if (patch.isDefault === true) row.is_active = true;
+
+      const { data, error } = await sb()
+        .from("background_animations")
+        .update(row)
+        .eq("id", id)
+        .select("*")
+        .maybeSingle();
+      if (error) throwDbError(error, "updateBackgroundAnimation");
+      if (!data) return null;
+
+      // If we deactivated the default, promote lowest sort_order active design
+      if (patch.isActive === false) {
+        const current = data as Row;
+        if (current.is_default) {
+          const { data: next } = await sb()
+            .from("background_animations")
+            .select("id")
+            .eq("is_active", true)
+            .order("sort_order", { ascending: true })
+            .limit(1)
+            .maybeSingle();
+          if (next?.id) {
+            await updateBackgroundAnimation(next.id, { isDefault: true });
+            return findBackgroundAnimationById(id);
+          }
+        }
+      }
+
+      return mapRow(data as Row);
+    },
+    { context: "updateBackgroundAnimation" },
+  );
 }
 
 async function findBackgroundAnimationById(
   id: string,
 ): Promise<IBackgroundAnimation | null> {
-  const { data, error } = await sb()
-    .from("background_animations")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-  if (error) throwDbError(error, "findBackgroundAnimationById");
-  if (!data) return null;
-  return mapRow(data as Row);
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
+        .from("background_animations")
+        .select("*")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) throwDbError(error, "findBackgroundAnimationById");
+      if (!data) return null;
+      return mapRow(data as Row);
+    },
+    { context: "findBackgroundAnimationById" },
+  );
 }

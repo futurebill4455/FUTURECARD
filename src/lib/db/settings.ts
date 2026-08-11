@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { throwDbError } from "@/lib/db";
+import { throwDbError, withDbRetry } from "@/lib/db";
 import {
   mapPlatformSettings,
   type PlatformSettingsRow,
@@ -92,34 +92,39 @@ export async function updatePlatformSettingsRow(
     row.landing_cms = patch.landingCms;
   }
 
-  const { data, error } = await sb()
-    .from("platform_settings")
-    .upsert({ key: "default", ...row }, { onConflict: "key" })
-    .select("*")
-    .single();
-  if (error) {
-    // Graceful if migration columns missing
-    const msg = String(error.message || "");
-    if (msg.includes("ambient_") || msg.includes("landing_cms")) {
-      console.warn(
-        "[settings] optional columns missing — run ambient + landing CMS migrations",
-      );
-      const cleaned = { ...row };
-      if (msg.includes("landing_cms")) delete cleaned.landing_cms;
-      if (msg.includes("ambient_")) {
-        delete cleaned.ambient_mode;
-        delete cleaned.ambient_video;
-        delete cleaned.ambient_images;
-      }
-      const retry = await sb()
+  return withDbRetry(
+    async () => {
+      const { data, error } = await sb()
         .from("platform_settings")
-        .upsert({ key: "default", ...cleaned }, { onConflict: "key" })
+        .upsert({ key: "default", ...row }, { onConflict: "key" })
         .select("*")
         .single();
-      if (retry.error) throwDbError(retry.error, "updatePlatformSettings");
-      return mapPlatformSettings(retry.data as PlatformSettingsRow);
-    }
-    throwDbError(error, "updatePlatformSettings");
-  }
-  return mapPlatformSettings(data as PlatformSettingsRow);
+      if (error) {
+        // Graceful if migration columns missing
+        const msg = String(error.message || "");
+        if (msg.includes("ambient_") || msg.includes("landing_cms")) {
+          console.warn(
+            "[settings] optional columns missing — run ambient + landing CMS migrations",
+          );
+          const cleaned = { ...row };
+          if (msg.includes("landing_cms")) delete cleaned.landing_cms;
+          if (msg.includes("ambient_")) {
+            delete cleaned.ambient_mode;
+            delete cleaned.ambient_video;
+            delete cleaned.ambient_images;
+          }
+          const retry = await sb()
+            .from("platform_settings")
+            .upsert({ key: "default", ...cleaned }, { onConflict: "key" })
+            .select("*")
+            .single();
+          if (retry.error) throwDbError(retry.error, "updatePlatformSettings");
+          return mapPlatformSettings(retry.data as PlatformSettingsRow);
+        }
+        throwDbError(error, "updatePlatformSettings");
+      }
+      return mapPlatformSettings(data as PlatformSettingsRow);
+    },
+    { context: "updatePlatformSettings" },
+  );
 }

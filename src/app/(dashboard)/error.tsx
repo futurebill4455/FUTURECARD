@@ -28,7 +28,9 @@ export default function DashboardError({
             (digest <code className="text-teal-300">{error.digest}</code>)
           </>
         ) : null}
-        . Check Supabase env vars and migrations, then retry.
+        . If this persists, open{" "}
+        <code className="text-teal-300">/api/health</code> and confirm Supabase
+        env vars on the host match your project URL and service role key.
       </p>
       <div className="mt-6 flex justify-center gap-2">
         <Button type="button" onClick={() => reset()}>
