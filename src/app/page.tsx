@@ -5,6 +5,12 @@ import { authOptions } from "@/lib/auth";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { resolveLandingCms } from "@/types/landing-cms.types";
 
+export const dynamic = "force-dynamic";
+
+/**
+ * Platform root (`/`) — always renders a landing page or redirects.
+ * Guarantees the home route exists on Vercel (no 404).
+ */
 export default async function HomePage() {
   const session = await getServerSession(authOptions).catch(() => null);
 
@@ -19,6 +25,7 @@ export default async function HomePage() {
   }
 
   const settings = await getPlatformSettings().catch(() => null);
+
   return (
     <LandingPage
       ambientMode={settings?.ambientMode || "gradient"}
