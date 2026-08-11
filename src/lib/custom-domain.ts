@@ -37,7 +37,17 @@ export function isPlatformHost(hostHeader: string | null): boolean {
   const host = normalizeHostname(hostHeader);
   const withPort = hostHeader.toLowerCase().split("/")[0] ?? "";
   const platforms = getPlatformHosts();
-  return platforms.has(host) || platforms.has(withPort);
+
+  if (platforms.has(host) || platforms.has(withPort)) return true;
+
+  // Preview / production deployments must never be treated as tenant custom domains
+  // (otherwise `/` rewrites to `/domain/...` and 404s when no card matches).
+  if (host.endsWith(".vercel.app")) return true;
+
+  const vercelUrl = process.env.VERCEL_URL?.trim();
+  if (vercelUrl && host === normalizeHostname(vercelUrl)) return true;
+
+  return false;
 }
 
 export function getDefaultCnameTarget(): string {

@@ -6,17 +6,32 @@ import { getAuthSecret } from "@/lib/auth-secret";
 const STATIC_EXT =
   /\.(ico|png|jpg|jpeg|gif|webp|svg|css|js|map|txt|xml|woff2?|ttf|eot)$/i;
 
+const STATIC_PATHS = new Set([
+  "/favicon.ico",
+  "/favicon.png",
+  "/apple-touch-icon.png",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.webmanifest",
+  "/site.webmanifest",
+]);
+
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hostHeader = req.headers.get("host");
 
+  // Never rewrite asset / well-known requests (avoids custom-domain 404 noise)
+  if (
+    STATIC_PATHS.has(pathname) ||
+    STATIC_EXT.test(pathname) ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/bg-previews")
+  ) {
+    return NextResponse.next();
+  }
+
   if (!isPlatformHost(hostHeader)) {
-    if (
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/api") ||
-      pathname.startsWith("/uploads") ||
-      STATIC_EXT.test(pathname)
-    ) {
+    if (pathname.startsWith("/api") || pathname.startsWith("/uploads")) {
       return NextResponse.next();
     }
 
@@ -68,5 +83,7 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|favicon.png|apple-touch-icon.png|.*\\.(?:ico|png|jpg|jpeg|gif|webp|svg|css|js|map|txt|xml|woff2?|ttf|eot)$).*)",
+  ],
 };

@@ -25,6 +25,13 @@ export const metadata: Metadata = {
   title: "FutureCard — Digital Visiting Cards",
   description:
     "Create, manage, and share professional digital visiting cards with analytics and subscriptions.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "any" },
+      { url: "/favicon.png", type: "image/png", sizes: "32x32" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
 };
 
 export default function RootLayout({

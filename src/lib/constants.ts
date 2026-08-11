@@ -37,6 +37,14 @@ export const RESERVED_USERNAMES = new Set([
   "domain",
   "_next",
   "favicon.ico",
+  "favicon.png",
+  "apple-touch-icon.png",
+  "robots.txt",
+  "sitemap.xml",
+  "manifest.webmanifest",
+  "site.webmanifest",
+  "icon",
+  "apple-icon",
 ]);
 
 export const PLAN_LIMITS = {
