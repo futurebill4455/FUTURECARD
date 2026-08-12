@@ -1,7 +1,22 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { throwDbError, withDbRetry } from "@/lib/db";
+import {
+  DbConflictError,
+  mutateWithSchemaFallback,
+  throwDbError,
+  withDbRetry,
+} from "@/lib/db";
 import { mapCard, cardPayloadToRow, type CardRow } from "@/lib/db/mappers";
 import type { ICard } from "@/types/card.types";
+
+/** Columns added by later migrations — strip + retry if schema is behind. */
+const OPTIONAL_CARD_COLUMNS = [
+  "profile_type",
+  "features_enabled",
+  "background_animation_slug",
+  "background_slideshow_images",
+] as const;
+
+const FK_OPTIONAL_CARD_COLUMNS = ["background_animation_slug"] as const;
 
 function sb() {
   return getSupabaseAdmin();
@@ -115,20 +130,30 @@ export async function createCard(
   const row = cardPayloadToRow(payload, { user_id: userId });
   return withDbRetry(
     async () => {
-      const { data, error } = await sb()
-        .from("cards")
-        .insert(row)
-        .select("*")
-        .single();
-      if (error) {
-        if ((error as { code?: string }).code === "23505") {
-          throw Object.assign(new Error("Username already taken"), {
-            code: "CONFLICT",
-          });
+      try {
+        const data = await mutateWithSchemaFallback(
+          {
+            context: "createCard",
+            optionalColumns: OPTIONAL_CARD_COLUMNS,
+            fkOptionalColumns: FK_OPTIONAL_CARD_COLUMNS,
+            run: async (nextRow) => {
+              const result = await sb()
+                .from("cards")
+                .insert(nextRow)
+                .select("*")
+                .single();
+              return { data: result.data, error: result.error };
+            },
+          },
+          row,
+        );
+        return mapCard(data as CardRow);
+      } catch (err) {
+        if (err instanceof DbConflictError) {
+          throw new DbConflictError("Username already taken", err.cause);
         }
-        throwDbError(error, "createCard");
+        throw err;
       }
-      return mapCard(data as CardRow);
     },
     { context: "createCard" },
   );
@@ -142,10 +167,20 @@ export async function updateCard(
   const row = cardPayloadToRow(payload);
   return withDbRetry(
     async () => {
-      let q = sb().from("cards").update(row).eq("id", id);
-      if (opts?.userId) q = q.eq("user_id", opts.userId);
-      const { data, error } = await q.select("*").maybeSingle();
-      if (error) throwDbError(error, "updateCard");
+      const data = await mutateWithSchemaFallback(
+        {
+          context: "updateCard",
+          optionalColumns: OPTIONAL_CARD_COLUMNS,
+          fkOptionalColumns: FK_OPTIONAL_CARD_COLUMNS,
+          run: async (nextRow) => {
+            let q = sb().from("cards").update(nextRow).eq("id", id);
+            if (opts?.userId) q = q.eq("user_id", opts.userId);
+            const result = await q.select("*").maybeSingle();
+            return { data: result.data, error: result.error };
+          },
+        },
+        row,
+      );
       if (!data) return null;
       return mapCard(data as CardRow);
     },
@@ -160,10 +195,20 @@ export async function updateCardFields(
 ): Promise<ICard | null> {
   return withDbRetry(
     async () => {
-      let q = sb().from("cards").update(fields).eq("id", id);
-      if (opts?.userId) q = q.eq("user_id", opts.userId);
-      const { data, error } = await q.select("*").maybeSingle();
-      if (error) throwDbError(error, "updateCardFields");
+      const data = await mutateWithSchemaFallback(
+        {
+          context: "updateCardFields",
+          optionalColumns: OPTIONAL_CARD_COLUMNS,
+          fkOptionalColumns: FK_OPTIONAL_CARD_COLUMNS,
+          run: async (nextRow) => {
+            let q = sb().from("cards").update(nextRow).eq("id", id);
+            if (opts?.userId) q = q.eq("user_id", opts.userId);
+            const result = await q.select("*").maybeSingle();
+            return { data: result.data, error: result.error };
+          },
+        },
+        { ...fields },
+      );
       if (!data) return null;
       return mapCard(data as CardRow);
     },

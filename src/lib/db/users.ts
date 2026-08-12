@@ -1,5 +1,11 @@
 import { getSupabaseAdmin } from "@/lib/supabase";
-import { throwDbError, withDbRetry } from "@/lib/db";
+import {
+  DbConflictError,
+  isMissingColumnError,
+  missingColumnName,
+  throwDbError,
+  withDbRetry,
+} from "@/lib/db";
 import {
   mapUser,
   type UserRow,
@@ -10,6 +16,14 @@ import type { IUser } from "@/types/user.types";
 import type { IUserFeatures, IUserLimits } from "@/types/platform.types";
 import type { ICardSections } from "@/types/card-sections.types";
 import { DEFAULT_CARD_SECTIONS } from "@/types/card-sections.types";
+
+/** Columns added by later migrations — strip + retry if schema is behind. */
+const OPTIONAL_USER_INSERT_COLUMNS = [
+  "phone",
+  "is_approved",
+  "card_sections",
+  "max_cards_limit",
+] as const;
 
 function sb() {
   return getSupabaseAdmin();
@@ -99,25 +113,59 @@ export async function createUser(input: {
 
   return withDbRetry(
     async () => {
-      const { data, error } = await sb()
-        .from("users")
-        .insert({
-          name: input.name,
-          email: input.email.toLowerCase(),
-          password: input.password,
-          phone: input.phone?.trim() || null,
-          role,
-          features: input.features ?? DEFAULT_USER_FEATURES,
-          card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
-          max_cards_limit: maxCardsLimit,
-          limits,
-          is_active: true,
-          is_approved: isApproved,
-        })
-        .select("*")
-        .single();
-      if (error) throwDbError(error, "createUser");
-      return mapUser(data as UserRow);
+      const row: Record<string, unknown> = {
+        name: input.name,
+        email: input.email.toLowerCase(),
+        password: input.password,
+        phone: input.phone?.trim() || null,
+        role,
+        features: input.features ?? DEFAULT_USER_FEATURES,
+        card_sections: input.cardSections ?? DEFAULT_CARD_SECTIONS,
+        max_cards_limit: maxCardsLimit,
+        limits,
+        is_active: true,
+        is_approved: isApproved,
+      };
+
+      // Progressive fallback: if a later migration column is missing, drop it
+      // and retry so registration still succeeds on partially migrated DBs.
+      for (let attempt = 0; attempt < 6; attempt++) {
+        const { data, error } = await sb()
+          .from("users")
+          .insert(row)
+          .select("*")
+          .single();
+
+        if (!error) {
+          return mapUser(data as UserRow);
+        }
+
+        if ((error as { code?: string }).code === "23505") {
+          throw new DbConflictError("Email already registered", error);
+        }
+
+        if (!isMissingColumnError(error)) {
+          throwDbError(error, "createUser");
+        }
+
+        const missing =
+          missingColumnName(error) ||
+          OPTIONAL_USER_INSERT_COLUMNS.find((col) => col in row);
+
+        if (!missing || !(missing in row)) {
+          throwDbError(error, "createUser");
+        }
+
+        console.warn(
+          `[db] createUser: dropping missing column "${missing}" and retrying. Run supabase migrations 004–009.`,
+        );
+        delete row[missing];
+      }
+
+      throwDbError(
+        { message: "createUser exhausted schema fallbacks" },
+        "createUser",
+      );
     },
     { context: "createUser" },
   );
@@ -189,9 +237,7 @@ export async function updateUser(
         .maybeSingle();
       if (error) {
         if ((error as { code?: string }).code === "23505") {
-          throw Object.assign(new Error("Email already in use"), {
-            code: "CONFLICT",
-          });
+          throw new DbConflictError("Email already in use", error);
         }
         throwDbError(error, "updateUser");
       }

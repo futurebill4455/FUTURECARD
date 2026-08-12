@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { dbConnect } from "@/lib/db";
+import { dbConnect, isDbConflictError } from "@/lib/db";
 import {
   countCardsByUser,
   createCard,
@@ -20,6 +20,7 @@ import {
 import { toApiError, withApiHandler } from "@/lib/api-route";
 import { mergeFeaturesEnabledRespectingAdmin } from "@/types/card-sections.types";
 import { assertActiveBackgroundAnimationSlug, assertSlideshowImagesForAnimation } from "@/lib/background-animation-access";
+import { resolveSupabaseConfig } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -41,6 +42,17 @@ export async function POST(req: NextRequest) {
     if (error) return error;
 
     try {
+      try {
+        const cfg = resolveSupabaseConfig();
+        if (cfg.keyKind === "anon") {
+          console.warn(
+            "[cards] server is using the anon key — set SUPABASE_SERVICE_ROLE_KEY so RLS cannot block inserts",
+          );
+        }
+      } catch (cfgErr) {
+        return toApiError(cfgErr);
+      }
+
       const body = await req.json();
       const validated = cardSchema.parse(body);
 
@@ -122,6 +134,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           { error: "Validation failed", details: err.errors },
           { status: 400 },
+        );
+      }
+      if (isDbConflictError(err)) {
+        return NextResponse.json(
+          { error: "Username already taken", code: "CONFLICT" },
+          { status: 409 },
         );
       }
       return toApiError(err);

@@ -4,10 +4,12 @@ import {
   CLIENT_UNAVAILABLE_MESSAGE,
   DB_OPERATION_FAILED_MESSAGE,
   isDatabaseError,
+  isDbConflictError,
   isDbOperationError,
   isSelectionError,
   isTransientDbError,
 } from "@/lib/db";
+import type { DbOperationError } from "@/lib/db-errors";
 
 /**
  * Map thrown errors to stable JSON responses so serverless functions
@@ -18,6 +20,16 @@ export function toApiError(err: unknown, fallback = "Internal server error") {
     return NextResponse.json(
       { error: "Validation failed", details: err.errors },
       { status: 400 },
+    );
+  }
+
+  if (isDbConflictError(err)) {
+    return NextResponse.json(
+      {
+        error: err instanceof Error ? err.message : "Resource already exists",
+        code: "CONFLICT",
+      },
+      { status: 409 },
     );
   }
 
@@ -41,10 +53,14 @@ export function toApiError(err: unknown, fallback = "Internal server error") {
 
   if (isDbOperationError(err)) {
     console.error("[api] database operation failed", err);
+    const op = err as DbOperationError;
+    const message =
+      (op instanceof Error && op.message) || DB_OPERATION_FAILED_MESSAGE;
     return NextResponse.json(
       {
-        error: DB_OPERATION_FAILED_MESSAGE,
+        error: message,
         code: "DB_OPERATION_FAILED",
+        ...(op.hint ? { hint: op.hint } : {}),
       },
       {
         status: 500,

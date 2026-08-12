@@ -23,21 +23,37 @@ function firstEnv(...keys: string[]): string | undefined {
   return undefined;
 }
 
-export function resolveSupabaseConfig(): { url: string; key: string } {
-  const url = firstEnv(
-    "NEXT_PUBLIC_SUPABASE_URL",
-    "SUPABASE_URL",
-  );
-  const key = firstEnv(
+function jwtRole(key: string): string | null {
+  try {
+    const parts = key.split(".");
+    if (parts.length !== 3) return null;
+    const json = Buffer.from(parts[1], "base64url").toString("utf8");
+    const payload = JSON.parse(json) as { role?: string };
+    return payload.role || null;
+  } catch {
+    return null;
+  }
+}
+
+export function resolveSupabaseConfig(): {
+  url: string;
+  key: string;
+  keyKind: "service_role" | "anon" | "secret" | "unknown";
+} {
+  const url = firstEnv("NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_URL");
+  const serviceKey = firstEnv(
     "SUPABASE_SERVICE_ROLE_KEY",
     "SUPABASE_SECRET_KEY",
+  );
+  const anonKey = firstEnv(
     "NEXT_PUBLIC_SUPABASE_ANON_KEY",
     "SUPABASE_ANON_KEY",
   );
+  const key = serviceKey || anonKey;
 
   if (!url || !key) {
     throw new DatabaseError(
-      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) in your environment.",
+      "Supabase is not configured. Set NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL) and SUPABASE_SERVICE_ROLE_KEY in your environment.",
     );
   }
 
@@ -47,7 +63,23 @@ export function resolveSupabaseConfig(): { url: string; key: string } {
     );
   }
 
-  return { url: url.replace(/\/$/, ""), key };
+  let keyKind: "service_role" | "anon" | "secret" | "unknown" = "unknown";
+  if (serviceKey?.startsWith("sb_secret_")) keyKind = "secret";
+  else {
+    const role = jwtRole(key);
+    if (role === "service_role") keyKind = "service_role";
+    else if (role === "anon") keyKind = "anon";
+    else if (serviceKey) keyKind = "service_role";
+    else if (anonKey) keyKind = "anon";
+  }
+
+  if (keyKind === "anon") {
+    console.warn(
+      "[supabase] Using anon key for server writes. Registration/inserts will fail if RLS is enabled. Set SUPABASE_SERVICE_ROLE_KEY on Vercel.",
+    );
+  }
+
+  return { url: url.replace(/\/$/, ""), key, keyKind };
 }
 
 function sleep(ms: number) {
