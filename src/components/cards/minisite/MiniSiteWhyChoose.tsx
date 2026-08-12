@@ -1,7 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DEFAULT_WHY_CHOOSE, type MiniSiteWhyItem } from "@/data/minisite-defaults";
+import {
+  DEFAULT_WHY_CHOOSE,
+  type MiniSiteWhyItem,
+} from "@/data/minisite-defaults";
 
 export function MiniSiteWhyChoose({
   accent,
@@ -16,6 +19,12 @@ export function MiniSiteWhyChoose({
   title?: string;
   subtitle?: string;
 }) {
+  const visible = (items || DEFAULT_WHY_CHOOSE).filter(
+    (item) => item.enabled !== false,
+  );
+
+  if (visible.length === 0) return null;
+
   return (
     <section className="px-4 py-12 sm:px-6">
       <div className="mx-auto max-w-4xl">
@@ -31,7 +40,7 @@ export function MiniSiteWhyChoose({
           </p>
         ) : null}
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item, i) => (
+          {visible.map((item, i) => (
             <motion.div
               key={item.id}
               initial={{ opacity: 0, y: 14 }}

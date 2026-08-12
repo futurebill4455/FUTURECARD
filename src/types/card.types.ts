@@ -156,6 +156,88 @@ export function resolveCardStats(
   });
 }
 
+/** “Why choose us” grid item on the public mini-site */
+export interface IWhyChooseItem {
+  id: string;
+  title: string;
+  description: string;
+  /** When false, hidden on the public card (default true) */
+  enabled: boolean;
+}
+
+export const DEFAULT_WHY_CHOOSE_ITEMS: IWhyChooseItem[] = [
+  {
+    id: "client-first",
+    title: "Client First Approach",
+    description: "Every recommendation starts with your goals and risk profile.",
+    enabled: true,
+  },
+  {
+    id: "transparent",
+    title: "Transparent Advice",
+    description: "Clear options, honest trade-offs — no pressure tactics.",
+    enabled: true,
+  },
+  {
+    id: "best-options",
+    title: "Best Options",
+    description: "Curated plans across segments so you choose with confidence.",
+    enabled: true,
+  },
+  {
+    id: "claims",
+    title: "Claim Assistance",
+    description: "Hands-on support when you need documentation and follow-ups.",
+    enabled: true,
+  },
+  {
+    id: "after-sales",
+    title: "After Sales Support",
+    description: "Ongoing guidance after purchase — not just at signup.",
+    enabled: true,
+  },
+  {
+    id: "relationship",
+    title: "Long Term Relationship",
+    description: "A lasting partnership for protection, growth, and beyond.",
+    enabled: true,
+  },
+];
+
+/** Merge saved why-choose items with the 6 default slots. */
+export function resolveWhyChooseItems(
+  raw?: IWhyChooseItem[] | null,
+): IWhyChooseItem[] {
+  const byId = new Map<string, IWhyChooseItem>();
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (!item || typeof item !== "object") continue;
+      const id = String(item.id || "").trim();
+      if (!id) continue;
+      byId.set(id, {
+        id,
+        title: String(item.title || "").trim().slice(0, 80) || id,
+        description: String(item.description || "").trim().slice(0, 400),
+        enabled: item.enabled !== false,
+      });
+    }
+  }
+
+  return DEFAULT_WHY_CHOOSE_ITEMS.map((def) => {
+    const override = byId.get(def.id);
+    if (!override) return { ...def };
+    return {
+      ...def,
+      title: override.title || def.title,
+      description:
+        override.description !== undefined
+          ? override.description
+          : def.description,
+      enabled: override.enabled,
+    };
+  });
+}
+
 export const ACTION_BUTTON_KEYS = [
   "call",
   "whatsapp",
@@ -268,6 +350,8 @@ export interface ICard {
   backgroundSlideshowImages?: string[];
   /** Mini-site stats counters (years, clients, partners, support) */
   stats?: ICardStat[];
+  /** Mini-site “Why choose us” items (title/description + per-item enabled) */
+  whyChooseItems?: IWhyChooseItem[];
   createdAt: string;
   updatedAt: string;
 }

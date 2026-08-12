@@ -396,6 +396,18 @@ export const cardSchema = z.object({
     )
     .max(8)
     .optional(),
+  /** Mini-site Why Choose Us items */
+  whyChooseItems: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        title: z.string().min(1).max(80),
+        description: z.string().max(400).optional().or(z.literal("")),
+        enabled: z.boolean(),
+      }),
+    )
+    .max(8)
+    .optional(),
 });
 
 export const subscriptionUpdateSchema = z.object({

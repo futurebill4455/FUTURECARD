@@ -31,12 +31,14 @@ import type {
   IServiceItem,
   ISocialLinks,
   IThemeColors,
+  IWhyChooseItem,
 } from "@/types/card.types";
 import {
   DEFAULT_BANK_DETAILS,
   DEFAULT_PAYMENT_INFO,
   DEFAULT_THEME,
   resolveCardStats,
+  resolveWhyChooseItems,
 } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
@@ -92,6 +94,9 @@ export function CardBuilderForm({
   );
   const [stats, setStats] = useState<ICardStat[]>(() =>
     resolveCardStats(initial?.stats),
+  );
+  const [whyChooseItems, setWhyChooseItems] = useState<IWhyChooseItem[]>(() =>
+    resolveWhyChooseItems(initial?.whyChooseItems),
   );
   const [form, setForm] = useState({
     username: initial?.username ?? "",
@@ -205,6 +210,7 @@ export function CardBuilderForm({
     backgroundAnimationSlug: backgroundAnimationSlug || undefined,
     backgroundSlideshowImages: slideshowImages,
     stats,
+    whyChooseItems,
     createdAt: initial?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -303,6 +309,12 @@ export function CardBuilderForm({
           suffix: s.suffix || "",
           label: s.label,
           display: s.display || "",
+        })),
+        whyChooseItems: resolveWhyChooseItems(whyChooseItems).map((item) => ({
+          id: item.id,
+          title: item.title.trim(),
+          description: item.description.trim(),
+          enabled: item.enabled !== false,
         })),
       };
 
@@ -571,6 +583,97 @@ export function CardBuilderForm({
                       </p>
                     </Field>
                   ) : null}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null}
+
+        {adminSections.whyChoose ? (
+          <Section title="Why Choose Us">
+            <p className="mb-3 text-xs text-muted-foreground">
+              Edit each item’s heading and description, and toggle any item off
+              so it does not appear on the public card.
+            </p>
+            <div className="space-y-3">
+              {whyChooseItems.map((item, index) => (
+                <div
+                  key={item.id}
+                  className={`space-y-2 rounded-xl border p-3 ${
+                    item.enabled ? "bg-muted/20" : "bg-muted/10 opacity-70"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Item {index + 1}
+                    </p>
+                    <label className="inline-flex cursor-pointer items-center gap-2">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {item.enabled ? "Visible" : "Hidden"}
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={item.enabled}
+                        onClick={() => {
+                          setWhyChooseItems((prev) =>
+                            prev.map((row) =>
+                              row.id === item.id
+                                ? { ...row, enabled: !row.enabled }
+                                : row,
+                            ),
+                          );
+                        }}
+                        className={`relative h-7 w-12 rounded-full transition ${
+                          item.enabled ? "bg-teal-500" : "bg-zinc-300"
+                        }`}
+                      >
+                        <span
+                          className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition ${
+                            item.enabled ? "left-5" : "left-0.5"
+                          }`}
+                        />
+                      </button>
+                    </label>
+                  </div>
+                  <Field label="Heading">
+                    <Input
+                      value={item.title}
+                      maxLength={80}
+                      disabled={!item.enabled}
+                      onChange={(e) => {
+                        const title = e.target.value;
+                        setWhyChooseItems((prev) =>
+                          prev.map((row) =>
+                            row.id === item.id ? { ...row, title } : row,
+                          ),
+                        );
+                      }}
+                      placeholder="e.g. Client First Approach"
+                    />
+                  </Field>
+                  <Field label="Description">
+                    <Textarea
+                      rows={3}
+                      maxLength={400}
+                      disabled={!item.enabled}
+                      value={item.description}
+                      onChange={(e) => {
+                        const description = e.target.value;
+                        setWhyChooseItems((prev) =>
+                          prev.map((row) =>
+                            row.id === item.id
+                              ? { ...row, description }
+                              : row,
+                          ),
+                        );
+                      }}
+                      placeholder="Short supporting copy for this point…"
+                    />
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      {item.description.length}/400
+                    </p>
+                  </Field>
                 </div>
               ))}
             </div>

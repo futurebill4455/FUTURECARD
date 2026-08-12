@@ -2,17 +2,16 @@
 
 import {
   DEFAULT_CARD_STATS,
+  DEFAULT_WHY_CHOOSE_ITEMS,
   resolveCardStats,
+  resolveWhyChooseItems,
   type ICardStat,
+  type IWhyChooseItem,
 } from "@/types/card.types";
 
 export type MiniSiteStat = ICardStat;
 
-export type MiniSiteWhyItem = {
-  id: string;
-  title: string;
-  description: string;
-};
+export type MiniSiteWhyItem = IWhyChooseItem;
 
 export type MiniSiteTestimonial = {
   id: string;
@@ -27,40 +26,11 @@ export const DEFAULT_MINISITE_STATS: MiniSiteStat[] = DEFAULT_CARD_STATS.map(
   (s) => ({ ...s }),
 );
 
-export { resolveCardStats };
+export const DEFAULT_WHY_CHOOSE: MiniSiteWhyItem[] = DEFAULT_WHY_CHOOSE_ITEMS.map(
+  (item) => ({ ...item }),
+);
 
-export const DEFAULT_WHY_CHOOSE: MiniSiteWhyItem[] = [
-  {
-    id: "client-first",
-    title: "Client First Approach",
-    description: "Every recommendation starts with your goals and risk profile.",
-  },
-  {
-    id: "transparent",
-    title: "Transparent Advice",
-    description: "Clear options, honest trade-offs — no pressure tactics.",
-  },
-  {
-    id: "best-options",
-    title: "Best Options",
-    description: "Curated plans across segments so you choose with confidence.",
-  },
-  {
-    id: "claims",
-    title: "Claim Assistance",
-    description: "Hands-on support when you need documentation and follow-ups.",
-  },
-  {
-    id: "after-sales",
-    title: "After Sales Support",
-    description: "Ongoing guidance after purchase — not just at signup.",
-  },
-  {
-    id: "relationship",
-    title: "Long Term Relationship",
-    description: "A lasting partnership for protection, growth, and beyond.",
-  },
-];
+export { resolveCardStats, resolveWhyChooseItems };
 
 export const DEFAULT_TESTIMONIALS: MiniSiteTestimonial[] = [
   {

@@ -15,6 +15,7 @@ const OPTIONAL_CARD_COLUMNS = [
   "background_animation_slug",
   "background_slideshow_images",
   "stats",
+  "why_choose_items",
 ] as const;
 
 const FK_OPTIONAL_CARD_COLUMNS = ["background_animation_slug"] as const;

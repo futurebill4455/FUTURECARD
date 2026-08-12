@@ -14,7 +14,7 @@ import {
   PROFILE_TYPE_COPY,
   resolveCardProfileType,
 } from "@/types/card-profile.types";
-import { DEFAULT_PRIMARY_CTAS, resolveCardStats } from "@/types/card.types";
+import { DEFAULT_PRIMARY_CTAS, resolveCardStats, resolveWhyChooseItems } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
   resolveActionButtons,
@@ -386,6 +386,7 @@ function MiniSiteShellInner({
         {sections.whyChoose ? (
           <MiniSiteWhyChoose
             accent={accent}
+            items={resolveWhyChooseItems(card.whyChooseItems)}
             title={copy.whyTitle}
             subtitle={copy.whySubtitle}
           />
