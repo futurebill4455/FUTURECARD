@@ -1,13 +1,12 @@
 /** Default content for Future Shield mini-site sections when the card has no custom copy. */
 
-export type MiniSiteStat = {
-  id: string;
-  value: number;
-  suffix?: string;
-  label: string;
-  /** Display verbatim when number animation isn't suitable (e.g. "24/7") */
-  display?: string;
-};
+import {
+  DEFAULT_CARD_STATS,
+  resolveCardStats,
+  type ICardStat,
+} from "@/types/card.types";
+
+export type MiniSiteStat = ICardStat;
 
 export type MiniSiteWhyItem = {
   id: string;
@@ -24,12 +23,11 @@ export type MiniSiteTestimonial = {
   initials: string;
 };
 
-export const DEFAULT_MINISITE_STATS: MiniSiteStat[] = [
-  { id: "years", value: 5, suffix: "+", label: "Years Experience" },
-  { id: "clients", value: 500, suffix: "+", label: "Happy Clients" },
-  { id: "partners", value: 20, suffix: "+", label: "Partner Companies" },
-  { id: "support", value: 24, display: "24/7", label: "Support Available" },
-];
+export const DEFAULT_MINISITE_STATS: MiniSiteStat[] = DEFAULT_CARD_STATS.map(
+  (s) => ({ ...s }),
+);
+
+export { resolveCardStats };
 
 export const DEFAULT_WHY_CHOOSE: MiniSiteWhyItem[] = [
   {

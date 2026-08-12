@@ -383,6 +383,19 @@ export const cardSchema = z.object({
     .array(z.string().min(1).max(800))
     .max(5)
     .optional(),
+  /** Mini-site stats counters */
+  stats: z
+    .array(
+      z.object({
+        id: z.string().min(1).max(40),
+        value: z.number().int().min(0).max(999_999_999),
+        suffix: z.string().max(8).optional().or(z.literal("")),
+        label: z.string().min(1).max(60),
+        display: z.string().max(24).optional().or(z.literal("")),
+      }),
+    )
+    .max(8)
+    .optional(),
 });
 
 export const subscriptionUpdateSchema = z.object({

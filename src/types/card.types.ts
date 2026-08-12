@@ -100,6 +100,62 @@ export const DEFAULT_BANK_DETAILS: IBankDetails = {
   branch: "",
 };
 
+/** Mini-site stats / counters row (Years, Clients, Partners, Support, …) */
+export interface ICardStat {
+  id: string;
+  /** Numeric value used for count-up animation */
+  value: number;
+  /** Appended after the animated number (e.g. "+") */
+  suffix?: string;
+  label: string;
+  /** When set, shown as-is instead of animating `value` (e.g. "24/7") */
+  display?: string;
+}
+
+export const DEFAULT_CARD_STATS: ICardStat[] = [
+  { id: "years", value: 5, suffix: "+", label: "Years of Experience" },
+  { id: "clients", value: 500, suffix: "+", label: "Happy Clients" },
+  { id: "partners", value: 20, suffix: "+", label: "Partner Companies" },
+  { id: "support", value: 24, display: "24/7", label: "Support Available" },
+];
+
+/** Merge saved stats with defaults by id (keeps 4 core counters stable). */
+export function resolveCardStats(
+  raw?: ICardStat[] | null,
+): ICardStat[] {
+  const byId = new Map<string, ICardStat>();
+  if (Array.isArray(raw)) {
+    for (const item of raw) {
+      if (!item || typeof item !== "object") continue;
+      const id = String(item.id || "").trim();
+      if (!id) continue;
+      const value = Number(item.value);
+      byId.set(id, {
+        id,
+        value: Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0,
+        suffix:
+          typeof item.suffix === "string" ? item.suffix.slice(0, 8) : undefined,
+        label: String(item.label || "").trim().slice(0, 60) || id,
+        display:
+          typeof item.display === "string" && item.display.trim()
+            ? item.display.trim().slice(0, 24)
+            : undefined,
+      });
+    }
+  }
+
+  return DEFAULT_CARD_STATS.map((def) => {
+    const override = byId.get(def.id);
+    if (!override) return { ...def };
+    return {
+      ...def,
+      ...override,
+      id: def.id,
+      label: override.label || def.label,
+    };
+  });
+}
+
 export const ACTION_BUTTON_KEYS = [
   "call",
   "whatsapp",
@@ -210,6 +266,8 @@ export interface ICard {
   backgroundAnimationSlug?: string;
   /** 2–5 images for Photo Slideshow background (mini-site) */
   backgroundSlideshowImages?: string[];
+  /** Mini-site stats counters (years, clients, partners, support) */
+  stats?: ICardStat[];
   createdAt: string;
   updatedAt: string;
 }

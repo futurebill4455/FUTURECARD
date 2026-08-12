@@ -14,7 +14,7 @@ import {
   PROFILE_TYPE_COPY,
   resolveCardProfileType,
 } from "@/types/card-profile.types";
-import { DEFAULT_PRIMARY_CTAS } from "@/types/card.types";
+import { DEFAULT_PRIMARY_CTAS, resolveCardStats } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
   resolveActionButtons,
@@ -362,7 +362,12 @@ function MiniSiteShellInner({
           </section>
         ) : null}
 
-        {sections.stats ? <MiniSiteStats accent={accent} /> : null}
+        {sections.stats ? (
+          <MiniSiteStats
+            accent={accent}
+            stats={resolveCardStats(card.stats)}
+          />
+        ) : null}
 
         {sections.services ? (
           <MiniSiteServices

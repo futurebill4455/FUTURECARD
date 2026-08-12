@@ -24,6 +24,7 @@ import type {
   IActionButton,
   IBankDetails,
   IBusinessHour,
+  ICardStat,
   IExtraLinks,
   IPaymentInfo,
   IPrimaryCta,
@@ -35,6 +36,7 @@ import {
   DEFAULT_BANK_DETAILS,
   DEFAULT_PAYMENT_INFO,
   DEFAULT_THEME,
+  resolveCardStats,
 } from "@/types/card.types";
 import {
   normalizePrimaryCtas,
@@ -87,6 +89,9 @@ export function CardBuilderForm({
   );
   const [slideshowImages, setSlideshowImages] = useState<string[]>(
     () => initial?.backgroundSlideshowImages?.filter(Boolean) ?? [],
+  );
+  const [stats, setStats] = useState<ICardStat[]>(() =>
+    resolveCardStats(initial?.stats),
   );
   const [form, setForm] = useState({
     username: initial?.username ?? "",
@@ -199,6 +204,7 @@ export function CardBuilderForm({
     featuresEnabled,
     backgroundAnimationSlug: backgroundAnimationSlug || undefined,
     backgroundSlideshowImages: slideshowImages,
+    stats,
     createdAt: initial?.createdAt ?? new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -291,6 +297,13 @@ export function CardBuilderForm({
         featuresEnabled,
         backgroundAnimationSlug: backgroundAnimationSlug || undefined,
         backgroundSlideshowImages: slideshowImages,
+        stats: resolveCardStats(stats).map((s) => ({
+          id: s.id,
+          value: s.value,
+          suffix: s.suffix || "",
+          label: s.label,
+          display: s.display || "",
+        })),
       };
 
       if (mode === "create") {
@@ -468,6 +481,101 @@ export function CardBuilderForm({
             )}
           </div>
         </Section>
+
+        {adminSections.stats ? (
+          <Section title="Stats & counters">
+            <p className="mb-3 text-xs text-muted-foreground">
+              Numbers and labels shown in the public mini-site stats row. Turn
+              the section on/off under Public page sections.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {stats.map((stat) => (
+                <div
+                  key={stat.id}
+                  className="space-y-2 rounded-xl border bg-muted/20 p-3"
+                >
+                  <Field label="Heading / label">
+                    <Input
+                      value={stat.label}
+                      maxLength={60}
+                      onChange={(e) => {
+                        const label = e.target.value;
+                        setStats((prev) =>
+                          prev.map((s) =>
+                            s.id === stat.id ? { ...s, label } : s,
+                          ),
+                        );
+                      }}
+                      placeholder="e.g. Happy Clients"
+                    />
+                  </Field>
+                  <div className="grid grid-cols-[1fr_auto] gap-2">
+                    <Field label="Number">
+                      <Input
+                        type="number"
+                        min={0}
+                        inputMode="numeric"
+                        value={Number.isFinite(stat.value) ? stat.value : 0}
+                        onChange={(e) => {
+                          const value = Math.max(
+                            0,
+                            Math.round(Number(e.target.value) || 0),
+                          );
+                          setStats((prev) =>
+                            prev.map((s) =>
+                              s.id === stat.id ? { ...s, value } : s,
+                            ),
+                          );
+                        }}
+                      />
+                    </Field>
+                    <Field label="Suffix">
+                      <Input
+                        value={stat.suffix || ""}
+                        maxLength={8}
+                        placeholder="+"
+                        onChange={(e) => {
+                          const suffix = e.target.value;
+                          setStats((prev) =>
+                            prev.map((s) =>
+                              s.id === stat.id ? { ...s, suffix } : s,
+                            ),
+                          );
+                        }}
+                      />
+                    </Field>
+                  </div>
+                  {stat.id === "support" ? (
+                    <Field label="Display text (optional)">
+                      <Input
+                        value={stat.display || ""}
+                        maxLength={24}
+                        placeholder="24/7"
+                        onChange={(e) => {
+                          const display = e.target.value;
+                          setStats((prev) =>
+                            prev.map((s) =>
+                              s.id === stat.id
+                                ? {
+                                    ...s,
+                                    display: display.trim() || undefined,
+                                  }
+                                : s,
+                            ),
+                          );
+                        }}
+                      />
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        When set (e.g. 24/7), this text is shown instead of the
+                        animated number.
+                      </p>
+                    </Field>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </Section>
+        ) : null}
 
         <Section title="Profile & background media">
           <MediaUpload
