@@ -22,6 +22,7 @@ export function getPlatformHosts(): Set<string> {
     "127.0.0.1",
     // Primary production apex (Vercel custom domain for this product)
     "futurecard.online",
+    "www.futurecard.online",
     "app.futurecard.pro",
   ]);
 

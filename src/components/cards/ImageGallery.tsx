@@ -15,11 +15,14 @@ export function ImageGallery({
   accent: string;
   className?: string;
 }) {
-  const list = images?.filter(Boolean) ?? [];
+  const list = useMemo(
+    () => (images ?? []).filter(Boolean),
+    [images],
+  );
   const [visible, setVisible] = useState(INITIAL_COUNT);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
-  const shown = useMemo(() => list.slice(0, visible), [list, visible]);
+  const shown = list.slice(0, visible);
   const hasMore = visible < list.length;
 
   if (!list.length) return null;

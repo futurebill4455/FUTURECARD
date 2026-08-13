@@ -344,8 +344,7 @@ export function VideoGalleryUpload({
       return;
     }
     try {
-      // eslint-disable-next-line no-new
-      new URL(url);
+      void new URL(url);
     } catch {
       setError("Enter a valid video URL (https://…)");
       return;
