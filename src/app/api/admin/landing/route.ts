@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/session";
 import {
   getPlatformSettings,
+  revalidateLandingPages,
   updatePlatformSettings,
 } from "@/lib/platform-settings";
 import { landingCmsUpdateSchema } from "@/lib/validations";
@@ -32,10 +33,16 @@ export async function PUT(req: NextRequest) {
       const validated = landingCmsUpdateSchema.parse(body);
       const landingCms = resolveLandingCms(validated.landingCms);
       const data = await updatePlatformSettings({ landingCms });
-      return NextResponse.json({
-        data: resolveLandingCms(data.landingCms),
-        message: "Landing page content saved",
-      });
+      revalidateLandingPages();
+      return NextResponse.json(
+        {
+          data: resolveLandingCms(data.landingCms),
+          message: "Landing page content saved",
+        },
+        {
+          headers: { "Cache-Control": "no-store" },
+        },
+      );
     } catch (err) {
       return toApiError(err);
     }

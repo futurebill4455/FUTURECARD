@@ -1,22 +1,59 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_LANDING_CMS,
+  resolveLandingCms,
+  type ILandingCms,
   type ILandingPricingContent,
 } from "@/types/landing-cms.types";
 
+async function fetchLivePricing(): Promise<ILandingPricingContent | null> {
+  const res = await fetch(`/api/landing?ts=${Date.now()}`, {
+    cache: "no-store",
+    headers: { Pragma: "no-cache" },
+  });
+  if (!res.ok) return null;
+  const json = (await res.json()) as { data?: ILandingCms | null };
+  const pricing = resolveLandingCms(json.data).pricing;
+  return pricing.plans?.length ? pricing : null;
+}
+
 export function LandingPricing({
-  content = DEFAULT_LANDING_CMS.pricing,
+  content,
 }: {
   content?: ILandingPricingContent;
 }) {
   const [yearly, setYearly] = useState(true);
-  const plans = content.plans;
+  const [pricing, setPricing] = useState<ILandingPricingContent>(
+    content ?? DEFAULT_LANDING_CMS.pricing,
+  );
+
+  useEffect(() => {
+    if (content?.plans?.length) setPricing(content);
+  }, [content]);
+
+  useEffect(() => {
+    let alive = true;
+
+    fetchLivePricing()
+      .then((next) => {
+        if (alive && next) setPricing(next);
+      })
+      .catch(() => {
+        /* keep the server-rendered snapshot */
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const plans = pricing.plans;
 
   return (
     <section id="pricing" className="relative scroll-mt-20 px-4 py-24 sm:px-6">
@@ -29,12 +66,12 @@ export function LandingPricing({
           className="mx-auto max-w-2xl text-center"
         >
           <p className="text-sm font-bold uppercase tracking-[0.18em] text-teal-300">
-            {content.eyebrow}
+            {pricing.eyebrow}
           </p>
           <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-teal-50 sm:text-4xl">
-            {content.title}
+            {pricing.title}
           </h2>
-          <p className="mt-3 text-teal-100/70">{content.subtitle}</p>
+          <p className="mt-3 text-teal-100/70">{pricing.subtitle}</p>
 
           <LayoutGroup>
             <div className="relative mt-8 inline-flex items-center gap-1 rounded-2xl border border-teal-400/15 bg-white/5 p-1.5 backdrop-blur-md">
@@ -137,7 +174,7 @@ export function LandingPricing({
               <div className="mt-6 flex items-end gap-1">
                 <AnimatePresence mode="wait">
                   <motion.span
-                    key={`${plan.id}-${yearly}`}
+                    key={`${plan.id}-${yearly}-${plan.yearly}-${plan.monthly}`}
                     initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
                     animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                     exit={{ opacity: 0, y: -12, filter: "blur(4px)" }}

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { requireAdmin } from "@/lib/session";
 import {
   getPlatformSettings,
+  revalidateLandingPages,
   updatePlatformSettings,
 } from "@/lib/platform-settings";
 import { platformSettingsSchema } from "@/lib/validations";
@@ -36,6 +37,7 @@ export async function PUT(req: NextRequest) {
           ? { landingCms: resolveLandingCms(rawLanding as never) }
           : {}),
       });
+      revalidateLandingPages();
       return NextResponse.json({ data, message: "Settings saved" });
     } catch (err) {
       return toApiError(err);

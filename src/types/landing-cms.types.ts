@@ -310,7 +310,12 @@ function asString(v: unknown, fallback: string): string {
 }
 
 function asNumber(v: unknown, fallback: number): number {
-  return typeof v === "number" && Number.isFinite(v) ? v : fallback;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return fallback;
 }
 
 function asStringArray(v: unknown, fallback: string[]): string[] {

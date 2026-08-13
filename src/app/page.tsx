@@ -1,6 +1,8 @@
 import { renderHomeExperience } from "@/lib/home-experience";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
 
 /**
  * Platform root (`/`) — always renders a landing page or redirects.

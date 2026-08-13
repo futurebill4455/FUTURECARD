@@ -4,6 +4,10 @@ import { dbConnect } from "@/lib/db";
 import { findCardByCustomDomain } from "@/lib/db/cards";
 import { renderHomeExperience } from "@/lib/home-experience";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const fetchCache = "force-no-store";
+
 type Props = { params: Promise<{ host: string }> };
 
 /**

@@ -3,6 +3,9 @@ import { LandingCmsForm } from "@/components/admin/LandingCmsForm";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { resolveLandingCms } from "@/types/landing-cms.types";
 
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
 export default async function AdminLandingCmsPage() {
   const settings = await getPlatformSettings();
   const cms = resolveLandingCms(settings.landingCms);

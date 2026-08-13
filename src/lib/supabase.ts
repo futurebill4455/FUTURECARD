@@ -119,7 +119,11 @@ async function supabaseFetch(
         }
       }
 
-      const res = await fetch(input, { ...init, signal: controller.signal });
+      const res = await fetch(input, {
+        ...init,
+        cache: "no-store",
+        signal: controller.signal,
+      });
       const retryableStatus =
         res.status === 429 ||
         res.status === 502 ||
