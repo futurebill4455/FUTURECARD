@@ -13,7 +13,7 @@ import {
 // next-auth parseUrl() throws TypeError: Invalid URL when NEXTAUTH_URL is
 // missing or not an absolute URL (common during /_not-found prerender).
 if (!safeParseUrl(process.env.NEXTAUTH_URL)) {
-  process.env.NEXTAUTH_URL = getAppOrigin();
+  process.env["NEXTAUTH_URL"] = getAppOrigin();
 }
 
 export const authOptions: NextAuthOptions = {

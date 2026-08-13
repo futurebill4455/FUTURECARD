@@ -106,15 +106,11 @@ export function cardPublicUrl(username: string): string {
   return absoluteAppUrl(`/c/${slug}`);
 }
 
-// Patch env before next-auth / metadata resolvers run (e.g. /_not-found prerender).
+// Patch NEXTAUTH_URL only. Never assign to NEXT_PUBLIC_* — Next inlines those
+// as string literals, which turns `process.env.NEXT_PUBLIC_APP_URL = …` into
+// `"https://futurecard.online" = …` and crashes `/_not-found` on Vercel.
 if (typeof process !== "undefined" && process.env) {
   if (!safeParseUrl(process.env.NEXTAUTH_URL)) {
-    process.env.NEXTAUTH_URL = DEFAULT_APP_ORIGIN;
-  }
-  if (
-    !process.env.NEXT_PUBLIC_APP_URL?.trim() ||
-    !originIfCanonical(process.env.NEXT_PUBLIC_APP_URL)
-  ) {
-    process.env.NEXT_PUBLIC_APP_URL = DEFAULT_APP_ORIGIN;
+    process.env["NEXTAUTH_URL"] = DEFAULT_APP_ORIGIN;
   }
 }
