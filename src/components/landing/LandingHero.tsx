@@ -173,7 +173,7 @@ export function LandingHero({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ ...springSoft, delay: 0.4 }}
             style={{ y: yCard, scale: scaleStage }}
-            className="relative mx-auto w-full max-w-[480px] overflow-visible [perspective:1400px]"
+            className="relative mx-auto w-full max-w-[520px] overflow-visible [perspective:1400px]"
           >
             <HeroCardShowcase />
           </motion.div>
