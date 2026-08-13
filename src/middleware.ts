@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { isPlatformHost, normalizeHostname } from "@/lib/custom-domain";
+import {
+  isPlatformAppPath,
+  isPlatformHost,
+  normalizeHostname,
+} from "@/lib/custom-domain";
 import { getAuthSecret } from "@/lib/auth-secret";
 
 const STATIC_EXT =
@@ -35,9 +39,16 @@ export async function middleware(req: NextRequest) {
       return NextResponse.next();
     }
 
+    // Auth + dashboard routes must keep working on Vercel-attached domains
+    // even if PLATFORM_HOSTS env is incomplete.
+    if (isPlatformAppPath(pathname)) {
+      return NextResponse.next();
+    }
+
     const host = normalizeHostname(hostHeader || "");
     if (!host) return NextResponse.next();
 
+    // Tenant custom domains: serve the mapped public card
     const url = req.nextUrl.clone();
     url.pathname = `/domain/${encodeURIComponent(host)}`;
     url.search = "";

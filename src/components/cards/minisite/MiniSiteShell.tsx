@@ -21,7 +21,8 @@ import {
 } from "@/lib/action-buttons";
 import { downloadVCard, generateVCard } from "@/lib/vcard-generator";
 import { resolveTheme, tintColor } from "@/lib/theme";
-import { absoluteUrl, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useCardPublicUrl } from "@/hooks/useAbsoluteUrl";
 import { MiniSiteNav } from "./MiniSiteNav";
 import { MiniSiteHero } from "./MiniSiteHero";
 import { MiniSiteIdentityCard } from "./MiniSiteIdentityCard";
@@ -88,6 +89,8 @@ function MiniSiteShellInner({
   const [payOpen, setPayOpen] = useState(false);
   const [qrOpen, setQrOpen] = useState(false);
   const [toast, setToast] = useState("");
+  const publicUrl = useCardPublicUrl(card.username);
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
 
   const ambientMode = platformSettings?.ambientMode || "gradient";
   const ambientVideo = platformSettings?.ambientVideo || "";
@@ -141,7 +144,7 @@ function MiniSiteShellInner({
   }
 
   async function onShare() {
-    const url = absoluteUrl(`/c/${card.username}`);
+    const url = publicUrl;
     void trackEvent("share");
     try {
       if (navigator.share) {
@@ -216,9 +219,6 @@ function MiniSiteShellInner({
     void trackEvent("action", "call");
     window.location.href = `tel:${card.phone}`;
   }
-
-  const publicUrl = absoluteUrl(`/c/${card.username}`);
-  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
 
   const navIds = useMemo(() => {
     const ids = ["home"];

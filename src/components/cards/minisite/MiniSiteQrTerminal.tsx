@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { absoluteUrl } from "@/lib/utils";
+import { useCardPublicUrl } from "@/hooks/useAbsoluteUrl";
 import type { ICard } from "@/types/card.types";
 import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 
@@ -16,7 +16,7 @@ export function MiniSiteQrTerminal({
   onSave: () => void;
   onShare: () => void;
 }) {
-  const url = absoluteUrl(`/c/${card.username}`);
+  const url = useCardPublicUrl(card.username);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}`;
 
   return (

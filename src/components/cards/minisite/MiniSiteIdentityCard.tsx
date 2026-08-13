@@ -10,7 +10,8 @@ import {
 } from "framer-motion";
 import { PLATFORM_BRAND } from "@/lib/service-categories";
 import type { ICard } from "@/types/card.types";
-import { absoluteUrl, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { useCardPublicUrl } from "@/hooks/useAbsoluteUrl";
 import { VerifiedBadge } from "@/components/cards/VerifiedBadge";
 import { PremiumMotionButton } from "@/components/cards/minisite/PremiumMotionButton";
 
@@ -61,8 +62,9 @@ export function MiniSiteIdentityCard({
     my.set(0);
   }
 
+  const publicUrl = useCardPublicUrl(card.username);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(
-    absoluteUrl(`/c/${card.username}`),
+    publicUrl,
   )}`;
 
   return (

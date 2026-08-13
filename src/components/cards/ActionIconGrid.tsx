@@ -12,7 +12,7 @@ import {
   type ActionButtonKey,
 } from "@/lib/action-buttons";
 import { isActionAllowed } from "@/lib/feature-permissions";
-import { absoluteUrl } from "@/lib/utils";
+import { useCardPublicUrl } from "@/hooks/useAbsoluteUrl";
 import { BankDetailsModal } from "./BankDetailsModal";
 import { InquiryFormModal } from "./InquiryFormModal";
 import { NeonActionIcon } from "./NeonActionIcon";
@@ -41,7 +41,7 @@ export function ActionIconGrid({
   const [qrOpen, setQrOpen] = useState(false);
   const [bankOpen, setBankOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
-  const publicUrl = absoluteUrl(`/c/${card.username}`);
+  const publicUrl = useCardPublicUrl(card.username);
   const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(publicUrl)}`;
 
   const visible = useMemo(() => {
