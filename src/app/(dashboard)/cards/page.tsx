@@ -9,6 +9,7 @@ import { PageHeader, EmptyState } from "@/components/shared/Navbar";
 import { Button } from "@/components/ui/button";
 import { CardUsageIndicator } from "@/components/dashboard/CardUsageIndicator";
 import { resolveMaxCardsLimit } from "@/types/platform.types";
+import { cardPublicUrl } from "@/lib/app-url";
 
 export default async function CardsPage() {
   const session = await getServerSession(authOptions);
@@ -70,7 +71,9 @@ export default async function CardsPage() {
                     {c.companyName}
                   </h3>
                   <p className="text-sm text-muted-foreground">{c.jobTitle}</p>
-                  <p className="mt-1 text-xs text-teal-300/70">/{c.username}</p>
+                  <p className="mt-1 break-all text-xs text-teal-300/70">
+                    {cardPublicUrl(c.username)}
+                  </p>
                 </div>
                 <span
                   className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${
@@ -90,9 +93,9 @@ export default async function CardsPage() {
                   <Link href={`/cards/${c._id}/preview`}>Preview</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link href={`/${c.username}`} target="_blank">
+                  <a href={cardPublicUrl(c.username)} target="_blank" rel="noreferrer">
                     Open public
-                  </Link>
+                  </a>
                 </Button>
               </div>
             </div>

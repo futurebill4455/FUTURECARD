@@ -63,6 +63,7 @@ import {
   resolveCardSections,
   type ICardSections,
 } from "@/types/card-sections.types";
+import { cardPublicUrl } from "@/lib/app-url";
 
 type Mode = "create" | "edit";
 
@@ -409,6 +410,11 @@ export function CardBuilderForm({
                 placeholder="acme_corp"
                 disabled={mode === "edit"}
               />
+              {form.username.trim() ? (
+                <p className="mt-1 break-all text-[11px] text-muted-foreground">
+                  {cardPublicUrl(form.username)}
+                </p>
+              ) : null}
             </Field>
             <Field label="Company name">
               <Input

@@ -1,4 +1,5 @@
 import type { ICard } from "@/types/card.types";
+import { cardPublicUrl } from "@/lib/app-url";
 
 function escape(value: string) {
   return value.replace(/([\\,;])/g, "\\$1").replace(/\n/g, "\\n");
@@ -17,6 +18,7 @@ export function generateVCard(card: ICard, displayName?: string) {
   if (card.phone) lines.push(`TEL;TYPE=CELL:${card.phone}`);
   if (card.email) lines.push(`EMAIL:${card.email}`);
   if (card.website) lines.push(`URL:${card.website}`);
+  lines.push(`URL:${cardPublicUrl(card.username)}`);
   if (card.location?.address) {
     lines.push(`ADR;TYPE=WORK:;;${escape(card.location.address)};;;;`);
   }

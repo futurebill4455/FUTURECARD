@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/shared/Navbar";
 import { CardBuilderForm } from "@/components/forms/CardBuilderForm";
 import { resolveFeatures } from "@/types/platform.types";
 import { resolveCardSections } from "@/types/card-sections.types";
+import { cardPublicUrl } from "@/lib/app-url";
 
 type Props = { params: Promise<{ cardId: string }> };
 
@@ -27,7 +28,7 @@ export default async function EditCardPage({ params }: Props) {
     <div>
       <PageHeader
         title="Edit card"
-        description={`Public URL: /${card.username}`}
+        description={`Public URL: ${cardPublicUrl(card.username)}`}
       />
       <CardBuilderForm
         mode="edit"

@@ -1,28 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { absoluteUrl, getPublicOrigin } from "@/lib/utils";
+import { cardPublicUrl } from "@/lib/app-url";
+import { absoluteUrl } from "@/lib/utils";
 
 /**
- * Absolute public URL that prefers the live browser origin after mount,
- * so QR codes never point at localhost on Vercel / production.
+ * Absolute URL for a path. Public card links always use the production
+ * domain (NEXT_PUBLIC_APP_URL / futurecard.online), never *.vercel.app.
  */
 export function useAbsoluteUrl(path = ""): string {
-  const suffix = path
-    ? path.startsWith("/")
-      ? path
-      : `/${path}`
-    : "";
-
-  const [url, setUrl] = useState(() => absoluteUrl(path));
-
-  useEffect(() => {
-    setUrl(`${getPublicOrigin()}${suffix}`);
-  }, [suffix]);
-
-  return url;
+  return absoluteUrl(path);
 }
 
 export function useCardPublicUrl(username: string): string {
-  return useAbsoluteUrl(`/c/${username}`);
+  return cardPublicUrl(username);
 }

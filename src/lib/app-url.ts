@@ -1,6 +1,7 @@
 /**
- * Safe public origin for metadata, QR codes, and NextAuth.
+ * Safe public origin for metadata, QR codes, and shared card links.
  * Never throws — invalid env values fall back to the production domain.
+ * Vercel deployment hosts (*.vercel.app) are never used for public card URLs.
  */
 
 export const DEFAULT_APP_ORIGIN = "https://futurecard.online";
@@ -11,6 +12,11 @@ function firstNonEmpty(...values: Array<string | undefined | null>): string {
     if (trimmed) return trimmed;
   }
   return "";
+}
+
+export function isVercelDeploymentHost(hostname: string): boolean {
+  const host = hostname.trim().toLowerCase().replace(/\.$/, "");
+  return host === "vercel.app" || host.endsWith(".vercel.app");
 }
 
 /** Parse a URL without throwing. Returns null if the value is not a valid absolute http(s) URL. */
@@ -40,25 +46,43 @@ export function safeParseUrl(raw: string | undefined | null): URL | null {
   return null;
 }
 
+function originIfCanonical(raw: string | undefined | null): string | null {
+  const parsed = safeParseUrl(raw);
+  if (!parsed) return null;
+  if (isVercelDeploymentHost(parsed.hostname)) return null;
+  if (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") {
+    return null;
+  }
+  return parsed.origin;
+}
+
 /**
- * Absolute origin (no trailing slash) used at build time and runtime.
- * Client: window.location.origin. Server/build: env vars, then production default.
+ * Canonical production origin for public card links, QR codes, and share URLs.
+ * Ignores the current Vercel deployment host.
+ */
+export function getCanonicalPublicOrigin(): string {
+  return (
+    originIfCanonical(process.env.NEXT_PUBLIC_APP_URL) ||
+    originIfCanonical(process.env.NEXT_PUBLIC_PLATFORM_HOST) ||
+    DEFAULT_APP_ORIGIN
+  );
+}
+
+/**
+ * App origin for metadata / auth fallbacks.
+ * Prefers the canonical production domain over window.location / VERCEL_URL
+ * so preview deployments do not leak *.vercel.app into shared links.
  */
 export function getAppOrigin(): string {
+  const canonical = getCanonicalPublicOrigin();
+  if (canonical) return canonical;
+
   if (typeof window !== "undefined" && window.location?.origin) {
-    const fromWindow = safeParseUrl(window.location.origin);
-    if (fromWindow) return fromWindow.origin;
+    const fromWindow = originIfCanonical(window.location.origin);
+    if (fromWindow) return fromWindow;
   }
 
-  const fromEnv = firstNonEmpty(
-    process.env.NEXT_PUBLIC_APP_URL,
-    process.env.NEXTAUTH_URL,
-    process.env.NEXT_PUBLIC_PLATFORM_HOST,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL,
-    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
-  );
-
-  return (safeParseUrl(fromEnv) ?? new URL(DEFAULT_APP_ORIGIN)).origin;
+  return DEFAULT_APP_ORIGIN;
 }
 
 export function getAppBaseUrl(): URL {
@@ -76,12 +100,21 @@ export function absoluteAppUrl(path = ""): string {
   }
 }
 
+/** Canonical public mini-site URL: https://futurecard.online/c/{username} */
+export function cardPublicUrl(username: string): string {
+  const slug = username.trim().toLowerCase().replace(/^\/+/, "");
+  return absoluteAppUrl(`/c/${slug}`);
+}
+
 // Patch env before next-auth / metadata resolvers run (e.g. /_not-found prerender).
 if (typeof process !== "undefined" && process.env) {
   if (!safeParseUrl(process.env.NEXTAUTH_URL)) {
     process.env.NEXTAUTH_URL = DEFAULT_APP_ORIGIN;
   }
-  if (!process.env.NEXT_PUBLIC_APP_URL?.trim()) {
+  if (
+    !process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    !originIfCanonical(process.env.NEXT_PUBLIC_APP_URL)
+  ) {
     process.env.NEXT_PUBLIC_APP_URL = DEFAULT_APP_ORIGIN;
   }
 }

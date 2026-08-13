@@ -17,6 +17,7 @@ import {
 import { CustomDomainSettings } from "@/components/dashboard/CustomDomainSettings";
 import { getPlatformSettings } from "@/lib/platform-settings";
 import { canRequestCustomDomain } from "@/lib/custom-domain-access";
+import { cardPublicUrl } from "@/lib/app-url";
 import {
   DEFAULT_PLATFORM_SETTINGS,
   resolveFeatures,
@@ -147,7 +148,7 @@ export default async function DashboardPage() {
                 <div>
                   <div className="font-semibold">{c.companyName}</div>
                   <div className="text-xs text-muted-foreground">
-                    /{c.username}
+                    {cardPublicUrl(c.username)}
                     {c.customDomain ? (
                       <span className="ml-2 text-teal-300">
                         · {c.customDomain}

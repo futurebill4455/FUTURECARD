@@ -1,14 +1,17 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { absoluteAppUrl, getAppOrigin } from "@/lib/app-url";
+import {
+  absoluteAppUrl,
+  getCanonicalPublicOrigin,
+} from "@/lib/app-url";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** @deprecated Prefer getAppOrigin — kept so existing imports keep working. */
+/** Production origin used for shared / generated card links. */
 export function getPublicOrigin(): string {
-  return getAppOrigin();
+  return getCanonicalPublicOrigin();
 }
 
 export function absoluteUrl(path = "") {

@@ -11,6 +11,7 @@ import {
   resolveCardProfileType,
   type CardProfileType,
 } from "@/types/card-profile.types";
+import { cardPublicUrl } from "@/lib/app-url";
 import type { ICard } from "@/types/card.types";
 
 export function AdminUserCardsPanel({ cards }: { cards: ICard[] }) {
@@ -79,7 +80,7 @@ function AdminCardProfileRow({ card }: { card: ICard }) {
         <div className="min-w-0">
           <p className="font-semibold">{card.companyName || "Untitled"}</p>
           <p className="text-xs text-muted-foreground">
-            /{card.username}
+            {cardPublicUrl(card.username)}
             {card.isActive ? (
               <span className="ml-2 text-teal-300">· Live</span>
             ) : (
@@ -89,7 +90,7 @@ function AdminCardProfileRow({ card }: { card: ICard }) {
         </div>
         <div className="flex flex-wrap gap-2">
           <Button asChild size="sm" variant="outline">
-            <Link href={`/c/${card.username}`} target="_blank">
+            <Link href={cardPublicUrl(card.username)} target="_blank">
               Open public
             </Link>
           </Button>
