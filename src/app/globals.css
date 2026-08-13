@@ -589,6 +589,19 @@ body {
   z-index: 1;
 }
 
+.fs-preview-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
+  overscroll-behavior: contain;
+}
+.fs-preview-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.fs-preview-scroll::-webkit-scrollbar-thumb {
+  background: rgba(34, 211, 238, 0.35);
+  border-radius: 999px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

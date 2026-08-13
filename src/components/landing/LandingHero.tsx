@@ -13,7 +13,7 @@ import { Sparkles } from "lucide-react";
 import { TypewriterHeadline } from "@/components/landing/TypewriterHeadline";
 import { VerifiedByBrand } from "@/components/shared/VerifiedByBrand";
 import { KineticWords } from "@/components/landing/motion";
-import { HeroCardShowcase } from "@/components/landing/HeroCardShowcase";
+import { FutureShieldCardPreview } from "@/components/landing/FutureShieldCardPreview";
 import {
   DEFAULT_LANDING_CMS,
   type ILandingHeroContent,
@@ -93,7 +93,7 @@ export function LandingHero({
         style={{ opacity: opacityHero }}
         className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-4 pb-16 pt-24 sm:px-6 sm:pt-28 lg:pb-20 lg:pt-32"
       >
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-8">
           <motion.div style={{ y: yCopy }} className="relative z-10">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
@@ -167,15 +167,14 @@ export function LandingHero({
             </motion.div>
           </motion.div>
 
-          {/* Live mini-site preview + guide character */}
           <motion.div
             initial={{ opacity: 0, x: 40, scale: 0.94 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ ...springSoft, delay: 0.4 }}
             style={{ y: yCard, scale: scaleStage }}
-            className="relative mx-auto w-full max-w-[520px] overflow-visible [perspective:1400px]"
+            className="relative mx-auto w-full min-w-0 overflow-visible [perspective:1400px]"
           >
-            <HeroCardShowcase />
+            <FutureShieldCardPreview />
           </motion.div>
         </div>
       </motion.div>

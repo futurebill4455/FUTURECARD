@@ -48,6 +48,7 @@ export function ImageGallery({
             <img
               src={src}
               alt=""
+              loading="lazy"
               className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
             />
           </button>

@@ -77,6 +77,32 @@ const config: Config = {
           from: { backgroundPosition: "-200% 0" },
           to: { backgroundPosition: "200% 0" },
         },
+        "hero-float": {
+          "0%, 100%": {
+            transform: "translateY(0px) rotateX(0.4deg) rotateY(-1.4deg)",
+          },
+          "50%": {
+            transform: "translateY(-7px) rotateX(1.2deg) rotateY(1.2deg)",
+          },
+        },
+        "hero-bob": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-4px)" },
+        },
+        "hero-swipe": {
+          "0%": { transform: "rotate(10deg)" },
+          "45%": { transform: "rotate(-16deg)" },
+          "100%": { transform: "rotate(10deg)" },
+        },
+        "hero-breathe": {
+          "0%, 100%": { transform: "scaleY(1)" },
+          "50%": { transform: "scaleY(1.012)" },
+        },
+        "hero-swipe-once": {
+          "0%": { transform: "rotate(-2deg)" },
+          "38%": { transform: "rotate(-18deg)" },
+          "100%": { transform: "rotate(-6deg)" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -86,6 +112,12 @@ const config: Config = {
         "soft-pulse": "soft-pulse 3.5s ease-in-out infinite",
         "gradient-shift": "gradient-shift 8s ease infinite",
         shimmer: "shimmer 2.8s linear infinite",
+        "hero-float": "hero-float 5.8s ease-in-out infinite",
+        "hero-bob": "hero-bob 3.6s ease-in-out infinite",
+        "hero-swipe": "hero-swipe 1.15s cubic-bezier(0.22, 1, 0.36, 1) infinite",
+        "hero-breathe": "hero-breathe 4.8s ease-in-out infinite",
+        "hero-swipe-once":
+          "hero-swipe-once 1.45s cubic-bezier(0.45, 0.05, 0.2, 1) both",
       },
     },
   },
