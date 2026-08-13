@@ -72,13 +72,21 @@ export async function middleware(req: NextRequest) {
   });
 
   if (!token) {
-    const login = new URL("/login", req.url);
-    login.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(login);
+    try {
+      const login = new URL("/login", req.url);
+      login.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(login);
+    } catch {
+      return NextResponse.redirect(new URL("/login", "https://futurecard.online"));
+    }
   }
 
   if (pathname.startsWith("/admin") && token.role !== "admin") {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    try {
+      return NextResponse.redirect(new URL("/dashboard", req.url));
+    } catch {
+      return NextResponse.redirect(new URL("/dashboard", "https://futurecard.online"));
+    }
   }
 
   // Unapproved user sessions cannot use the dashboard (admins always allowed)
@@ -87,7 +95,13 @@ export async function middleware(req: NextRequest) {
     token.isApproved === false &&
     !pathname.startsWith("/pending-approval")
   ) {
-    return NextResponse.redirect(new URL("/pending-approval", req.url));
+    try {
+      return NextResponse.redirect(new URL("/pending-approval", req.url));
+    } catch {
+      return NextResponse.redirect(
+        new URL("/pending-approval", "https://futurecard.online"),
+      );
+    }
   }
 
   return NextResponse.next();

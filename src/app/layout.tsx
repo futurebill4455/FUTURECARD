@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Outfit, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/providers/Providers";
+import { getAppBaseUrl } from "@/lib/app-url";
 import "./globals.css";
 
 const display = Space_Grotesk({
@@ -22,6 +23,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Required so Next can resolve relative icon URLs while prerendering /_not-found.
+  metadataBase: getAppBaseUrl(),
   title: "FutureCard — Digital Visiting Cards",
   description:
     "Create, manage, and share professional digital visiting cards with analytics and subscriptions.",

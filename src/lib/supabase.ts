@@ -57,6 +57,17 @@ export function resolveSupabaseConfig(): {
     );
   }
 
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+      throw new Error("unsupported protocol");
+    }
+  } catch {
+    throw new DatabaseError(
+      "Invalid NEXT_PUBLIC_SUPABASE_URL. Use the Project URL (https://YOUR_PROJECT.supabase.co).",
+    );
+  }
+
   if (/pooler\.supabase\.com/i.test(url) || /:6543|:5432/.test(url)) {
     throw new DatabaseError(
       "Invalid Supabase URL for the JS client. Use the Project URL (https://YOUR_PROJECT.supabase.co), not the Postgres pooler connection string.",

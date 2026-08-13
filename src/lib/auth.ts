@@ -1,4 +1,5 @@
 import { getAuthSecret } from "@/lib/auth-secret";
+import { getAppOrigin, safeParseUrl } from "@/lib/app-url";
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -8,6 +9,12 @@ import {
   PENDING_APPROVAL_CODE,
   PENDING_APPROVAL_MESSAGE,
 } from "@/lib/approval";
+
+// next-auth parseUrl() throws TypeError: Invalid URL when NEXTAUTH_URL is
+// missing or not an absolute URL (common during /_not-found prerender).
+  if (!safeParseUrl(process.env.NEXTAUTH_URL)) {
+    process.env.NEXTAUTH_URL = getAppOrigin();
+  }
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
