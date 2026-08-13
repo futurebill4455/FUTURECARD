@@ -60,7 +60,7 @@ export function LandingHero({
     <section
       ref={sectionRef}
       onMouseMove={onMouseMove}
-      className="relative min-h-[100svh] overflow-hidden pt-8 sm:pt-4"
+      className="relative min-h-[100svh] overflow-x-clip overflow-y-hidden pt-8 sm:pt-4"
     >
       <div className="pointer-events-none absolute inset-0">
         <motion.div style={{ y: orbY, background: glowBg }} className="absolute inset-0" />
@@ -93,8 +93,8 @@ export function LandingHero({
         style={{ opacity: opacityHero }}
         className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col justify-center px-4 pb-16 pt-24 sm:px-6 sm:pt-28 lg:pb-20 lg:pt-32"
       >
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-8">
-          <motion.div style={{ y: yCopy }} className="relative z-10">
+        <div className="grid min-w-0 items-center gap-12 lg:grid-cols-[minmax(0,1.12fr)_minmax(0,0.88fr)] lg:gap-8">
+          <motion.div style={{ y: yCopy }} className="relative z-10 min-w-0">
             <motion.div
               initial={{ opacity: 0, scale: 0.8, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -172,7 +172,7 @@ export function LandingHero({
             animate={{ opacity: 1, x: 0, scale: 1 }}
             transition={{ ...springSoft, delay: 0.4 }}
             style={{ y: yCard, scale: scaleStage }}
-            className="relative mx-auto w-full min-w-0 overflow-visible [perspective:1400px]"
+            className="relative mx-auto w-full min-w-0 max-w-full overflow-x-clip [perspective:1400px] max-md:[perspective:none]"
           >
             <FutureShieldCardPreview />
           </motion.div>

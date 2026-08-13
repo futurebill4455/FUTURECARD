@@ -15,13 +15,15 @@ export function ImageGallery({
   accent: string;
   className?: string;
 }) {
-  const list = useMemo(
+  const sources = useMemo(
     () => (images ?? []).filter(Boolean),
     [images],
   );
+  const [failed, setFailed] = useState<Record<string, true>>({});
   const [visible, setVisible] = useState(INITIAL_COUNT);
   const [lightbox, setLightbox] = useState<number | null>(null);
 
+  const list = sources.filter((src) => !failed[src]);
   const shown = list.slice(0, visible);
   const hasMore = visible < list.length;
 
@@ -45,14 +47,18 @@ export function ImageGallery({
             key={`${src}-${i}`}
             type="button"
             onClick={() => setLightbox(i)}
-            className="group relative aspect-square overflow-hidden rounded-2xl border border-black/5 bg-muted/30 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            className="group relative aspect-square min-h-11 overflow-hidden rounded-2xl border border-black/5 bg-slate-200/40 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={src}
               alt=""
               loading="lazy"
-              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              decoding="async"
+              className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+              onError={() =>
+                setFailed((prev) => (prev[src] ? prev : { ...prev, [src]: true }))
+              }
             />
           </button>
         ))}
@@ -62,7 +68,7 @@ export function ImageGallery({
         <button
           type="button"
           onClick={() => setVisible((v) => Math.min(v + LOAD_STEP, list.length))}
-          className="mt-4 w-full rounded-xl border border-dashed py-2.5 text-sm font-semibold transition hover:bg-muted/40"
+          className="mt-4 min-h-11 w-full rounded-xl border border-dashed py-2.5 text-sm font-semibold transition hover:bg-muted/40"
           style={{ color: accent, borderColor: `${accent}55` }}
         >
           Load More Images ({list.length - visible} left)
@@ -112,7 +118,7 @@ export function MediaLightbox({
     >
       <button
         type="button"
-        className="absolute right-4 top-4 z-10 rounded-full bg-white/15 px-3 py-1.5 text-sm font-bold text-white"
+        className="absolute right-4 top-4 z-10 min-h-11 rounded-full bg-white/15 px-3 py-1.5 text-sm font-bold text-white"
         onClick={onClose}
       >
         Close
@@ -120,7 +126,7 @@ export function MediaLightbox({
       {onPrev ? (
         <button
           type="button"
-          className="absolute left-3 z-10 rounded-full bg-white/15 px-3 py-2 text-white"
+          className="absolute left-3 z-10 min-h-11 min-w-11 rounded-full bg-white/15 px-3 py-2 text-white"
           onClick={(e) => {
             e.stopPropagation();
             onPrev();
@@ -132,7 +138,7 @@ export function MediaLightbox({
       {onNext ? (
         <button
           type="button"
-          className="absolute right-3 z-10 rounded-full bg-white/15 px-3 py-2 text-white sm:right-16"
+          className="absolute right-3 z-10 min-h-11 min-w-11 rounded-full bg-white/15 px-3 py-2 text-white sm:right-16"
           onClick={(e) => {
             e.stopPropagation();
             onNext();

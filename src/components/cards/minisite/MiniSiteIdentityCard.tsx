@@ -118,7 +118,7 @@ export function MiniSiteIdentityCard({
                   </div>
                   <div className="rounded-xl border border-white/10 bg-white/90 p-1.5">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={qrSrc} alt="QR" className="h-14 w-14 rounded-lg" />
+                    <img src={qrSrc} alt="QR" className="h-14 w-14 rounded-lg object-contain" />
                   </div>
                 </div>
 
@@ -143,7 +143,7 @@ export function MiniSiteIdentityCard({
                   </span>
                 </div>
 
-                <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5 [&>*]:min-h-[2.75rem]">
+                <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-5 [&>*]:min-h-11">
                   <CardAction label="Save" onClick={onSave} accent={accent} primary />
                   <CardAction label="Share" onClick={onShare} />
                   <CardAction label="QR" onClick={onQr} />
@@ -190,7 +190,7 @@ function CardAction({
       accent={accent}
       variant={primary ? "primary" : "ghost"}
       className={cn(
-        "flex h-full min-h-[2.75rem] w-full items-center justify-center rounded-xl px-2 py-2.5 text-[10px]",
+        "flex h-full min-h-11 w-full items-center justify-center rounded-xl px-2 py-2.5 text-[10px]",
         className,
       )}
     >

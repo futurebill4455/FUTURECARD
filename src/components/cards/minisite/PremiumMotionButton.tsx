@@ -55,7 +55,7 @@ export function PremiumMotionButton({
       whileTap={isDisabled ? undefined : { scale: 0.985 }}
       transition={{ type: "spring", stiffness: 500, damping: 32 }}
       className={cn(
-        "ms-luminous-btn group relative overflow-hidden rounded-2xl px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide disabled:pointer-events-none disabled:opacity-40",
+        "ms-luminous-btn group relative min-h-11 overflow-hidden rounded-2xl px-3 py-3 text-[11px] font-extrabold uppercase tracking-wide disabled:pointer-events-none disabled:opacity-40",
         variantClass,
         className,
       )}

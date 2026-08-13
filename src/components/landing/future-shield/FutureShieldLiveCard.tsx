@@ -38,6 +38,22 @@ import {
   FUTURE_SHIELD_PUBLIC_URL,
 } from "@/data/future-shield-card";
 
+function scrollPreviewSection(id: string) {
+  const target = document.getElementById(id);
+  if (!target) return;
+  const scroller = target.closest(".fs-preview-scroll");
+  if (scroller instanceof HTMLElement) {
+    const top =
+      scroller.scrollTop +
+      (target.getBoundingClientRect().top -
+        scroller.getBoundingClientRect().top) -
+      8;
+    scroller.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    return;
+  }
+  target.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
 const PREVIEW_SETTINGS: IPlatformSettings = {
   _id: "hero-preview",
   adminWhatsappNumber: "+91871492828",
@@ -128,9 +144,7 @@ function FutureShieldLiveCardInner() {
         setSelectedService(list[0]);
         return;
       }
-      document
-        .getElementById("fs-preview-services")
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      scrollPreviewSection("fs-preview-services");
       return;
     }
     if (id === "book") {
@@ -167,19 +181,21 @@ function FutureShieldLiveCardInner() {
 
   return (
     <div
-      className="relative bg-[#020617] text-slate-50"
+      className="relative min-w-0 overflow-x-hidden break-words bg-[#020617] text-slate-50"
       style={{ ["--ms-accent" as string]: accent }}
     >
       <div className="pointer-events-none absolute inset-0 ambient-grid opacity-30" />
 
-      <div className="relative z-[1] -mt-12 sm:-mt-14">
-        <FutureShieldProfile
-          card={card}
-          accent={accent}
-          soft={soft}
-          ctas={ctas}
-          onCta={handleCta}
-        />
+      <div className="relative z-[1] -mt-12 min-w-0 pb-8 sm:-mt-14">
+        <div id="fs-preview-profile">
+          <FutureShieldProfile
+            card={card}
+            accent={accent}
+            soft={soft}
+            ctas={ctas}
+            onCta={handleCta}
+          />
+        </div>
         <FutureShieldActions
           card={card}
           accent={accent}
@@ -190,7 +206,9 @@ function FutureShieldLiveCardInner() {
           onQr={() => setQrOpen(true)}
         />
         <FutureShieldAbout card={card} accent={accent} copy={copy} />
-        <MiniSiteStats accent={accent} stats={resolveCardStats(card.stats)} />
+        <div id="fs-preview-stats">
+          <MiniSiteStats accent={accent} stats={resolveCardStats(card.stats)} />
+        </div>
         <div id="fs-preview-services">
           <FutureShieldServices
             card={card}
@@ -199,35 +217,37 @@ function FutureShieldLiveCardInner() {
             onSelect={setSelectedService}
           />
         </div>
-        <FutureShieldWhyChooseUs
-          accent={accent}
-          items={resolveWhyChooseItems(card.whyChooseItems)}
-          copy={copy}
-        />
-        <FutureShieldGallery card={card} accent={accent} copy={copy} />
+        <div id="fs-preview-why">
+          <FutureShieldWhyChooseUs
+            accent={accent}
+            items={resolveWhyChooseItems(card.whyChooseItems)}
+            copy={copy}
+          />
+        </div>
+        <div id="fs-preview-gallery">
+          <FutureShieldGallery card={card} accent={accent} copy={copy} />
+        </div>
         <FutureShieldTestimonials accent={accent} copy={copy} />
-        <FutureShieldQRCode
-          card={card}
-          accent={accent}
-          onSave={() => handleCta("save")}
-          onShare={() => void onShare()}
-        />
-        <FutureShieldContact
-          card={card}
-          features={features}
-          analytics={analytics}
-          accent={accent}
-          copy={copy}
-        />
+        <div id="fs-preview-qr">
+          <FutureShieldQRCode
+            card={card}
+            accent={accent}
+            onSave={() => handleCta("save")}
+            onShare={() => void onShare()}
+          />
+          <FutureShieldContact
+            card={card}
+            features={features}
+            analytics={analytics}
+            accent={accent}
+            copy={copy}
+          />
+        </div>
         <FutureShieldCTA
           accent={accent}
           copy={copy}
           name={card.companyName}
-          onConnect={() =>
-            document
-              .getElementById("fs-preview-connect")
-              ?.scrollIntoView({ behavior: "smooth" })
-          }
+          onConnect={() => scrollPreviewSection("fs-preview-connect")}
           onWhatsApp={openWhatsApp}
           onCall={openCall}
         />
@@ -284,12 +304,14 @@ function FutureShieldLiveCardInner() {
               <img
                 src={`https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(FUTURE_SHIELD_PUBLIC_URL)}`}
                 alt="Future Shield QR code"
-                className="h-48 w-48"
+                width={192}
+                height={192}
+                className="mx-auto h-48 w-48 max-w-full object-contain"
               />
             </div>
             <button
               type="button"
-              className="mt-5 w-full rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-slate-300"
+              className="mt-5 min-h-11 w-full rounded-xl border border-white/10 py-2.5 text-sm font-semibold text-slate-300"
               onClick={() => setQrOpen(false)}
             >
               Close

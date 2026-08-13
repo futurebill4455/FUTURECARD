@@ -103,6 +103,19 @@ const config: Config = {
           "38%": { transform: "rotate(-18deg)" },
           "100%": { transform: "rotate(-6deg)" },
         },
+        "fs-hint-idle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-3px)" },
+        },
+        "fs-hint-swipe": {
+          "0%": { transform: "translateY(4px)", opacity: "0.35" },
+          "55%": { transform: "translateY(-8px)", opacity: "1" },
+          "100%": { transform: "translateY(-2px)", opacity: "0.7" },
+        },
+        "fs-hint-pulse": {
+          "0%, 100%": { opacity: "0.35" },
+          "50%": { opacity: "0.8" },
+        },
       },
       animation: {
         "fade-up": "fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both",
@@ -118,6 +131,9 @@ const config: Config = {
         "hero-breathe": "hero-breathe 4.8s ease-in-out infinite",
         "hero-swipe-once":
           "hero-swipe-once 1.45s cubic-bezier(0.45, 0.05, 0.2, 1) both",
+        "fs-hint-idle": "fs-hint-idle 3.4s ease-in-out infinite",
+        "fs-hint-swipe": "fs-hint-swipe 1.15s cubic-bezier(0.45, 0.05, 0.2, 1) both",
+        "fs-hint-pulse": "fs-hint-pulse 2.8s ease-in-out infinite",
       },
     },
   },

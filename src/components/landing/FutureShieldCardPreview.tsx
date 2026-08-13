@@ -9,78 +9,120 @@ import {
   type ScrollerGesture,
 } from "@/components/landing/MiniUserScroller";
 
-/** ~34s loop: slow explore, pause at bottom, ease back to top. */
-const CYCLE_MS = 34000;
-const RESUME_MS = 6500;
-const RETURN_START_MS = 28500;
+/** Section tour — natural pauses, ~16s full cycle. */
+const STOPS = [
+  "fs-preview-profile",
+  "fs-preview-stats",
+  "fs-preview-services",
+  "fs-preview-why",
+  "fs-preview-gallery",
+  "fs-preview-qr",
+] as const;
 
-type Key = { t: number; p: number; g: ScrollerGesture };
+const PAUSE_PROFILE_MS = 1700;
+const PAUSE_READ_MS = 1450;
+const PAUSE_QR_MS = 1600;
+const SCROLL_MS = 900;
+const RETURN_MS = 1100;
+const RESUME_MS = 4000;
 
-const KEYS: Key[] = [
-  { t: 0, p: 0, g: "idle" },
-  { t: 2000, p: 0, g: "idle" },
-  { t: 2700, p: 0, g: "reach" },
-  { t: 4600, p: 0.13, g: "swipe" },
-  { t: 6300, p: 0.13, g: "read" },
-  { t: 6900, p: 0.13, g: "reach" },
-  { t: 8800, p: 0.28, g: "swipe" },
-  { t: 10600, p: 0.28, g: "read" },
-  { t: 11200, p: 0.28, g: "reach" },
-  { t: 12800, p: 0.42, g: "swipe" },
-  { t: 14300, p: 0.42, g: "read" },
-  { t: 14900, p: 0.42, g: "reach" },
-  { t: 17000, p: 0.58, g: "swipe" },
-  { t: 19100, p: 0.58, g: "read" },
-  { t: 19700, p: 0.58, g: "reach" },
-  { t: 21200, p: 0.72, g: "swipe" },
-  { t: 22900, p: 0.72, g: "read" },
-  { t: 23500, p: 0.72, g: "reach" },
-  { t: 25200, p: 0.88, g: "swipe" },
-  { t: 26000, p: 1, g: "swipe" },
-  { t: 28500, p: 1, g: "idle" },
-  { t: 33500, p: 0, g: "idle" },
-  { t: 34000, p: 0, g: "idle" },
+const LOOK_FOR_STOP: LookZone[] = [
+  "top",
+  "mid",
+  "mid",
+  "gallery",
+  "gallery",
+  "low",
 ];
 
 function easeInOutCubic(t: number) {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
 
-function sampleAt(ms: number): { p: number; g: ScrollerGesture } {
-  const x = ((ms % CYCLE_MS) + CYCLE_MS) % CYCLE_MS;
-  for (let i = 0; i < KEYS.length - 1; i += 1) {
-    const a = KEYS[i];
-    const b = KEYS[i + 1];
-    if (x >= a.t && x <= b.t) {
-      const u = b.t === a.t ? 1 : (x - a.t) / (b.t - a.t);
-      const e = easeInOutCubic(u);
-      return { p: a.p + (b.p - a.p) * e, g: u < 0.08 ? a.g : b.g };
-    }
-  }
-  return { p: 0, g: "idle" };
+function sectionOffset(scroller: HTMLElement, id: string) {
+  const el = scroller.querySelector<HTMLElement>(`#${id}`);
+  if (!el) return 0;
+  const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  const next =
+    scroller.scrollTop +
+    (el.getBoundingClientRect().top - scroller.getBoundingClientRect().top) -
+    6;
+  return Math.min(max, Math.max(0, next));
 }
 
-function lookFromProgress(p: number): LookZone {
-  if (p < 0.18) return "top";
-  if (p < 0.45) return "mid";
-  if (p < 0.68) return "gallery";
-  return "low";
-}
+type Sample = { top: number; gesture: ScrollerGesture; look: LookZone };
 
-function elapsedForProgress(pTarget: number) {
-  const clamped = Math.min(1, Math.max(0, pTarget));
-  for (let i = 0; i < KEYS.length - 1; i += 1) {
-    const a = KEYS[i];
-    const b = KEYS[i + 1];
-    if (a.t >= RETURN_START_MS) break;
-    const lo = Math.min(a.p, b.p);
-    const hi = Math.max(a.p, b.p);
-    if (clamped >= lo - 0.001 && clamped <= hi + 0.001 && hi !== lo) {
-      const u = (clamped - a.p) / (b.p - a.p);
-      return a.t + Math.max(0, Math.min(1, u)) * (b.t - a.t);
-    }
+function buildTour(scroller: HTMLElement) {
+  const max = Math.max(0, scroller.scrollHeight - scroller.clientHeight);
+  const tops = STOPS.map((id) => Math.min(max, sectionOffset(scroller, id)));
+  tops[0] = 0;
+
+  type Key = { t: number; top: number; g: ScrollerGesture; look: LookZone };
+  const keys: Key[] = [];
+  let t = 0;
+
+  keys.push({ t, top: 0, g: "idle", look: "top" });
+  t += PAUSE_PROFILE_MS;
+  keys.push({ t, top: 0, g: "idle", look: "top" });
+
+  for (let i = 1; i < tops.length; i += 1) {
+    keys.push({ t, top: tops[i - 1]!, g: "reach", look: LOOK_FOR_STOP[i - 1]! });
+    t += SCROLL_MS;
+    keys.push({
+      t,
+      top: tops[i]!,
+      g: "swipe",
+      look: LOOK_FOR_STOP[i]!,
+    });
+    const hold = i === tops.length - 1 ? PAUSE_QR_MS : PAUSE_READ_MS;
+    t += hold;
+    keys.push({
+      t,
+      top: tops[i]!,
+      g: "read",
+      look: LOOK_FOR_STOP[i]!,
+    });
   }
-  return 0;
+
+  keys.push({ t, top: tops[tops.length - 1]!, g: "idle", look: "low" });
+  t += RETURN_MS;
+  keys.push({ t, top: 0, g: "idle", look: "top" });
+
+  const duration = t;
+
+  function sample(ms: number): Sample {
+    const x = ((ms % duration) + duration) % duration;
+    for (let i = 0; i < keys.length - 1; i += 1) {
+      const a = keys[i]!;
+      const b = keys[i + 1]!;
+      if (x >= a.t && x <= b.t) {
+        const u = b.t === a.t ? 1 : (x - a.t) / (b.t - a.t);
+        const e = easeInOutCubic(u);
+        return {
+          top: a.top + (b.top - a.top) * e,
+          gesture: u < 0.12 ? a.g : b.g,
+          look: u < 0.5 ? a.look : b.look,
+        };
+      }
+    }
+    return { top: 0, gesture: "idle", look: "top" };
+  }
+
+  function elapsedNear(scrollTop: number) {
+    let bestT = 0;
+    let best = Number.POSITIVE_INFINITY;
+    for (const k of keys) {
+      if (k.t >= duration - RETURN_MS) continue;
+      const d = Math.abs(k.top - scrollTop);
+      if (d < best) {
+        best = d;
+        bestT = k.t;
+      }
+    }
+    return bestT;
+  }
+
+  return { duration, sample, elapsedNear };
 }
 
 export function FutureShieldCardPreview() {
@@ -92,13 +134,22 @@ export function FutureShieldCardPreview() {
   const lastTs = useRef<number | null>(null);
   const lastScrollWrite = useRef(-1);
   const lastGesture = useRef<ScrollerGesture>("idle");
+  const ignoreScrollUntil = useRef(0);
+  const tourRef = useRef<ReturnType<typeof buildTour> | null>(null);
 
   const [gesture, setGesture] = useState<ScrollerGesture>("idle");
   const [look, setLook] = useState<LookZone>("top");
   const [swipeKey, setSwipeKey] = useState(0);
   const [userPaused, setUserPaused] = useState(false);
 
+  const rebuildTour = useCallback(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    tourRef.current = buildTour(el);
+  }, []);
+
   const pauseAuto = useCallback(() => {
+    if (reduce) return;
     pausedRef.current = true;
     setUserPaused(true);
     setGesture("idle");
@@ -106,15 +157,34 @@ export function FutureShieldCardPreview() {
     if (resumeTimer.current) window.clearTimeout(resumeTimer.current);
     resumeTimer.current = window.setTimeout(() => {
       const el = scrollerRef.current;
-      if (el) {
-        const max = Math.max(1, el.scrollHeight - el.clientHeight);
-        elapsedRef.current = elapsedForProgress(el.scrollTop / max);
+      if (el && tourRef.current) {
+        elapsedRef.current = tourRef.current.elapsedNear(el.scrollTop);
       }
       pausedRef.current = false;
       setUserPaused(false);
       lastScrollWrite.current = -1;
     }, RESUME_MS);
-  }, []);
+  }, [reduce]);
+
+  const onUserScroll = useCallback(() => {
+    if (performance.now() < ignoreScrollUntil.current) return;
+    pauseAuto();
+  }, [pauseAuto]);
+
+  useEffect(() => {
+    rebuildTour();
+    const el = scrollerRef.current;
+    if (!el) return undefined;
+    const ro = new ResizeObserver(() => rebuildTour());
+    ro.observe(el);
+    const inner = el.firstElementChild;
+    if (inner) ro.observe(inner);
+    el.addEventListener("load", rebuildTour, true);
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("load", rebuildTour, true);
+    };
+  }, [rebuildTour]);
 
   useEffect(() => {
     if (reduce) return undefined;
@@ -122,29 +192,28 @@ export function FutureShieldCardPreview() {
     let raf = 0;
     const tick = (ts: number) => {
       if (lastTs.current == null) lastTs.current = ts;
-      const dt = Math.min(40, ts - lastTs.current);
+      const dt = Math.min(48, ts - lastTs.current);
       lastTs.current = ts;
 
       if (!pausedRef.current) {
         elapsedRef.current += dt;
-        const { p, g } = sampleAt(elapsedRef.current);
         const el = scrollerRef.current;
         if (el) {
-          const max = Math.max(0, el.scrollHeight - el.clientHeight);
-          const next = p * max;
-          if (Math.abs(next - lastScrollWrite.current) > 0.4) {
-            el.scrollTop = next;
-            lastScrollWrite.current = next;
+          if (!tourRef.current) tourRef.current = buildTour(el);
+          const { top, gesture: g, look: zone } = tourRef.current.sample(
+            elapsedRef.current,
+          );
+          if (Math.abs(top - lastScrollWrite.current) > 0.35) {
+            ignoreScrollUntil.current = performance.now() + 64;
+            el.scrollTop = top;
+            lastScrollWrite.current = top;
           }
-        }
-
-        const zone = lookFromProgress(p);
-        setLook((prev) => (prev === zone ? prev : zone));
-
-        if (g !== lastGesture.current) {
-          lastGesture.current = g;
-          setGesture(g);
-          if (g === "swipe") setSwipeKey((n) => n + 1);
+          setLook((prev) => (prev === zone ? prev : zone));
+          if (g !== lastGesture.current) {
+            lastGesture.current = g;
+            setGesture(g);
+            if (g === "swipe") setSwipeKey((n) => n + 1);
+          }
         }
       }
 
@@ -162,13 +231,13 @@ export function FutureShieldCardPreview() {
   }, []);
 
   return (
-    <div className="relative mx-auto w-[90%] max-w-[420px] min-w-0 md:max-w-[380px] lg:w-full lg:max-w-none">
+    <div className="fs-preview-phone relative mx-auto min-w-0">
       <div
-        className={`relative origin-center [transform-style:preserve-3d] ${
+        className={`fs-preview-stage relative origin-center ${
           reduce || userPaused ? "" : "animate-hero-float"
         }`}
       >
-        <div className="pointer-events-none absolute -inset-5 rounded-[2.2rem] bg-gradient-to-br from-cyan-400/22 via-teal-400/10 to-violet-500/16 blur-3xl" />
+        <div className="pointer-events-none absolute -inset-4 rounded-[2.2rem] bg-gradient-to-br from-cyan-400/22 via-teal-400/10 to-violet-500/16 blur-3xl max-md:inset-0 max-md:blur-2xl" />
 
         <div className="landing-glow-border relative overflow-hidden rounded-[1.65rem] border border-white/15 bg-[#020617] shadow-[0_28px_70px_-22px_rgba(0,0,0,0.78),0_0_0_1px_rgba(45,212,191,0.2)]">
           <div className="flex items-center justify-between px-4 py-2">
@@ -184,20 +253,21 @@ export function FutureShieldCardPreview() {
             onWheel={pauseAuto}
             onPointerDown={pauseAuto}
             onTouchStart={pauseAuto}
-            className="fs-preview-scroll h-[min(64vh,540px)] overflow-x-hidden overflow-y-auto sm:h-[min(66vh,560px)] md:h-[500px] lg:h-[min(70vh,620px)]"
+            onScroll={onUserScroll}
+            className="fs-preview-scroll"
             aria-label="Future Shield digital card preview"
           >
             <FutureShieldLiveCard />
           </div>
+
+          <MiniUserScroller
+            gesture={reduce || userPaused ? "idle" : gesture}
+            look={reduce ? "top" : look}
+            swipeKey={swipeKey}
+            reduced={Boolean(reduce) || userPaused}
+          />
         </div>
       </div>
-
-      <MiniUserScroller
-        gesture={reduce || userPaused ? "idle" : gesture}
-        look={reduce ? "top" : look}
-        swipeKey={swipeKey}
-        reduced={Boolean(reduce) || userPaused}
-      />
     </div>
   );
 }

@@ -558,6 +558,8 @@ body {
     radial-gradient(ellipse 50% 40% at 100% 25%, rgba(14, 165, 233, 0.12), transparent 45%),
     linear-gradient(180deg, #020617 0%, #04141a 45%, #020617 100%);
   color: #ecfeff;
+  overflow-x: clip;
+  max-width: 100%;
 }
 
 .landing-page section + section {
@@ -589,17 +591,65 @@ body {
   z-index: 1;
 }
 
+.fs-preview-phone {
+  width: min(90vw, 100%);
+  max-width: 420px;
+}
+
 .fs-preview-scroll {
+  height: min(74vh, 720px);
+  max-height: 720px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(34, 211, 238, 0.35) transparent;
-  overscroll-behavior: contain;
 }
+
 .fs-preview-scroll::-webkit-scrollbar {
   width: 5px;
 }
 .fs-preview-scroll::-webkit-scrollbar-thumb {
   background: rgba(34, 211, 238, 0.35);
   border-radius: 999px;
+}
+
+.fs-preview-scroll img,
+.fs-preview-scroll video {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .fs-preview-phone {
+    width: 100%;
+    max-width: 380px;
+  }
+  .fs-preview-scroll {
+    height: 500px;
+    max-height: 500px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fs-preview-phone {
+    width: 100%;
+    max-width: none;
+  }
+  .fs-preview-scroll {
+    height: min(70vh, 620px);
+    max-height: 620px;
+  }
+}
+
+@media (max-width: 767px) {
+  .fs-preview-stage {
+    animation: none !important;
+    transform: none !important;
+    transform-style: flat;
+  }
 }
 
 /* Scrollbar */

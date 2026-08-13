@@ -35,7 +35,7 @@ export function LandingPage({
   const content = resolveLandingCms(cms || DEFAULT_LANDING_CMS);
 
   return (
-    <div className="landing-page relative min-h-screen overflow-x-hidden text-teal-50">
+    <div className="landing-page relative min-h-screen overflow-x-clip text-teal-50">
       <ImmersiveBackground
         mode={ambientMode}
         video={ambientVideo}

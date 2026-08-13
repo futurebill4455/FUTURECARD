@@ -41,14 +41,16 @@ export function MiniSiteQrTerminal({
         <motion.div
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 260, damping: 20 }}
-          className="relative mx-auto mt-7 w-fit rounded-[1.35rem] bg-gradient-to-br from-cyan-400/40 via-violet-400/20 to-transparent p-[2px] fx-pulse-glow"
+          className="relative mx-auto mt-7 flex w-fit max-w-full justify-center rounded-[1.35rem] bg-gradient-to-br from-cyan-400/40 via-violet-400/20 to-transparent p-[2px] fx-pulse-glow"
         >
-          <div className="rounded-[1.25rem] bg-white p-3">
+          <div className="rounded-[1.25rem] bg-white p-3 max-w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={qrSrc}
               alt={`QR code for ${card.companyName || "profile"}`}
-              className="h-44 w-44 rounded-xl sm:h-52 sm:w-52"
+              width={208}
+              height={208}
+              className="mx-auto h-auto w-[min(11rem,100%)] max-w-full aspect-square object-contain sm:w-52"
               loading="lazy"
             />
           </div>

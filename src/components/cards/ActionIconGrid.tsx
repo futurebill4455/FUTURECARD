@@ -144,7 +144,7 @@ export function ActionIconGrid({
           );
 
           const itemClass =
-            "group/holo flex flex-col items-center outline-none";
+            "group/holo flex min-h-11 flex-col items-center outline-none";
 
           if (
             meta.valueKind === "none" ||
