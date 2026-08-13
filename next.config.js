@@ -19,10 +19,13 @@ const nextConfig = {
     },
   },
   webpack: (config, { dev }) => {
-    if (!dev && Array.isArray(config.optimization?.minimizer)) {
-      config.optimization.minimizer = config.optimization.minimizer.filter(
-        (plugin) => plugin?.constructor?.name !== "MinifyPlugin",
-      );
+    if (!dev) {
+      // Next registers MinifyPlugin as a function, not a class instance, so
+      // constructor-name filters miss it. Turning minimize off is the reliable
+      // way to skip the WebpackError crash on Vercel.
+      config.optimization = config.optimization || {};
+      config.optimization.minimize = false;
+      config.optimization.minimizer = [];
     }
     return config;
   },
