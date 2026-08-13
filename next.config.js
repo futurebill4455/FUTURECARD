@@ -10,13 +10,21 @@ const nextConfig = {
     ],
   },
   // Next 15.5's minify-webpack-plugin can throw
-  // `TypeError: WebpackError is not a constructor` (especially on Node 24).
-  // Disable that plugin; client minification is unchanged.
+  // `TypeError: WebpackError is not a constructor` and fail the Vercel build.
+  // Server minify is off; the broken client MinifyPlugin is removed below.
   experimental: {
     serverMinification: false,
     serverActions: {
       bodySizeLimit: "42mb",
     },
+  },
+  webpack: (config, { dev }) => {
+    if (!dev && Array.isArray(config.optimization?.minimizer)) {
+      config.optimization.minimizer = config.optimization.minimizer.filter(
+        (plugin) => plugin?.constructor?.name !== "MinifyPlugin",
+      );
+    }
+    return config;
   },
 };
 
